@@ -1,0 +1,181 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "fullName": "Admin User",
+      "email": "admin@gmail.com",
+      "password": "123456",
+      "role": "ADMIN",
+      "avatar": "AU"
+    },
+    {
+      "id": 2,
+      "fullName": "Dr. Nguyen Minh",
+      "email": "doctor@gmail.com",
+      "password": "123456",
+      "role": "DOCTOR",
+      "avatar": "NM"
+    },
+    {
+      "id": 3,
+      "fullName": "Le Trung Hieu",
+      "email": "patient@gmail.com",
+      "password": "123456",
+      "role": "PATIENT",
+      "avatar": "LH"
+    }
+  ],
+  "patients": [
+    {
+      "id": 1,
+      "fullName": "Le Trung Hieu",
+      "gender": "Male",
+      "age": 21,
+      "phone": "0987654321",
+      "email": "hieu@example.com",
+      "address": "Ha Noi",
+      "status": "Active"
+    },
+    {
+      "id": 2,
+      "fullName": "Nguyen Van An",
+      "gender": "Male",
+      "age": 45,
+      "phone": "0911222333",
+      "email": "an@example.com",
+      "address": "Ho Chi Minh City",
+      "status": "Active"
+    },
+    {
+      "id": 3,
+      "fullName": "Tran Thi Mai",
+      "gender": "Female",
+      "age": 38,
+      "phone": "0909888777",
+      "email": "mai@example.com",
+      "address": "Da Nang",
+      "status": "Active"
+    },
+    {
+      "id": 4,
+      "fullName": "Pham Quoc Bao",
+      "gender": "Male",
+      "age": 52,
+      "phone": "0966111222",
+      "email": "bao@example.com",
+      "address": "Can Tho",
+      "status": "Inactive"
+    }
+  ],
+  "doctors": [
+    {
+      "id": 1,
+      "fullName": "Dr. Nguyen Minh",
+      "specialization": "Endocrinology",
+      "phone": "0901112222",
+      "email": "doctor@gmail.com"
+    },
+    {
+      "id": 2,
+      "fullName": "Dr. Tran Lan",
+      "specialization": "General Medicine",
+      "phone": "0903334444",
+      "email": "lan@example.com"
+    },
+    {
+      "id": 3,
+      "fullName": "Dr. Hoang Nam",
+      "specialization": "Cardiology",
+      "phone": "0905556666",
+      "email": "nam@example.com"
+    }
+  ],
+  "appointments": [
+    {
+      "id": 1,
+      "patientId": 1,
+      "doctorId": 1,
+      "date": "2026-07-03",
+      "time": "09:00",
+      "reason": "Diabetes follow-up",
+      "status": "Pending"
+    },
+    {
+      "id": 2,
+      "patientId": 2,
+      "doctorId": 2,
+      "date": "2026-07-06",
+      "time": "14:30",
+      "reason": "General check-up",
+      "status": "Approved"
+    },
+    {
+      "id": 3,
+      "patientId": 3,
+      "doctorId": 1,
+      "date": "2026-07-07",
+      "time": "10:15",
+      "reason": "Blood sugar review",
+      "status": "Completed"
+    },
+    {
+      "id": 4,
+      "patientId": 4,
+      "doctorId": 3,
+      "date": "2026-07-08",
+      "time": "16:00",
+      "reason": "Blood pressure monitoring",
+      "status": "Cancelled"
+    }
+  ],
+  "medicalRecords": [
+    {
+      "id": 1,
+      "patientId": 1,
+      "doctorId": 1,
+      "date": "2026-07-01",
+      "glucose": 185,
+      "hba1c": 8.4,
+      "bmi": 20.5,
+      "bloodPressure": "125/80",
+      "diagnosis": "High blood sugar, diabetes follow-up required",
+      "note": "Patient should monitor fasting glucose and reduce sugar intake."
+    },
+    {
+      "id": 2,
+      "patientId": 2,
+      "doctorId": 2,
+      "date": "2026-07-02",
+      "glucose": 110,
+      "hba1c": 5.8,
+      "bmi": 24.1,
+      "bloodPressure": "118/76",
+      "diagnosis": "Prediabetes watch",
+      "note": "Maintain healthy diet and regular exercise."
+    },
+    {
+      "id": 3,
+      "patientId": 3,
+      "doctorId": 1,
+      "date": "2026-07-03",
+      "glucose": 132,
+      "hba1c": 6.7,
+      "bmi": 26.2,
+      "bloodPressure": "130/84",
+      "diagnosis": "Diabetes risk",
+      "note": "Need follow-up after 3 months."
+    },
+    {
+      "id": 4,
+      "patientId": 4,
+      "doctorId": 3,
+      "date": "2026-07-04",
+      "glucose": 96,
+      "hba1c": 5.4,
+      "bmi": 23.4,
+      "bloodPressure": "145/92",
+      "diagnosis": "High blood pressure",
+      "note": "Reduce sodium intake and monitor blood pressure."
+    }
+  ]
+}
