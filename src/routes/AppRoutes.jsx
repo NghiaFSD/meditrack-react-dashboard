@@ -6,14 +6,20 @@ import Patients from "../pages/Patients";
 import PatientDetail from "../pages/PatientDetail";
 import Appointments from "../pages/Appointments";
 import MedicalRecords from "../pages/MedicalRecords";
+import AccessDenied from "../pages/AccessDenied";
 import NotFound from "../pages/NotFound";
+import { ROLES, getCurrentUser, hasRole } from "../utils/auth";
 
 // Chặn người chưa đăng nhập vào dashboard.
-function ProtectedRoute({ children }) {
-  const currentUser = localStorage.getItem("currentUser");
+function ProtectedRoute({ children, allowedRoles = [] }) {
+  const currentUser = getCurrentUser();
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!hasRole(currentUser.role, allowedRoles)) {
+    return <Navigate to="/access-denied" replace />;
   }
 
   return children;
@@ -24,21 +30,50 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/access-denied" element={<AccessDenied />} />
 
       <Route
         path="/"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]}>
             <MainLayout />
           </ProtectedRoute>
         }
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="patients" element={<Patients />} />
-        <Route path="patients/:id" element={<PatientDetail />} />
-        <Route path="appointments" element={<Appointments />} />
-        <Route path="records" element={<MedicalRecords />} />
+        <Route
+          path="patients"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR]}>
+              <Patients />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="patients/:id"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR]}>
+              <PatientDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="appointments"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]}>
+              <Appointments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="records"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]}>
+              <MedicalRecords />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route path="*" element={<NotFound />} />

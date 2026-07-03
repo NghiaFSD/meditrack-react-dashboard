@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { authApi } from "../api/authApi";
+import { getCurrentUser } from "../utils/auth";
 
 // Trang đăng nhập demo.
 // Tài khoản được lấy từ db.json thông qua json-server.
@@ -9,6 +10,12 @@ function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "admin@gmail.com", password: "123456" });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (getCurrentUser()) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -20,14 +27,14 @@ function Login() {
 
     try {
       setLoading(true);
-      const users = await authApi.login(form.email, form.password);
+      const users = await authApi.login(form.email);
+      const user = users.find((item) => item.password === form.password);
 
-      if (!users.length) {
+      if (!user) {
         Swal.fire("Login failed", "Email or password is incorrect.", "error");
         return;
       }
 
-      const user = users[0];
       localStorage.setItem("currentUser", JSON.stringify(user));
       Swal.fire("Success", `Welcome ${user.fullName}!`, "success");
       navigate("/dashboard");

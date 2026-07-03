@@ -8,8 +8,11 @@ import Loading from "../components/common/Loading";
 import Modal from "../components/common/Modal";
 import SearchBox from "../components/common/SearchBox";
 import StatusBadge from "../components/common/StatusBadge";
+import { appointmentApi } from "../api/appointmentApi";
 import { patientApi } from "../api/patientApi";
+import { recordApi } from "../api/recordApi";
 import { usePatients } from "../hooks/usePatients";
+import { ROLES, getCurrentUser } from "../utils/auth";
 import { isValidEmail, isValidPhone } from "../utils/validation";
 
 const emptyPatient = {
@@ -25,6 +28,9 @@ const emptyPatient = {
 // Trang quản lý bệnh nhân: CRUD + search/filter.
 function Patients() {
   const { patients, loading, error, fetchPatients } = usePatients();
+  const currentUser = getCurrentUser();
+  const currentRole = currentUser?.role;
+  const canManagePatients = currentRole === ROLES.ADMIN;
   const [search, setSearch] = useState("");
   const [genderFilter, setGenderFilter] = useState("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,12 +52,14 @@ function Patients() {
   }, [patients, search, genderFilter]);
 
   const openAddModal = () => {
+    if (!canManagePatients) return;
     setEditingPatient(null);
     setForm(emptyPatient);
     setIsModalOpen(true);
   };
 
   const openEditModal = (patient) => {
+    if (!canManagePatients) return;
     setEditingPatient(patient);
     setForm(patient);
     setIsModalOpen(true);
@@ -67,6 +75,21 @@ function Patients() {
     if (!isValidEmail(form.email)) return "Email is invalid.";
     if (!isValidPhone(form.phone)) return "Phone must contain 9-11 digits.";
     if (Number(form.age) <= 0) return "Age must be greater than 0.";
+
+    const normalizedEmail = form.email.trim().toLowerCase();
+    const normalizedPhone = form.phone.trim();
+    const duplicatePatient = patients.find((patient) => {
+      const sameEmail = patient.email.trim().toLowerCase() === normalizedEmail;
+      const samePhone = patient.phone.trim() === normalizedPhone;
+      const sameId = editingPatient && Number(patient.id) === Number(editingPatient.id);
+
+      return !sameId && (sameEmail || samePhone);
+    });
+
+    if (duplicatePatient) {
+      return "Email or phone already exists.";
+    }
+
     return "";
   };
 
@@ -101,6 +124,11 @@ function Patients() {
   };
 
   const handleDelete = async (patient) => {
+    if (!canManagePatients) {
+      Swal.fire("Forbidden", "Only admins can delete patients.", "warning");
+      return;
+    }
+
     const result = await Swal.fire({
       title: "Delete patient?",
       text: `This will remove ${patient.fullName}.`,
@@ -111,9 +139,30 @@ function Patients() {
     });
 
     if (result.isConfirmed) {
-      await patientApi.remove(patient.id);
-      Swal.fire("Deleted", "Patient deleted successfully.", "success");
-      fetchPatients();
+      try {
+        const [appointments, records] = await Promise.all([
+          appointmentApi.getAll(),
+          recordApi.getAll(),
+        ]);
+
+        const hasAppointments = appointments.some((item) => Number(item.patientId) === Number(patient.id));
+        const hasRecords = records.some((item) => Number(item.patientId) === Number(patient.id));
+
+        if (hasAppointments || hasRecords) {
+          Swal.fire(
+            "Cannot delete",
+            "This patient still has related appointments or medical records.",
+            "warning"
+          );
+          return;
+        }
+
+        await patientApi.remove(patient.id);
+        Swal.fire("Deleted", "Patient deleted successfully.", "success");
+        fetchPatients();
+      } catch (err) {
+        Swal.fire("Error", "Cannot delete patient.", "error");
+      }
     }
   };
 
@@ -124,9 +173,9 @@ function Patients() {
       <div className="page-title">
         <div>
           <h1>Patients</h1>
-          <p>Manage patient information and medical profiles.</p>
+          <p>{canManagePatients ? "Manage patient information and medical profiles." : "View patient information and medical profiles."}</p>
         </div>
-        <Button onClick={openAddModal}>+ Add Patient</Button>
+        {canManagePatients && <Button onClick={openAddModal}>+ Add Patient</Button>}
       </div>
 
       <div className="toolbar">
@@ -170,8 +219,8 @@ function Patients() {
                   <td>
                     <div className="action-group">
                       <Link className="link-btn" to={`/patients/${patient.id}`}>View</Link>
-                      <button onClick={() => openEditModal(patient)}>Edit</button>
-                      <button className="danger" onClick={() => handleDelete(patient)}>Delete</button>
+                      {canManagePatients && <button onClick={() => openEditModal(patient)}>Edit</button>}
+                      {canManagePatients && <button className="danger" onClick={() => handleDelete(patient)}>Delete</button>}
                     </div>
                   </td>
                 </tr>

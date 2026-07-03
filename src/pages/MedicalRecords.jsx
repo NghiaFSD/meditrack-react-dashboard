@@ -11,6 +11,7 @@ import { recordApi } from "../api/recordApi";
 import { patientApi } from "../api/patientApi";
 import { doctorApi } from "../api/doctorApi";
 import { useRecords } from "../hooks/useRecords";
+import { ROLES, findLinkedDoctor, findLinkedPatient, getCurrentUser } from "../utils/auth";
 import {
   getBloodPressureStatus,
   getBmiStatus,
@@ -35,6 +36,13 @@ function MedicalRecords() {
   const { records, loading, fetchRecords } = useRecords();
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const currentUser = getCurrentUser();
+  const currentRole = currentUser?.role;
+  const linkedPatient = useMemo(() => findLinkedPatient(patients, currentUser), [patients, currentUser]);
+  const linkedDoctor = useMemo(() => findLinkedDoctor(doctors, currentUser), [doctors, currentUser]);
+  const canCreate = [ROLES.ADMIN, ROLES.DOCTOR].includes(currentRole);
+  const canEdit = [ROLES.ADMIN, ROLES.DOCTOR].includes(currentRole);
+  const canDelete = currentRole === ROLES.ADMIN;
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -62,7 +70,19 @@ function MedicalRecords() {
   };
 
   const filteredRecords = useMemo(() => {
-    return records.filter((record) => {
+    const scopedRecords = records.filter((record) => {
+      if (currentRole === ROLES.PATIENT && linkedPatient) {
+        return Number(record.patientId) === Number(linkedPatient.id);
+      }
+
+      if (currentRole === ROLES.DOCTOR && linkedDoctor) {
+        return Number(record.doctorId) === Number(linkedDoctor.id);
+      }
+
+      return true;
+    });
+
+    return scopedRecords.filter((record) => {
       const keyword = search.toLowerCase();
       return (
         getPatientName(record.patientId).toLowerCase().includes(keyword) ||
@@ -70,15 +90,21 @@ function MedicalRecords() {
         record.diagnosis.toLowerCase().includes(keyword)
       );
     });
-  }, [records, patients, doctors, search]);
+  }, [records, patients, doctors, search, currentRole, linkedPatient, linkedDoctor]);
 
   const openAddModal = () => {
+    if (!canCreate) return;
     setEditingRecord(null);
-    setForm(emptyRecord);
+    setForm(
+      currentRole === ROLES.DOCTOR && linkedDoctor
+        ? { ...emptyRecord, doctorId: linkedDoctor.id }
+        : emptyRecord
+    );
     setIsModalOpen(true);
   };
 
   const openEditModal = (record) => {
+    if (!canEdit) return;
     setEditingRecord(record);
     setForm(record);
     setIsModalOpen(true);
@@ -97,10 +123,35 @@ function MedicalRecords() {
       return;
     }
 
+    const selectedPatientId = Number(form.patientId);
+    const selectedDoctorId = currentRole === ROLES.DOCTOR ? linkedDoctor?.id : Number(form.doctorId);
+    const validPatient = patients.some((patient) => Number(patient.id) === Number(form.patientId));
+    const validDoctor = doctors.some((doctor) => Number(doctor.id) === Number(form.doctorId));
+
+    if (currentRole === ROLES.DOCTOR && !selectedDoctorId) {
+      Swal.fire("Invalid data", "Unable to determine your doctor profile.", "warning");
+      return;
+    }
+
+    if (!validPatient || !validDoctor) {
+      Swal.fire("Invalid data", "Selected patient or doctor does not exist.", "warning");
+      return;
+    }
+
+    if (Number(form.glucose) <= 0 || Number(form.hba1c) <= 0 || Number(form.bmi) <= 0) {
+      Swal.fire("Invalid data", "Glucose, HbA1c and BMI must be greater than 0.", "warning");
+      return;
+    }
+
+    if (!form.bloodPressure.trim() || !form.bloodPressure.includes("/")) {
+      Swal.fire("Invalid data", "Blood pressure must be in the format systolic/diastolic.", "warning");
+      return;
+    }
+
     const payload = {
       ...form,
-      patientId: Number(form.patientId),
-      doctorId: Number(form.doctorId),
+      patientId: Number(selectedPatientId),
+      doctorId: Number(selectedDoctorId),
       glucose: Number(form.glucose),
       hba1c: Number(form.hba1c),
       bmi: Number(form.bmi),
@@ -123,6 +174,11 @@ function MedicalRecords() {
   };
 
   const handleDelete = async (record) => {
+    if (!canDelete) {
+      Swal.fire("Forbidden", "Only admins can delete medical records.", "warning");
+      return;
+    }
+
     const result = await Swal.fire({
       title: "Delete record?",
       text: "This medical record will be removed.",
@@ -133,9 +189,13 @@ function MedicalRecords() {
     });
 
     if (result.isConfirmed) {
-      await recordApi.remove(record.id);
-      Swal.fire("Deleted", "Medical record deleted successfully.", "success");
-      fetchRecords();
+      try {
+        await recordApi.remove(record.id);
+        Swal.fire("Deleted", "Medical record deleted successfully.", "success");
+        fetchRecords();
+      } catch (err) {
+        Swal.fire("Error", "Cannot delete medical record.", "error");
+      }
     }
   };
 
@@ -145,10 +205,10 @@ function MedicalRecords() {
     <div>
       <div className="page-title">
         <div>
-          <h1>Medical Records</h1>
-          <p>Track glucose, HbA1c, BMI, blood pressure and diagnosis.</p>
+          <h1>{currentRole === ROLES.PATIENT ? "My Medical Records" : "Medical Records"}</h1>
+          <p>{currentRole === ROLES.PATIENT ? "View your own medical records." : "Track glucose, HbA1c, BMI, blood pressure and diagnosis."}</p>
         </div>
-        <Button onClick={openAddModal}>+ New Record</Button>
+        {canCreate && <Button onClick={openAddModal}>+ New Record</Button>}
       </div>
 
       <div className="toolbar">
@@ -206,8 +266,9 @@ function MedicalRecords() {
                     <td>{record.diagnosis}</td>
                     <td>
                       <div className="action-group">
-                        <button onClick={() => openEditModal(record)}>Edit</button>
-                        <button className="danger" onClick={() => handleDelete(record)}>Delete</button>
+                        {canEdit && <button onClick={() => openEditModal(record)}>Edit</button>}
+                        {canDelete && <button className="danger" onClick={() => handleDelete(record)}>Delete</button>}
+                        {!canEdit && !canDelete && <span className="text-muted">View only</span>}
                       </div>
                     </td>
                   </tr>
@@ -226,22 +287,36 @@ function MedicalRecords() {
         <form onSubmit={handleSubmit} className="form-grid">
           <div className="form-group">
             <label>Patient</label>
-            <select name="patientId" value={form.patientId} onChange={handleChange}>
-              <option value="">Select patient</option>
-              {patients.map((patient) => (
-                <option key={patient.id} value={patient.id}>{patient.fullName}</option>
-              ))}
-            </select>
+            {currentRole === ROLES.PATIENT ? (
+              <>
+                <input value={linkedPatient?.fullName || "Current patient"} disabled />
+                <input type="hidden" name="patientId" value={linkedPatient?.id || ""} />
+              </>
+            ) : (
+              <select name="patientId" value={form.patientId} onChange={handleChange}>
+                <option value="">Select patient</option>
+                {patients.map((patient) => (
+                  <option key={patient.id} value={patient.id}>{patient.fullName}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="form-group">
             <label>Doctor</label>
-            <select name="doctorId" value={form.doctorId} onChange={handleChange}>
-              <option value="">Select doctor</option>
-              {doctors.map((doctor) => (
-                <option key={doctor.id} value={doctor.id}>{doctor.fullName}</option>
-              ))}
-            </select>
+            {currentRole === ROLES.DOCTOR ? (
+              <>
+                <input value={linkedDoctor?.fullName || "Current doctor"} disabled />
+                <input type="hidden" name="doctorId" value={linkedDoctor?.id || ""} />
+              </>
+            ) : (
+              <select name="doctorId" value={form.doctorId} onChange={handleChange}>
+                <option value="">Select doctor</option>
+                {doctors.map((doctor) => (
+                  <option key={doctor.id} value={doctor.id}>{doctor.fullName}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           <Input label="Date" name="date" type="date" value={form.date} onChange={handleChange} />

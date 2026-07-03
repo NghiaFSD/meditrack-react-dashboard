@@ -1,12 +1,15 @@
+import { getCurrentUser, getRoleLabel } from "../../utils/auth";
+
 // Header hiển thị thông tin user đang đăng nhập.
 function Header() {
-  const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
+  const currentUser = getCurrentUser() || {};
+  const roleLabel = getRoleLabel(currentUser.role);
 
   return (
     <header className="top-header">
       <div>
         <h2>Welcome back, {currentUser.fullName || "Guest"}</h2>
-        <p>Monitor patients, appointments and medical records.</p>
+        <p>{roleLabel === "Patient" ? "View your own appointments and records." : "Monitor patients, appointments and medical records."}</p>
       </div>
 
       <div className="header-profile">
@@ -14,7 +17,7 @@ function Header() {
         <div className="avatar">{currentUser.avatar || "U"}</div>
         <div>
           <strong>{currentUser.fullName || "Unknown"}</strong>
-          <span>{currentUser.role || "USER"}</span>
+          <span>{roleLabel}</span>
         </div>
       </div>
     </header>

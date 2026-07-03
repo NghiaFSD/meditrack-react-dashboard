@@ -1,7 +1,7 @@
 {
   "users": [
     {
-      "id": 1,
+      "id": "1",
       "fullName": "Admin User",
       "email": "admin@gmail.com",
       "password": "123456",
@@ -9,7 +9,7 @@
       "avatar": "AU"
     },
     {
-      "id": 2,
+      "id": "2",
       "fullName": "Dr. Nguyen Minh",
       "email": "doctor@gmail.com",
       "password": "123456",
@@ -17,8 +17,8 @@
       "avatar": "NM"
     },
     {
-      "id": 3,
-      "fullName": "Le Trung Hieu",
+      "id": "3",
+      "fullName": "Le Trong Nghia",
       "email": "patient@gmail.com",
       "password": "123456",
       "role": "PATIENT",
@@ -27,8 +27,8 @@
   ],
   "patients": [
     {
-      "id": 1,
-      "fullName": "Le Trung Hieu",
+      "id": "1",
+      "fullName": "Le Trong Nghia",
       "gender": "Male",
       "age": 21,
       "phone": "0987654321",
@@ -37,7 +37,7 @@
       "status": "Active"
     },
     {
-      "id": 2,
+      "id": "2",
       "fullName": "Nguyen Van An",
       "gender": "Male",
       "age": 45,
@@ -47,7 +47,7 @@
       "status": "Active"
     },
     {
-      "id": 3,
+      "id": "3",
       "fullName": "Tran Thi Mai",
       "gender": "Female",
       "age": 38,
@@ -57,7 +57,7 @@
       "status": "Active"
     },
     {
-      "id": 4,
+      "id": "4",
       "fullName": "Pham Quoc Bao",
       "gender": "Male",
       "age": 52,
@@ -69,21 +69,21 @@
   ],
   "doctors": [
     {
-      "id": 1,
+      "id": "1",
       "fullName": "Dr. Nguyen Minh",
       "specialization": "Endocrinology",
       "phone": "0901112222",
       "email": "doctor@gmail.com"
     },
     {
-      "id": 2,
+      "id": "2",
       "fullName": "Dr. Tran Lan",
       "specialization": "General Medicine",
       "phone": "0903334444",
       "email": "lan@example.com"
     },
     {
-      "id": 3,
+      "id": "3",
       "fullName": "Dr. Hoang Nam",
       "specialization": "Cardiology",
       "phone": "0905556666",
@@ -92,16 +92,16 @@
   ],
   "appointments": [
     {
-      "id": 1,
+      "id": "1",
       "patientId": 1,
       "doctorId": 1,
       "date": "2026-07-03",
       "time": "09:00",
       "reason": "Diabetes follow-up",
-      "status": "Pending"
+      "status": "Approved"
     },
     {
-      "id": 2,
+      "id": "2",
       "patientId": 2,
       "doctorId": 2,
       "date": "2026-07-06",
@@ -110,7 +110,7 @@
       "status": "Approved"
     },
     {
-      "id": 3,
+      "id": "3",
       "patientId": 3,
       "doctorId": 1,
       "date": "2026-07-07",
@@ -119,22 +119,31 @@
       "status": "Completed"
     },
     {
-      "id": 4,
+      "id": "4",
       "patientId": 4,
       "doctorId": 3,
       "date": "2026-07-08",
       "time": "16:00",
       "reason": "Blood pressure monitoring",
       "status": "Cancelled"
+    },
+    {
+      "patientId": 1,
+      "doctorId": 1,
+      "date": "2026-07-05",
+      "time": "15:00",
+      "reason": "check",
+      "status": "Approved",
+      "id": "mbpVSgCVOWg"
     }
   ],
   "medicalRecords": [
     {
-      "id": 1,
+      "id": "1",
       "patientId": 1,
       "doctorId": 1,
       "date": "2026-07-01",
-      "glucose": 185,
+      "glucose": 183,
       "hba1c": 8.4,
       "bmi": 20.5,
       "bloodPressure": "125/80",
@@ -142,7 +151,7 @@
       "note": "Patient should monitor fasting glucose and reduce sugar intake."
     },
     {
-      "id": 2,
+      "id": "2",
       "patientId": 2,
       "doctorId": 2,
       "date": "2026-07-02",
@@ -154,7 +163,7 @@
       "note": "Maintain healthy diet and regular exercise."
     },
     {
-      "id": 3,
+      "id": "3",
       "patientId": 3,
       "doctorId": 1,
       "date": "2026-07-03",
@@ -166,7 +175,7 @@
       "note": "Need follow-up after 3 months."
     },
     {
-      "id": 4,
+      "id": "4",
       "patientId": 4,
       "doctorId": 3,
       "date": "2026-07-04",
@@ -177,5 +186,6 @@
       "diagnosis": "High blood pressure",
       "note": "Reduce sodium intake and monitor blood pressure."
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }

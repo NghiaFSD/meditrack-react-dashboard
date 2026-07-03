@@ -1,10 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { menuItems } from "../../data/menuItems";
+import { getMenuItemsForRole } from "../../data/menuItems";
+import { clearCurrentUser, getCurrentUser, getRoleLabel } from "../../utils/auth";
 
 // Sidebar chứa menu điều hướng chính.
 function Sidebar() {
   const navigate = useNavigate();
+  const currentUser = getCurrentUser();
+  const menuItems = getMenuItemsForRole(currentUser?.role);
 
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -16,7 +19,7 @@ function Sidebar() {
     });
 
     if (result.isConfirmed) {
-      localStorage.removeItem("currentUser");
+      clearCurrentUser();
       navigate("/login");
     }
   };
@@ -27,7 +30,7 @@ function Sidebar() {
         <div className="brand-logo">M</div>
         <div>
           <h1>MediTrack</h1>
-          <p>Healthcare Dashboard</p>
+          <p>{getRoleLabel(currentUser?.role)} Dashboard</p>
         </div>
       </div>
 

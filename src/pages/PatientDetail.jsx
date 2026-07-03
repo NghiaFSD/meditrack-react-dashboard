@@ -34,6 +34,11 @@ function PatientDetail() {
         setAppointments(appointmentData.filter((item) => Number(item.patientId) === Number(id)));
         setRecords(recordData.filter((item) => Number(item.patientId) === Number(id)));
         setDoctors(doctorData);
+      } catch (err) {
+        setPatient(null);
+        setAppointments([]);
+        setRecords([]);
+        setDoctors([]);
       } finally {
         setLoading(false);
       }
