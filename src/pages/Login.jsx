@@ -8,7 +8,7 @@ import { getCurrentUser } from "../utils/auth";
 // Tài khoản được lấy từ db.json thông qua json-server.
 function Login() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "admin@gmail.com", password: "123456" });
+  const [form, setForm] = useState({ email: "admin@gmail.com", password: "MediTrack#2026!" });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ function Login() {
 
   // Gán nhanh tài khoản demo vào form.
   const useDemoAccount = (email) => {
-    setForm({ email, password: "123456" });
+    setForm({ email, password: "MediTrack#2026!" });
   };
 
   return (
@@ -74,7 +74,7 @@ function Login() {
             type="password"
             value={form.password}
             onChange={handleChange}
-            placeholder="123456"
+            placeholder="MediTrack#2026!"
           />
 
           <button className="btn btn-primary full" disabled={loading}>

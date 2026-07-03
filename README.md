@@ -27,9 +27,9 @@ MediTrack is a responsive healthcare dashboard built with React. The project is 
 ## Demo Accounts
 
 ```txt
-Admin:   admin@gmail.com / 123456
-Doctor:  doctor@gmail.com / 123456
-Patient: patient@gmail.com / 123456
+Admin:   admin@gmail.com / MediTrack#2026!
+Doctor:  doctor@gmail.com / MediTrack#2026!
+Patient: patient@gmail.com / MediTrack#2026!
 ```
 
 ## How to Run

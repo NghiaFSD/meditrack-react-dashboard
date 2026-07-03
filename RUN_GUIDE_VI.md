@@ -43,9 +43,9 @@ http://localhost:5173
 ## 5. Đăng nhập demo
 
 ```txt
-Admin:   admin@gmail.com / 123456
-Doctor:  doctor@gmail.com / 123456
-Patient: patient@gmail.com / 123456
+Admin:   admin@gmail.com / MediTrack#2026!
+Doctor:  doctor@gmail.com / MediTrack#2026!
+Patient: patient@gmail.com / MediTrack#2026!
 ```
 
 ## 6. Nếu bị lỗi port

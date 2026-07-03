@@ -4,7 +4,7 @@
       "id": "1",
       "fullName": "Admin User",
       "email": "admin@gmail.com",
-      "password": "123456",
+      "password": "MediTrack#2026!",
       "role": "ADMIN",
       "avatar": "AU"
     },
@@ -12,7 +12,7 @@
       "id": "2",
       "fullName": "Dr. Nguyen Minh",
       "email": "doctor@gmail.com",
-      "password": "123456",
+      "password": "MediTrack#2026!",
       "role": "DOCTOR",
       "avatar": "NM"
     },
@@ -20,7 +20,7 @@
       "id": "3",
       "fullName": "Le Trong Nghia",
       "email": "patient@gmail.com",
-      "password": "123456",
+      "password": "MediTrack#2026!",
       "role": "PATIENT",
       "avatar": "LH"
     }
