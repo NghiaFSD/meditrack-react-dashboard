@@ -98,7 +98,7 @@
       "date": "2026-07-03",
       "time": "09:00",
       "reason": "Diabetes follow-up",
-      "status": "Approved"
+      "status": "Completed"
     },
     {
       "id": "2",
@@ -135,6 +135,15 @@
       "reason": "check",
       "status": "Approved",
       "id": "mbpVSgCVOWg"
+    },
+    {
+      "patientId": 1,
+      "doctorId": 3,
+      "date": "2026-07-06",
+      "time": "15:00",
+      "reason": "No",
+      "status": "Pending",
+      "id": "MzQHLzgMnPs"
     }
   ],
   "medicalRecords": [
