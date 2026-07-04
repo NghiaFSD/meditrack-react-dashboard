@@ -28,42 +28,58 @@
   "patients": [
     {
       "id": "1",
+      "patientCode": "PT-001",
       "fullName": "Le Trong Nghia",
       "gender": "Male",
       "age": 21,
       "phone": "0987654321",
       "email": "hieu@example.com",
       "address": "Ha Noi",
+      "insuranceType": "Premium",
+      "riskLevel": "High",
+      "lastVisit": "2026-07-03",
       "status": "Active"
     },
     {
       "id": "2",
+      "patientCode": "PT-002",
       "fullName": "Nguyen Van An",
       "gender": "Male",
       "age": 45,
       "phone": "0911222333",
       "email": "an@example.com",
       "address": "Ho Chi Minh City",
+      "insuranceType": "Standard",
+      "riskLevel": "Medium",
+      "lastVisit": "2026-07-02",
       "status": "Active"
     },
     {
       "id": "3",
+      "patientCode": "PT-003",
       "fullName": "Tran Thi Mai",
       "gender": "Female",
       "age": 38,
       "phone": "0909888777",
       "email": "mai@example.com",
       "address": "Da Nang",
+      "insuranceType": "Basic",
+      "riskLevel": "Low",
+      "lastVisit": "2026-07-01",
       "status": "Active"
     },
     {
       "id": "4",
+      "patientCode": "PT-004",
       "fullName": "Pham Quoc Bao",
       "gender": "Male",
       "age": 52,
       "phone": "0966111222",
       "email": "bao@example.com",
       "address": "Can Tho",
+      "insuranceType": "Premium",
+      "riskLevel": "High",
+      "lastVisit": "2026-06-28",
       "status": "Inactive"
     }
   ],
@@ -73,21 +89,27 @@
       "fullName": "Dr. Nguyen Minh",
       "specialization": "Endocrinology",
       "phone": "0901112222",
-      "email": "doctor@gmail.com"
+      "email": "doctor@gmail.com",
+      "room": "A-201",
+      "shift": "Morning"
     },
     {
       "id": "2",
       "fullName": "Dr. Tran Lan",
       "specialization": "General Medicine",
       "phone": "0903334444",
-      "email": "lan@example.com"
+      "email": "lan@example.com",
+      "room": "B-103",
+      "shift": "Afternoon"
     },
     {
       "id": "3",
       "fullName": "Dr. Hoang Nam",
       "specialization": "Cardiology",
       "phone": "0905556666",
-      "email": "nam@example.com"
+      "email": "nam@example.com",
+      "room": "C-305",
+      "shift": "Evening"
     }
   ],
   "appointments": [
@@ -98,6 +120,8 @@
       "date": "2026-07-03",
       "time": "09:00",
       "reason": "Diabetes follow-up",
+      "channel": "Clinic",
+      "priority": "High",
       "status": "Completed"
     },
     {
@@ -107,6 +131,8 @@
       "date": "2026-07-06",
       "time": "14:30",
       "reason": "General check-up",
+      "channel": "Online",
+      "priority": "Normal",
       "status": "Approved"
     },
     {
@@ -116,6 +142,8 @@
       "date": "2026-07-07",
       "time": "10:15",
       "reason": "Blood sugar review",
+      "channel": "Clinic",
+      "priority": "High",
       "status": "Completed"
     },
     {
@@ -125,6 +153,8 @@
       "date": "2026-07-08",
       "time": "16:00",
       "reason": "Blood pressure monitoring",
+      "channel": "Walk-in",
+      "priority": "Normal",
       "status": "Cancelled"
     },
     {
@@ -133,6 +163,8 @@
       "date": "2026-07-05",
       "time": "15:00",
       "reason": "check",
+      "channel": "Online",
+      "priority": "Normal",
       "status": "Approved",
       "id": "mbpVSgCVOWg"
     },
@@ -142,6 +174,8 @@
       "date": "2026-07-06",
       "time": "15:00",
       "reason": "No",
+      "channel": "Clinic",
+      "priority": "Low",
       "status": "Pending",
       "id": "MzQHLzgMnPs"
     }
@@ -156,6 +190,8 @@
       "hba1c": 8.4,
       "bmi": 20.5,
       "bloodPressure": "125/80",
+      "riskLevel": "High",
+      "followUpDate": "2026-08-01",
       "diagnosis": "High blood sugar, diabetes follow-up required",
       "note": "Patient should monitor fasting glucose and reduce sugar intake."
     },
@@ -168,6 +204,8 @@
       "hba1c": 5.8,
       "bmi": 24.1,
       "bloodPressure": "118/76",
+      "riskLevel": "Medium",
+      "followUpDate": "2026-08-15",
       "diagnosis": "Prediabetes watch",
       "note": "Maintain healthy diet and regular exercise."
     },
@@ -180,6 +218,8 @@
       "hba1c": 6.7,
       "bmi": 26.2,
       "bloodPressure": "130/84",
+      "riskLevel": "Medium",
+      "followUpDate": "2026-08-03",
       "diagnosis": "Diabetes risk",
       "note": "Need follow-up after 3 months."
     },
@@ -192,6 +232,8 @@
       "hba1c": 5.4,
       "bmi": 23.4,
       "bloodPressure": "145/92",
+      "riskLevel": "High",
+      "followUpDate": "2026-07-18",
       "diagnosis": "High blood pressure",
       "note": "Reduce sodium intake and monitor blood pressure."
     }

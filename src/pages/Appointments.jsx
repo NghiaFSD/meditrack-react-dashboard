@@ -19,6 +19,8 @@ const emptyAppointment = {
   date: "",
   time: "",
   reason: "",
+  channel: "Clinic",
+  priority: "Normal",
   status: "Pending",
 };
 
@@ -386,6 +388,8 @@ function Appointments() {
                 <th>Date</th>
                 <th>Time</th>
                 <th>Reason</th>
+                <th>Channel</th>
+                <th>Priority</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -402,6 +406,8 @@ function Appointments() {
                   <td>{item.date}</td>
                   <td>{item.time}</td>
                   <td>{item.reason}</td>
+                  <td>{item.channel || "Clinic"}</td>
+                  <td>{item.priority || "Normal"}</td>
                   <td><StatusBadge status={item.status} /></td>
                   <td>
                     <div className="action-group appointment-actions">
@@ -490,6 +496,24 @@ function Appointments() {
           <Input label="Date" name="date" type="date" value={form.date} onChange={handleChange} />
           <Input label="Time" name="time" type="time" value={form.time} onChange={handleChange} />
           <Input label="Reason" name="reason" value={form.reason} onChange={handleChange} />
+
+          <div className="form-group">
+            <label htmlFor="appointment-channel">Channel</label>
+            <select id="appointment-channel" name="channel" value={form.channel} onChange={handleChange}>
+              <option value="Clinic">Clinic</option>
+              <option value="Online">Online</option>
+              <option value="Walk-in">Walk-in</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="appointment-priority">Priority</label>
+            <select id="appointment-priority" name="priority" value={form.priority} onChange={handleChange}>
+              <option value="Low">Low</option>
+              <option value="Normal">Normal</option>
+              <option value="High">High</option>
+            </select>
+          </div>
 
           <div className="form-group">
             <label htmlFor="appointment-status">Status</label>

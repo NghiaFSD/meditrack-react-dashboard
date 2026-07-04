@@ -27,6 +27,8 @@ const emptyRecord = {
   hba1c: "",
   bmi: "",
   bloodPressure: "",
+  riskLevel: "Low",
+  followUpDate: "",
   diagnosis: "",
   note: "",
 };
@@ -230,6 +232,8 @@ function MedicalRecords() {
                 <th>HbA1c</th>
                 <th>BMI</th>
                 <th>Blood Pressure</th>
+                <th>Risk</th>
+                <th>Follow-up</th>
                 <th>Diagnosis</th>
                 <th>Action</th>
               </tr>
@@ -263,6 +267,8 @@ function MedicalRecords() {
                       {record.bloodPressure}<br />
                       <StatusBadge status={bpStatus.label} type={bpStatus.type} />
                     </td>
+                    <td>{record.riskLevel || "Low"}</td>
+                    <td>{record.followUpDate || "-"}</td>
                     <td>{record.diagnosis}</td>
                     <td>
                       <div className="action-group">
@@ -324,6 +330,15 @@ function MedicalRecords() {
           <Input label="HbA1c" name="hba1c" type="number" value={form.hba1c} onChange={handleChange} />
           <Input label="BMI" name="bmi" type="number" value={form.bmi} onChange={handleChange} />
           <Input label="Blood Pressure" name="bloodPressure" value={form.bloodPressure} onChange={handleChange} placeholder="120/80" />
+          <div className="form-group">
+            <label>Risk Level</label>
+            <select name="riskLevel" value={form.riskLevel} onChange={handleChange}>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+          <Input label="Follow-up Date" name="followUpDate" type="date" value={form.followUpDate} onChange={handleChange} />
           <Input label="Diagnosis" name="diagnosis" value={form.diagnosis} onChange={handleChange} />
 
           <div className="form-group full-width">

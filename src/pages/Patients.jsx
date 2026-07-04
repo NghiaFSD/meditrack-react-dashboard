@@ -16,12 +16,16 @@ import { ROLES, getCurrentUser } from "../utils/auth";
 import { isValidEmail, isValidPhone } from "../utils/validation";
 
 const emptyPatient = {
+  patientCode: "",
   fullName: "",
   gender: "Male",
   age: "",
   phone: "",
   email: "",
   address: "",
+  insuranceType: "Standard",
+  riskLevel: "Low",
+  lastVisit: "",
   status: "Active",
 };
 
@@ -102,8 +106,17 @@ function Patients() {
       return;
     }
 
+    const nextPatientNumber = patients.reduce((highest, patient) => {
+      const numericId = Number(patient.id);
+      return Number.isFinite(numericId) && numericId > highest ? numericId : highest;
+    }, 0) + 1;
+    const fallbackPatientCode = editingPatient
+      ? (editingPatient.patientCode || `PT-${String(editingPatient.id).padStart(3, "0")}`)
+      : `PT-${String(nextPatientNumber).padStart(3, "0")}`;
+
     const payload = {
       ...form,
+      patientCode: form.patientCode?.trim() || fallbackPatientCode,
       age: Number(form.age),
     };
 
@@ -197,9 +210,13 @@ function Patients() {
             <thead>
               <tr>
                 <th>ID</th>
+                <th>Code</th>
                 <th>Full Name</th>
                 <th>Gender</th>
                 <th>Age</th>
+                <th>Insurance</th>
+                <th>Risk</th>
+                <th>Last Visit</th>
                 <th>Phone</th>
                 <th>Email</th>
                 <th>Status</th>
@@ -210,9 +227,13 @@ function Patients() {
               {filteredPatients.map((patient) => (
                 <tr key={patient.id}>
                   <td>#{patient.id}</td>
+                  <td>{patient.patientCode || `PT-${String(patient.id).padStart(3, "0")}`}</td>
                   <td>{patient.fullName}</td>
                   <td>{patient.gender}</td>
                   <td>{patient.age}</td>
+                  <td>{patient.insuranceType || "Standard"}</td>
+                  <td>{patient.riskLevel || "Low"}</td>
+                  <td>{patient.lastVisit || "-"}</td>
                   <td>{patient.phone}</td>
                   <td>{patient.email}</td>
                   <td><StatusBadge status={patient.status} /></td>

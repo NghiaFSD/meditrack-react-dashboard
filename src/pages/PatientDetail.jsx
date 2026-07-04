@@ -74,10 +74,14 @@ function PatientDetail() {
           <StatusBadge status={patient.status} />
 
           <div className="info-list">
+            <div><span>Code</span><strong>{patient.patientCode || `PT-${String(patient.id).padStart(3, "0")}`}</strong></div>
             <div><span>Gender</span><strong>{patient.gender}</strong></div>
             <div><span>Age</span><strong>{patient.age}</strong></div>
             <div><span>Phone</span><strong>{patient.phone}</strong></div>
             <div><span>Address</span><strong>{patient.address}</strong></div>
+            <div><span>Insurance</span><strong>{patient.insuranceType || "Standard"}</strong></div>
+            <div><span>Risk Level</span><strong>{patient.riskLevel || "Low"}</strong></div>
+            <div><span>Last Visit</span><strong>{patient.lastVisit || "-"}</strong></div>
           </div>
         </div>
 
