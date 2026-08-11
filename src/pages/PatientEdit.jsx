@@ -69,10 +69,10 @@ function PatientEdit() {
   };
 
   const validateForm = async () => {
-    if (!form.fullName.trim()) return "Full name is required.";
-    if (!isValidEmail(form.email)) return "Email is invalid.";
-    if (!isValidPhone(form.phone)) return "Phone must contain 9-11 digits.";
-    if (Number(form.age) <= 0) return "Age must be greater than 0.";
+    if (!form.fullName.trim()) return t("patients.valFullNameReq");
+    if (!isValidEmail(form.email)) return t("patients.valEmailInvalid");
+    if (!isValidPhone(form.phone)) return t("patients.valPhoneInvalid");
+    if (Number(form.age) <= 0) return t("patients.valAgeInvalid");
 
     try {
       const allPatients = await patientApi.getAll();
@@ -88,7 +88,7 @@ function PatientEdit() {
       });
 
       if (duplicatePatient) {
-        return "Email or phone already exists in another patient profile.";
+        return t("patients.valDuplicate");
       }
     } catch (err) {
       // ignore fetch all error during validation
@@ -102,7 +102,7 @@ function PatientEdit() {
 
     const validationMessage = await validateForm();
     if (validationMessage) {
-      Swal.fire("Invalid data", validationMessage, "warning");
+      Swal.fire(t("patients.valInvalidData"), validationMessage, "warning");
       return;
     }
 
@@ -115,11 +115,11 @@ function PatientEdit() {
       setSubmitting(true);
       // PUT Request to update existing patient details
       await patientApi.update(id, payload);
-      await Swal.fire("Updated", "Patient details updated successfully.", "success");
+      await Swal.fire(t("patientEdit.updateSuccessTitle"), t("patientEdit.updateSuccessText"), "success");
       // Redirect back to Patient Detail page using useNavigate
       navigate(`/patients/${id}`);
     } catch (err) {
-      Swal.fire("Error", "Failed to update patient.", "error");
+      Swal.fire(t("patientEdit.updateErrorTitle"), t("patientEdit.updateErrorText"), "error");
     } finally {
       setSubmitting(false);
     }

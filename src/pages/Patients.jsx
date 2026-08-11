@@ -93,7 +93,7 @@ function Patients() {
     });
 
     if (duplicatePatient) {
-      return "Email or phone already exists.";
+      return t("patients.valDuplicate");
     }
 
     return "";
@@ -104,7 +104,7 @@ function Patients() {
 
     const validationMessage = validateForm();
     if (validationMessage) {
-      Swal.fire("Invalid data", validationMessage, "warning");
+      Swal.fire(t("patients.valInvalidData"), validationMessage, "warning");
       return;
     }
 
@@ -125,31 +125,32 @@ function Patients() {
     try {
       if (editingPatient) {
         await patientApi.update(editingPatient.id, payload);
-        Swal.fire("Updated", "Patient updated successfully.", "success");
+        Swal.fire(t("patientEdit.updateSuccessTitle"), t("patients.valUpdateSuccess"), "success");
       } else {
         await patientApi.create(payload);
-        Swal.fire("Created", "Patient created successfully.", "success");
+        Swal.fire(lang === "vi" ? "Thành công" : "Created", t("patients.valCreateSuccess"), "success");
       }
 
       setIsModalOpen(false);
       fetchPatients();
     } catch (err) {
-      Swal.fire("Error", "Cannot save patient.", "error");
+      Swal.fire(t("patientEdit.updateErrorTitle"), t("patients.valSaveError"), "error");
     }
   };
 
   const handleDelete = async (patient) => {
     if (!canManagePatients) {
-      Swal.fire("Forbidden", "Only admins can delete patients.", "warning");
+      Swal.fire(t("common.forbidden"), t("common.onlyAdminsCanDelete"), "warning");
       return;
     }
 
     const result = await Swal.fire({
-      title: "Delete patient?",
-      text: `This will remove ${patient.fullName}.`,
+      title: t("patients.deleteConfirmTitle"),
+      text: lang === "vi" ? `Hành động này sẽ xóa bệnh nhân ${patient.fullName}.` : `This will remove ${patient.fullName}.`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Delete",
+      confirmButtonText: t("patients.btnDelete"),
+      cancelButtonText: t("patients.btnCancel"),
       confirmButtonColor: "#e11d48",
     });
 
@@ -165,18 +166,18 @@ function Patients() {
 
         if (hasAppointments || hasRecords) {
           Swal.fire(
-            "Cannot delete",
-            "This patient still has related appointments or medical records.",
+            t("patients.cannotDeleteTitle"),
+            t("patients.cannotDeleteText"),
             "warning"
           );
           return;
         }
 
         await patientApi.remove(patient.id);
-        Swal.fire("Deleted", "Patient deleted successfully.", "success");
+        Swal.fire(t("patients.deleteSuccessTitle"), t("patients.deleteSuccessText"), "success");
         fetchPatients();
       } catch (err) {
-        Swal.fire("Error", "Cannot delete patient.", "error");
+        Swal.fire(t("patientEdit.updateErrorTitle"), lang === "vi" ? "Không thể xóa bệnh nhân." : "Cannot delete patient.", "error");
       }
     }
   };

@@ -16,6 +16,17 @@ const STATUS_MAP_VI = {
   "Stage 1": "Giai đoạn 1",
   "Stage 2": "Giai đoạn 2",
   "Hypertensive Crisis": "Cần cấp cứu",
+  "Diabetes Risk": "Nguy cơ Tiểu đường",
+  Prediabetes: "Tiền tiểu đường",
+  Obese: "Béo phì",
+  Overweight: "Thừa cân",
+  Underweight: "Thiếu cân",
+  Basic: "Cơ bản",
+  Standard: "Tiêu chuẩn",
+  Premium: "Cao cấp",
+  Clinic: "Phòng khám",
+  Online: "Trực tuyến",
+  "Walk-in": "Vãng lai",
 };
 
 // Badge hiển thị trạng thái với màu sắc và ngôn ngữ linh hoạt.

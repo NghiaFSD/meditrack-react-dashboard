@@ -253,12 +253,12 @@ function Appointments() {
     const validDoctor = allowedDoctorList.some((doctor) => Number(doctor.id) === Number(form.doctorId));
 
     if (currentRole === ROLES.PATIENT && !selectedPatientId) {
-      Swal.fire("Invalid data", "Unable to determine your patient profile.", "warning");
+      Swal.fire(t("patients.valInvalidData"), lang === "vi" ? "Không thể xác định hồ sơ bệnh nhân của bạn." : "Unable to determine your patient profile.", "warning");
       return;
     }
 
     if (!validPatient || !validDoctor) {
-      Swal.fire("Invalid data", "Selected patient or doctor does not exist.", "warning");
+      Swal.fire(t("patients.valInvalidData"), lang === "vi" ? "Bệnh nhân hoặc Bác sĩ được chọn không tồn tại." : "Selected patient or doctor does not exist.", "warning");
       return;
     }
 
@@ -273,10 +273,10 @@ function Appointments() {
     try {
       if (editingAppointment) {
         await appointmentApi.update(editingAppointment.id, payload);
-        Swal.fire("Updated", "Appointment updated successfully.", "success");
+        Swal.fire(t("patientEdit.updateSuccessTitle"), t("appointments.valUpdated"), "success");
       } else {
         await appointmentApi.create(payload);
-        Swal.fire("Created", "Appointment created successfully.", "success");
+        Swal.fire(lang === "vi" ? "Thành công" : "Created", t("appointments.valCreated"), "success");
       }
 
       if (currentRole === ROLES.ADMIN) {
@@ -288,44 +288,45 @@ function Appointments() {
       setIsModalOpen(false);
       fetchAppointments();
     } catch (err) {
-      Swal.fire("Error", "Cannot save appointment.", "error");
+      Swal.fire(t("patientEdit.updateErrorTitle"), t("appointments.valSaveError"), "error");
     }
   };
 
   const handleDelete = async (appointment) => {
     if (!canDelete) {
-      Swal.fire("Forbidden", "Only admins can delete appointments.", "warning");
+      Swal.fire(t("common.forbidden"), t("common.onlyAdminsCanDelete"), "warning");
       return;
     }
 
     const result = await Swal.fire({
-      title: "Delete appointment?",
-      text: "This appointment will be removed.",
+      title: t("appointments.deleteConfirmTitle"),
+      text: t("appointments.deleteConfirmText"),
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Delete",
+      confirmButtonText: t("patients.btnDelete"),
+      cancelButtonText: t("patients.btnCancel"),
       confirmButtonColor: "#e11d48",
     });
 
     if (result.isConfirmed) {
       try {
         await appointmentApi.remove(appointment.id);
-        Swal.fire("Deleted", "Appointment deleted successfully.", "success");
+        Swal.fire(t("patients.deleteSuccessTitle"), t("appointments.deleteSuccessText"), "success");
         fetchAppointments();
       } catch (err) {
-        Swal.fire("Error", "Cannot delete appointment.", "error");
+        Swal.fire(t("patientEdit.updateErrorTitle"), t("appointments.cannotDeleteText"), "error");
       }
     }
   };
 
   const handleQuickStatus = async (appointment, status) => {
     if (!canQuickStatus) {
-      Swal.fire("Forbidden", "Only admins and doctors can change appointment status.", "warning");
+      Swal.fire(t("common.forbidden"), lang === "vi" ? "Chỉ Admin và Bác sĩ mới được phép thay đổi trạng thái." : "Only admins and doctors can change appointment status.", "warning");
       return;
     }
 
     if (status === "Completed" && !hasAppointmentPassed(appointment)) {
-      Swal.fire("Not allowed", "You can only complete an appointment after its scheduled time has passed.", "warning");
+      Swal.fire(t("appointments.valNotAllowed"), t("appointments.valTimePassedMsg"), "warning");
       return;
     }
 
@@ -333,7 +334,7 @@ function Appointments() {
       await appointmentApi.patchStatus(appointment.id, status);
       fetchAppointments();
     } catch (err) {
-      Swal.fire("Error", "Cannot update appointment status.", "error");
+      Swal.fire(t("patientEdit.updateErrorTitle"), lang === "vi" ? "Không thể cập nhật trạng thái lịch hẹn." : "Cannot update appointment status.", "error");
     }
   };
 
@@ -443,21 +444,21 @@ function Appointments() {
       </div>
 
       <Modal
-        title={editingAppointment ? "Edit Appointment" : "New Appointment"}
+        title={editingAppointment ? t("appointments.modalEditTitle") : t("appointments.modalNewTitle")}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       >
         <form onSubmit={handleSubmit} className="form-grid">
           <div className="form-group">
-            <label htmlFor="appointment-patient">Patient</label>
+            <label htmlFor="appointment-patient">{t("appointments.lblPatient")}</label>
             {currentRole === ROLES.PATIENT ? (
               <>
-                <input id="appointment-patient" value={linkedPatient?.fullName || "Current patient"} disabled />
+                <input id="appointment-patient" value={linkedPatient?.fullName || (lang === "vi" ? "Bệnh nhân hiện tại" : "Current patient")} disabled />
                 <input type="hidden" name="patientId" value={linkedPatient?.id || ""} />
               </>
             ) : (
               <select id="appointment-patient" name="patientId" value={form.patientId} onChange={handleChange}>
-                <option value="">Select patient</option>
+                <option value="">{lang === "vi" ? "-- Chọn bệnh nhân --" : "-- Select patient --"}</option>
                 {patients.map((patient) => (
                   <option key={patient.id} value={patient.id}>{patient.fullName}</option>
                 ))}
@@ -466,75 +467,75 @@ function Appointments() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="appointment-doctor">Doctor</label>
+            <label htmlFor="appointment-doctor">{t("appointments.lblDoctor")}</label>
             {currentRole === ROLES.DOCTOR ? (
               <>
-                <input id="appointment-doctor" value={linkedDoctor?.fullName || "Current doctor"} disabled />
+                <input id="appointment-doctor" value={linkedDoctor?.fullName || (lang === "vi" ? "Bác sĩ hiện tại" : "Current doctor")} disabled />
                 <input type="hidden" name="doctorId" value={linkedDoctor?.id || ""} />
               </>
             ) : currentRole === ROLES.PATIENT ? (
               <select id="appointment-doctor" name="doctorId" value={form.doctorId} onChange={handleChange}>
-                <option value="">Select doctor</option>
+                <option value="">{lang === "vi" ? "-- Chọn bác sĩ --" : "-- Select doctor --"}</option>
                 {patientDoctorOptions.map((doctor) => (
                   <option key={doctor.id} value={doctor.id}>{doctor.fullName} - {doctor.specialization}</option>
                 ))}
               </select>
             ) : (
               <select id="appointment-doctor" name="doctorId" value={form.doctorId} onChange={handleChange}>
-                <option value="">Select doctor</option>
+                <option value="">{lang === "vi" ? "-- Chọn bác sĩ --" : "-- Select doctor --"}</option>
                 {doctors.map((doctor) => (
                   <option key={doctor.id} value={doctor.id}>{doctor.fullName} - {doctor.specialization}</option>
                 ))}
               </select>
             )}
             {currentRole === ROLES.ADMIN && (
-              <small className="form-hint">Admin can choose any active patient and doctor.</small>
+              <small className="form-hint">{lang === "vi" ? "Quản trị viên có thể chọn bất kỳ bệnh nhân và bác sĩ nào." : "Admin can choose any active patient and doctor."}</small>
             )}
             {currentRole === ROLES.PATIENT && (
-              <small className="form-hint">Only doctors from your previous care history are shown here.</small>
+              <small className="form-hint">{lang === "vi" ? "Chỉ hiển thị các bác sĩ đã từng điều trị cho bạn." : "Only doctors from your previous care history are shown here."}</small>
             )}
           </div>
 
-          <Input label="Date" name="date" type="date" value={form.date} onChange={handleChange} />
-          <Input label="Time" name="time" type="time" value={form.time} onChange={handleChange} />
-          <Input label="Reason" name="reason" value={form.reason} onChange={handleChange} />
+          <Input label={t("appointments.lblDate")} name="date" type="date" value={form.date} onChange={handleChange} />
+          <Input label={t("appointments.lblTime")} name="time" type="time" value={form.time} onChange={handleChange} />
+          <Input label={t("appointments.lblReason")} name="reason" value={form.reason} onChange={handleChange} />
 
           <div className="form-group">
-            <label htmlFor="appointment-channel">Channel</label>
+            <label htmlFor="appointment-channel">{t("appointments.lblChannel")}</label>
             <select id="appointment-channel" name="channel" value={form.channel} onChange={handleChange}>
-              <option value="Clinic">Clinic</option>
-              <option value="Online">Online</option>
-              <option value="Walk-in">Walk-in</option>
+              <option value="Clinic">{t("appointments.optClinic")}</option>
+              <option value="Online">{t("appointments.optOnline")}</option>
+              <option value="Walk-in">{t("appointments.optWalkIn")}</option>
             </select>
           </div>
 
           <div className="form-group">
-            <label htmlFor="appointment-priority">Priority</label>
+            <label htmlFor="appointment-priority">{t("appointments.lblPriority")}</label>
             <select id="appointment-priority" name="priority" value={form.priority} onChange={handleChange}>
-              <option value="Low">Low</option>
-              <option value="Normal">Normal</option>
-              <option value="High">High</option>
+              <option value="Low">{t("appointments.optLow")}</option>
+              <option value="Normal">{t("appointments.optNormal")}</option>
+              <option value="High">{t("appointments.optHigh")}</option>
             </select>
           </div>
 
           <div className="form-group">
-            <label htmlFor="appointment-status">Status</label>
+            <label htmlFor="appointment-status">{t("appointments.lblStatus")}</label>
             {currentRole === ROLES.PATIENT ? (
-              <input id="appointment-status" value="Pending" disabled />
+              <input id="appointment-status" value={t("common.statusPending")} disabled />
             ) : (
               <select id="appointment-status" name="status" value={form.status} onChange={handleChange}>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
+                <option value="Pending">{t("common.statusPending")}</option>
+                <option value="Approved">{t("common.statusApproved")}</option>
+                <option value="Completed">{t("common.statusCompleted")}</option>
+                <option value="Cancelled">{t("common.statusCancelled")}</option>
               </select>
             )}
-            {currentRole === ROLES.PATIENT && <small className="form-hint">New patient requests are always created as Pending.</small>}
+            {currentRole === ROLES.PATIENT && <small className="form-hint">{lang === "vi" ? "Lịch hẹn mới của bệnh nhân mặc định ở trạng thái Chờ duyệt." : "New patient requests are always created as Pending."}</small>}
           </div>
 
           <div className="modal-actions">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit">Save</Button>
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>{t("patients.btnCancel")}</Button>
+            <Button type="submit">{t("patients.btnSave")}</Button>
           </div>
         </form>
       </Modal>
