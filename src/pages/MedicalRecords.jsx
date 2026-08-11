@@ -12,6 +12,7 @@ import { patientApi } from "../api/patientApi";
 import { doctorApi } from "../api/doctorApi";
 import { useRecords } from "../hooks/useRecords";
 import { ROLES, findLinkedDoctor, findLinkedPatient, getCurrentUser } from "../utils/auth";
+import { useLanguage } from "../context/LanguageContext";
 import {
   getBloodPressureStatus,
   getBmiStatus,
@@ -33,9 +34,10 @@ const emptyRecord = {
   note: "",
 };
 
-// Trang quản lý hồ sơ bệnh án.
+// Trang quản lý hồ sơ bệnh án + i18n.
 function MedicalRecords() {
   const { records, loading, fetchRecords } = useRecords();
+  const { lang, t } = useLanguage();
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const currentUser = getCurrentUser();
@@ -201,41 +203,41 @@ function MedicalRecords() {
     }
   };
 
-  if (loading) return <Loading text="Loading medical records..." />;
+  if (loading) return <Loading text={t("common.loading")} />;
 
   return (
     <div>
       <div className="page-title">
         <div>
-          <h1>{currentRole === ROLES.PATIENT ? "My Medical Records" : "Medical Records"}</h1>
-          <p>{currentRole === ROLES.PATIENT ? "View your own medical records." : "Track glucose, HbA1c, BMI, blood pressure and diagnosis."}</p>
+          <h1>{currentRole === ROLES.PATIENT ? t("records.titleMy") : t("records.title")}</h1>
+          <p>{currentRole === ROLES.PATIENT ? t("records.subtitleView") : t("records.subtitleAdmin")}</p>
         </div>
-        {canCreate && <Button onClick={openAddModal}>+ New Record</Button>}
+        {canCreate && <Button onClick={openAddModal}>{t("records.addBtn")}</Button>}
       </div>
 
       <div className="toolbar">
-        <SearchBox value={search} onChange={setSearch} placeholder="Search by patient, doctor or diagnosis..." />
+        <SearchBox value={search} onChange={setSearch} placeholder={t("records.searchPlaceholder")} />
       </div>
 
       <div className="table-card">
         {filteredRecords.length === 0 ? (
-          <EmptyState title="No records" message="No medical records match your search." />
+          <EmptyState title={t("records.noRecords")} message={t("records.noRecordsMsg")} />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Patient</th>
-                <th>Doctor</th>
-                <th>Date</th>
-                <th>Glucose</th>
-                <th>HbA1c</th>
-                <th>BMI</th>
-                <th>Blood Pressure</th>
-                <th>Risk</th>
-                <th>Follow-up</th>
-                <th>Diagnosis</th>
-                <th>Action</th>
+                <th>{t("patients.tableId")}</th>
+                <th>{t("records.tablePatient")}</th>
+                <th>{t("records.tableDoctor")}</th>
+                <th>{t("records.tableDate")}</th>
+                <th>{t("records.tableGlucose")}</th>
+                <th>{t("records.tableHbA1c")}</th>
+                <th>{t("records.tableBMI")}</th>
+                <th>{t("records.tableBP")}</th>
+                <th>{t("patients.tableRisk")}</th>
+                <th>{t("patients.tableLastVisit")}</th>
+                <th>{t("records.tableDiagnosis")}</th>
+                <th>{t("patients.tableAction")}</th>
               </tr>
             </thead>
             <tbody>
@@ -272,9 +274,9 @@ function MedicalRecords() {
                     <td>{record.diagnosis}</td>
                     <td>
                       <div className="action-group">
-                        {canEdit && <button onClick={() => openEditModal(record)}>Edit</button>}
-                        {canDelete && <button className="danger" onClick={() => handleDelete(record)}>Delete</button>}
-                        {!canEdit && !canDelete && <span className="text-muted">View only</span>}
+                        {canEdit && <button onClick={() => openEditModal(record)}>{t("patients.btnEdit")}</button>}
+                        {canDelete && <button className="danger" onClick={() => handleDelete(record)}>{t("patients.btnDelete")}</button>}
+                        {!canEdit && !canDelete && <span className="text-muted">{t("dashboard.viewOnly")}</span>}
                       </div>
                     </td>
                   </tr>

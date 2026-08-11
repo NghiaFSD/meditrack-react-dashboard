@@ -118,17 +118,17 @@ function Dashboard() {
 
   const dashboardTitle =
     currentRole === ROLES.ADMIN
-      ? "System overview"
+      ? t("dashboard.titleAdmin")
       : currentRole === ROLES.DOCTOR
-        ? "Your clinical overview"
-        : "Your personal overview";
+        ? t("dashboard.titleDoctor")
+        : t("dashboard.titlePatient");
 
   const dashboardDescription =
     currentRole === ROLES.PATIENT
-      ? "See your own appointments, records and health summary."
+      ? t("dashboard.descPatient")
       : currentRole === ROLES.DOCTOR
-        ? "Track your assigned patients, appointments and records."
-        : "Overview of patients, appointments and health records.";
+        ? t("dashboard.descDoctor")
+        : t("dashboard.descAdmin");
 
   // Gom số lượng lịch hẹn theo status để vẽ chart.
   const appointmentStatusData = useMemo(() => {
@@ -189,40 +189,40 @@ function Dashboard() {
 
       <div className="stats-grid">
         <StatCard
-          title="Total Patients"
+          title={t("dashboard.statTotalPatients")}
           value={scopedPatients.length}
           icon="🧑‍⚕️"
           note={
             currentRole === ROLES.ADMIN
-              ? "Active patient profiles"
+              ? t("dashboard.noteActivePatients")
               : currentRole === ROLES.DOCTOR
-                ? "Assigned patients"
-                : "Your profile"
+                ? t("dashboard.noteAssignedPatients")
+                : t("dashboard.noteYourProfile")
           }
         />
         <StatCard
-          title="Total Doctors"
+          title={t("dashboard.statTotalDoctors")}
           value={currentRole === ROLES.PATIENT ? assignedDoctors.size : doctors.length}
           icon="👨‍⚕️"
-          note={currentRole === ROLES.PATIENT ? "Your assigned doctors" : "Available doctors"}
+          note={currentRole === ROLES.PATIENT ? t("dashboard.noteAssignedDoctors") : t("dashboard.noteAvailableDoctors")}
         />
         <StatCard
-          title="Today Appointments"
+          title={t("dashboard.statTodayAppointments")}
           value={todayAppointments.length}
           icon="📅"
           note={
             currentRole === ROLES.DOCTOR
-              ? `${pendingAppointments.length} pending, ${approvedAppointments.length} approved`
+              ? `${pendingAppointments.length} ${lang === "vi" ? "chờ duyệt" : "pending"}, ${approvedAppointments.length} ${lang === "vi" ? "đã duyệt" : "approved"}`
               : currentRole === ROLES.PATIENT
-                ? "Your schedule today"
-                : "Scheduled today"
+                ? t("dashboard.noteScheduleToday")
+                : t("dashboard.noteScheduledToday")
           }
         />
         <StatCard
-          title="Medical Records"
+          title={t("dashboard.statMedicalRecords")}
           value={scopedRecords.length}
           icon="📋"
-          note={currentRole === ROLES.PATIENT ? "Your records" : "Health records stored"}
+          note={currentRole === ROLES.PATIENT ? t("dashboard.noteYourRecords") : t("dashboard.noteRecordsStored")}
         />
       </div>
 
@@ -234,8 +234,8 @@ function Dashboard() {
             <div className="chart-card">
               <div className="section-title compact">
                 <div>
-                  <h3>Appointments by Status</h3>
-                  <p>Distribution of appointment status</p>
+                  <h3>{t("dashboard.sectionApptStatus")}</h3>
+                  <p>{t("dashboard.descApptStatus")}</p>
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={280}>
@@ -253,17 +253,17 @@ function Dashboard() {
             <div className="table-card">
               <div className="section-title compact">
                 <div>
-                  <h3>Pending Approvals</h3>
-                  <p>Appointments waiting for review</p>
+                  <h3>{t("dashboard.sectionPendingApprovals")}</h3>
+                  <p>{t("dashboard.descPendingApprovals")}</p>
                 </div>
               </div>
               <table>
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Patient</th>
-                    <th>Doctor</th>
+                    <th>{t("patientDetail.date")}</th>
+                    <th>{t("patientDetail.time")}</th>
+                    <th>{t("appointments.tablePatient")}</th>
+                    <th>{t("appointments.tableDoctor")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -282,17 +282,17 @@ function Dashboard() {
             <div className="table-card">
               <div className="section-title compact">
                 <div>
-                  <h3>Recent Appointments</h3>
-                  <p>Latest appointment list</p>
+                  <h3>{t("dashboard.sectionRecentAppointments")}</h3>
+                  <p>{t("dashboard.descRecentAppointments")}</p>
                 </div>
               </div>
               <table>
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Reason</th>
-                    <th>Status</th>
+                    <th>{t("patientDetail.date")}</th>
+                    <th>{t("patientDetail.time")}</th>
+                    <th>{t("patientDetail.reason")}</th>
+                    <th>{t("patientDetail.status")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -317,17 +317,17 @@ function Dashboard() {
             <div className="table-card">
               <div className="section-title compact">
                 <div>
-                  <h3>My Patients</h3>
-                  <p>Patients linked to your appointments and records</p>
+                  <h3>{t("dashboard.sectionMyPatients")}</h3>
+                  <p>{t("dashboard.descMyPatients")}</p>
                 </div>
               </div>
               <table>
                 <thead>
                   <tr>
-                    <th>Patient</th>
-                    <th>Appointments</th>
-                    <th>Records</th>
-                    <th>Last Visit</th>
+                    <th>{t("appointments.tablePatient")}</th>
+                    <th>{t("nav.appointments")}</th>
+                    <th>{t("nav.medicalRecords")}</th>
+                    <th>{t("patients.tableLastVisit")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -346,17 +346,17 @@ function Dashboard() {
             <div className="table-card">
               <div className="section-title compact">
                 <div>
-                  <h3>Today Queue</h3>
-                  <p>Your appointments for today</p>
+                  <h3>{t("dashboard.sectionTodayQueue")}</h3>
+                  <p>{t("dashboard.descTodayQueue")}</p>
                 </div>
               </div>
               <table>
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Patient</th>
-                    <th>Reason</th>
-                    <th>Status</th>
+                    <th>{t("patientDetail.time")}</th>
+                    <th>{t("appointments.tablePatient")}</th>
+                    <th>{t("patientDetail.reason")}</th>
+                    <th>{t("patientDetail.status")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -377,8 +377,8 @@ function Dashboard() {
             <div className="chart-card">
               <div className="section-title compact">
                 <div>
-                  <h3>Appointment Status</h3>
-                  <p>Your workload by status</p>
+                  <h3>{t("dashboard.sectionWorkloadStatus")}</h3>
+                  <p>{t("dashboard.descWorkloadStatus")}</p>
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={280}>
@@ -394,17 +394,17 @@ function Dashboard() {
             <div className="table-card">
               <div className="section-title compact">
                 <div>
-                  <h3>Latest Records</h3>
-                  <p>Recent records under your care</p>
+                  <h3>{t("dashboard.sectionLatestRecords")}</h3>
+                  <p>{t("dashboard.descLatestRecords")}</p>
                 </div>
               </div>
               <table>
                 <thead>
                   <tr>
-                    <th>Patient</th>
-                    <th>Date</th>
-                    <th>Glucose</th>
-                    <th>Diagnosis</th>
+                    <th>{t("appointments.tablePatient")}</th>
+                    <th>{t("patientDetail.date")}</th>
+                    <th>{t("patientDetail.glucose")}</th>
+                    <th>{t("patientDetail.diagnosis")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -429,8 +429,8 @@ function Dashboard() {
             <div className="chart-card">
               <div className="section-title compact">
                 <div>
-                  <h3>Health Summary</h3>
-                  <p>Your latest medical values</p>
+                  <h3>{t("dashboard.sectionHealthSummary")}</h3>
+                  <p>{t("dashboard.descHealthSummary")}</p>
                 </div>
               </div>
 
@@ -438,46 +438,46 @@ function Dashboard() {
                 <div className="health-summary">
                   {patientHealthSummary.map((item) => (
                     <div key={item.label}>
-                      <span>{item.label}</span>
+                      <span>{item.label === "Glucose" ? t("patientDetail.glucose") : item.label === "HbA1c" ? t("patientDetail.hba1c") : item.label === "BMI" ? t("patientDetail.bmi") : t("patientDetail.bloodPressure")}</span>
                       <strong>{item.value}</strong>
                       <StatusBadge status={item.status.label} type={item.status.type} />
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted">You do not have a medical record yet.</p>
+                <p className="text-muted">{t("dashboard.noRecordText")}</p>
               )}
             </div>
 
             <div className="table-card">
               <div className="section-title compact">
                 <div>
-                  <h3>Next Appointment</h3>
-                  <p>Your upcoming schedule</p>
+                  <h3>{t("dashboard.sectionNextAppointment")}</h3>
+                  <p>{t("dashboard.descNextAppointment")}</p>
                 </div>
               </div>
 
               {nextAppointment ? (
                 <div className="health-summary">
                   <div>
-                    <span>Date</span>
+                    <span>{t("patientDetail.date")}</span>
                     <strong>{nextAppointment.date}</strong>
                   </div>
                   <div>
-                    <span>Time</span>
+                    <span>{t("patientDetail.time")}</span>
                     <strong>{nextAppointment.time}</strong>
                   </div>
                   <div>
-                    <span>Doctor</span>
+                    <span>{t("patientDetail.doctor")}</span>
                     <strong>{doctors.find((doctor) => Number(doctor.id) === Number(nextAppointment.doctorId))?.fullName || "Unknown doctor"}</strong>
                   </div>
                   <div>
-                    <span>Status</span>
-                    <strong>{nextAppointment.status}</strong>
+                    <span>{t("patientDetail.status")}</span>
+                    <strong><StatusBadge status={nextAppointment.status} /></strong>
                   </div>
                 </div>
               ) : (
-                <p className="text-muted">No upcoming appointment found.</p>
+                <p className="text-muted">{t("dashboard.noUpcomingText")}</p>
               )}
             </div>
           </div>
@@ -486,8 +486,8 @@ function Dashboard() {
             <div className="chart-card">
               <div className="section-title compact">
                 <div>
-                  <h3>My Records Trend</h3>
-                  <p>Recent glucose trend for your profile</p>
+                  <h3>{t("dashboard.sectionMyRecordsTrend")}</h3>
+                  <p>{t("dashboard.descMyRecordsTrend")}</p>
                 </div>
               </div>
               <HealthChart data={scopedRecords} />
@@ -496,17 +496,17 @@ function Dashboard() {
             <div className="table-card">
               <div className="section-title compact">
                 <div>
-                  <h3>My Appointments</h3>
-                  <p>Latest appointment list</p>
+                  <h3>{t("appointments.titleMy")}</h3>
+                  <p>{t("dashboard.descRecentAppointments")}</p>
                 </div>
               </div>
               <table>
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Reason</th>
-                    <th>Status</th>
+                    <th>{t("patientDetail.date")}</th>
+                    <th>{t("patientDetail.time")}</th>
+                    <th>{t("patientDetail.reason")}</th>
+                    <th>{t("patientDetail.status")}</th>
                   </tr>
                 </thead>
                 <tbody>

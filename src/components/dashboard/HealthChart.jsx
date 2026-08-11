@@ -7,15 +7,18 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useLanguage } from "../../context/LanguageContext";
 
 // Biểu đồ đường hiển thị glucose theo từng record.
 function HealthChart({ data }) {
+  const { t } = useLanguage();
+
   return (
     <div className="chart-card">
       <div className="section-title compact">
         <div>
-          <h3>Glucose Trend</h3>
-          <p>Recent fasting glucose records</p>
+          <h3>{t("dashboard.chartGlucoseTitle")}</h3>
+          <p>{t("dashboard.chartGlucoseSub")}</p>
         </div>
       </div>
 

@@ -12,6 +12,7 @@ import { patientApi } from "../api/patientApi";
 import { doctorApi } from "../api/doctorApi";
 import { useAppointments } from "../hooks/useAppointments";
 import { ROLES, findLinkedPatient, findLinkedDoctor, getCurrentUser } from "../utils/auth";
+import { useLanguage } from "../context/LanguageContext";
 
 const emptyAppointment = {
   patientId: "",
@@ -103,6 +104,7 @@ function getRowActions(appointment, currentRole) {
 // Trang quản lý lịch hẹn.
 function Appointments() {
   const { appointments, loading, fetchAppointments } = useAppointments();
+  const { lang, t } = useLanguage();
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const currentUser = getCurrentUser();
@@ -335,63 +337,63 @@ function Appointments() {
     }
   };
 
-  if (loading) return <Loading text="Loading appointments..." />;
+  if (loading) return <Loading text={t("common.loading")} />;
 
   return (
     <div>
       <div className="page-title">
         <div>
-          <h1>{currentRole === ROLES.PATIENT ? "My Appointments" : "Appointments"}</h1>
+          <h1>{currentRole === ROLES.PATIENT ? t("appointments.titleMy") : t("appointments.title")}</h1>
           <p>
             {currentRole === ROLES.PATIENT
-              ? "Submit appointment requests. Every request stays Pending until approved."
-              : "Manage appointment booking and status."}
+              ? t("appointments.subtitlePatient")
+              : t("appointments.subtitleAdmin")}
           </p>
         </div>
         {canCreate && (
           <Button onClick={openAddModal}>
-            {currentRole === ROLES.PATIENT ? "+ Request Appointment" : "+ New Appointment"}
+            {currentRole === ROLES.PATIENT ? t("appointments.requestBtn") : t("appointments.addBtn")}
           </Button>
         )}
       </div>
 
       {currentRole === ROLES.PATIENT && (
         <div className="workflow-note">
-          <strong>Patient booking mode:</strong>
+          <strong>{t("appointments.workflowNoteTitle")}</strong>
           <span>
-            You can only book with doctors from your previous care history. New requests are always created as Pending and must be approved by staff.
+            {t("appointments.workflowNoteText")}
           </span>
         </div>
       )}
 
       <div className="toolbar">
-        <SearchBox value={search} onChange={setSearch} placeholder="Search by patient, doctor or reason..." />
+        <SearchBox value={search} onChange={setSearch} placeholder={t("appointments.searchPlaceholder")} />
         <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-          <option value="All">All status</option>
-          <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancelled">Cancelled</option>
+          <option value="All">{t("appointments.allStatuses")}</option>
+          <option value="Pending">{t("common.statusPending")}</option>
+          <option value="Approved">{t("common.statusApproved")}</option>
+          <option value="Completed">{t("common.statusCompleted")}</option>
+          <option value="Cancelled">{t("common.statusCancelled")}</option>
         </select>
       </div>
 
       <div className="table-card">
         {filteredAppointments.length === 0 ? (
-          <EmptyState title="No appointments" message="No appointments match your filters." />
+          <EmptyState title={t("appointments.noAppointments")} message={t("appointments.noAppointmentsMsg")} />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>No.</th>
-                <th>Patient</th>
-                <th>Doctor</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Reason</th>
-                <th>Channel</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Action</th>
+                <th>{t("appointments.tableNo")}</th>
+                <th>{t("appointments.tablePatient")}</th>
+                <th>{t("appointments.tableDoctor")}</th>
+                <th>{t("appointments.tableDate")}</th>
+                <th>{t("appointments.tableTime")}</th>
+                <th>{t("appointments.tableReason")}</th>
+                <th>{t("appointments.tableChannel")}</th>
+                <th>{t("appointments.tablePriority")}</th>
+                <th>{t("appointments.tableStatus")}</th>
+                <th>{t("appointments.tableAction")}</th>
               </tr>
             </thead>
             <tbody>
@@ -406,15 +408,15 @@ function Appointments() {
                   <td>{item.date}</td>
                   <td>{item.time}</td>
                   <td>{item.reason}</td>
-                  <td>{item.channel || "Clinic"}</td>
-                  <td>{item.priority || "Normal"}</td>
+                  <td>{item.channel === "Clinic" ? t("appointments.optClinic") : item.channel === "Online" ? t("appointments.optOnline") : item.channel}</td>
+                  <td>{item.priority === "Normal" ? t("appointments.optNormal") : item.priority === "High" ? t("appointments.optHigh") : t("appointments.optLow")}</td>
                   <td><StatusBadge status={item.status} /></td>
                   <td>
                     <div className="action-group appointment-actions">
                       {rowActions.length > 0 ? (
                         rowActions.map((action) =>
                           action.kind === "edit" ? (
-                            <button key={action.label} onClick={() => openEditModal(item)}>{action.label}</button>
+                            <button key={action.label} onClick={() => openEditModal(item)}>{t("appointments.btnEdit")}</button>
                           ) : (
                             <button
                               key={action.label}
@@ -423,12 +425,12 @@ function Appointments() {
                               title={action.disabled ? action.disabledReason : ""}
                               onClick={() => handleQuickStatus(item, action.value)}
                             >
-                              {action.label}
+                              {action.value === "Approved" ? t("appointments.btnApprove") : action.value === "Completed" ? t("appointments.btnComplete") : t("appointments.btnCancel")}
                             </button>
                           )
                         )
                       ) : (
-                        <span className="text-muted">View only</span>
+                        <span className="text-muted">{t("dashboard.viewOnly")}</span>
                       )}
                     </div>
                   </td>
