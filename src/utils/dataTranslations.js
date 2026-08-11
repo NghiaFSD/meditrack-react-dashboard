@@ -6,6 +6,8 @@ const REASON_MAP = {
   "General check-up": "Khám sức khỏe tổng quát",
   "Blood sugar review": "Kiểm tra chỉ số đường huyết",
   "Blood pressure monitoring": "Theo dõi huyết áp",
+  "Dietary consultation": "Tư vấn chế độ dinh dưỡng",
+  "Routine health check": "Khám sức khỏe định kỳ",
   check: "Khám định kỳ",
   No: "Khám theo hẹn",
 };
