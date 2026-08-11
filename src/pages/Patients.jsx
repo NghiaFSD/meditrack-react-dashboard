@@ -12,9 +12,11 @@ import { appointmentApi } from "../api/appointmentApi";
 import { patientApi } from "../api/patientApi";
 import { recordApi } from "../api/recordApi";
 import { usePatients } from "../hooks/usePatients";
+import { useAppointments } from "../hooks/useAppointments";
 import { ROLES, getCurrentUser } from "../utils/auth";
 import { isValidEmail, isValidPhone } from "../utils/validation";
 import { useLanguage } from "../context/LanguageContext";
+import { translateInsurance, translateRiskLevel } from "../utils/dataTranslations";
 
 const emptyPatient = {
   patientCode: "",
@@ -234,8 +236,8 @@ function Patients() {
                   <td>{patient.fullName}</td>
                   <td>{patient.gender === "Male" ? t("patients.male") : t("patients.female")}</td>
                   <td>{patient.age}</td>
-                  <td>{patient.insuranceType || "Standard"}</td>
-                  <td>{patient.riskLevel || "Low"}</td>
+                  <td><StatusBadge status={patient.insuranceType || "Standard"} /></td>
+                  <td><StatusBadge status={patient.riskLevel || "Low"} /></td>
                   <td>{patient.lastVisit || "-"}</td>
                   <td>{patient.phone}</td>
                   <td>{patient.email}</td>

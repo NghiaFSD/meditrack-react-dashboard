@@ -13,7 +13,13 @@ function Header() {
         <h2>
           {lang === "vi" ? `Chào mừng trở lại, ${currentUser.fullName || "Khách"}` : `Welcome back, ${currentUser.fullName || "Guest"}`}
         </h2>
-        <p>{roleLabel === "Patient" ? t("dashboard.subtitle") : t("dashboard.subtitle")}</p>
+        <p>
+          {currentUser.role === "PATIENT"
+            ? t("dashboard.descPatient")
+            : currentUser.role === "DOCTOR"
+              ? t("dashboard.descDoctor")
+              : t("dashboard.descAdmin")}
+        </p>
       </div>
 
       <div className="header-profile" style={{ display: "flex", alignItems: "center", gap: "1rem" }}>

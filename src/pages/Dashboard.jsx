@@ -23,6 +23,7 @@ import {
   getHbA1cStatus,
 } from "../utils/healthStatus";
 import { useLanguage } from "../context/LanguageContext";
+import { translateDiagnosis, translateReason } from "../utils/dataTranslations";
 
 // Dashboard tổng quan cho toàn hệ thống.
 function Dashboard() {
@@ -132,13 +133,18 @@ function Dashboard() {
 
   // Gom số lượng lịch hẹn theo status để vẽ chart.
   const appointmentStatusData = useMemo(() => {
-    const statuses = ["Pending", "Approved", "Completed", "Cancelled"];
+    const statuses = [
+      { raw: "Pending", label: lang === "vi" ? "Chờ duyệt" : "Pending" },
+      { raw: "Approved", label: lang === "vi" ? "Đã duyệt" : "Approved" },
+      { raw: "Completed", label: lang === "vi" ? "Hoàn thành" : "Completed" },
+      { raw: "Cancelled", label: lang === "vi" ? "Đã hủy" : "Cancelled" },
+    ];
 
-    return statuses.map((status) => ({
-      status,
-      total: scopedAppointments.filter((item) => item.status === status).length,
+    return statuses.map((item) => ({
+      status: item.label,
+      total: scopedAppointments.filter((entry) => entry.status === item.raw).length,
     }));
-  }, [scopedAppointments]);
+  }, [scopedAppointments, lang]);
 
   const doctorPatientRows = useMemo(() => {
     return scopedPatients
@@ -300,7 +306,7 @@ function Dashboard() {
                     <tr key={item.id}>
                       <td>{item.date}</td>
                       <td>{item.time}</td>
-                      <td>{item.reason}</td>
+                      <td>{translateReason(item.reason, lang)}</td>
                       <td><StatusBadge status={item.status} /></td>
                     </tr>
                   ))}
@@ -364,7 +370,7 @@ function Dashboard() {
                     <tr key={item.id}>
                       <td>{item.time}</td>
                       <td>{patients.find((patient) => Number(patient.id) === Number(item.patientId))?.fullName || "Unknown"}</td>
-                      <td>{item.reason}</td>
+                      <td>{translateReason(item.reason, lang)}</td>
                       <td><StatusBadge status={item.status} /></td>
                     </tr>
                   ))}
@@ -413,7 +419,7 @@ function Dashboard() {
                       <td>{patients.find((patient) => Number(patient.id) === Number(record.patientId))?.fullName || "Unknown"}</td>
                       <td>{record.date}</td>
                       <td>{record.glucose} mg/dL</td>
-                      <td>{record.diagnosis}</td>
+                      <td>{translateDiagnosis(record.diagnosis, lang)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -514,7 +520,7 @@ function Dashboard() {
                     <tr key={item.id}>
                       <td>{item.date}</td>
                       <td>{item.time}</td>
-                      <td>{item.reason}</td>
+                      <td>{translateReason(item.reason, lang)}</td>
                       <td><StatusBadge status={item.status} /></td>
                     </tr>
                   ))}

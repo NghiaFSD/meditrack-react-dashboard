@@ -13,6 +13,7 @@ import { doctorApi } from "../api/doctorApi";
 import { useAppointments } from "../hooks/useAppointments";
 import { ROLES, findLinkedPatient, findLinkedDoctor, getCurrentUser } from "../utils/auth";
 import { useLanguage } from "../context/LanguageContext";
+import { translateReason } from "../utils/dataTranslations";
 
 const emptyAppointment = {
   patientId: "",
@@ -408,8 +409,8 @@ function Appointments() {
                   <td>{getDoctorName(item.doctorId)}</td>
                   <td>{item.date}</td>
                   <td>{item.time}</td>
-                  <td>{item.reason}</td>
-                  <td>{item.channel === "Clinic" ? t("appointments.optClinic") : item.channel === "Online" ? t("appointments.optOnline") : item.channel}</td>
+                  <td>{translateReason(item.reason, lang)}</td>
+                  <td>{item.channel === "Clinic" ? t("appointments.optClinic") : item.channel === "Online" ? t("appointments.optOnline") : item.channel === "Walk-in" ? t("appointments.optWalkIn") : item.channel}</td>
                   <td>{item.priority === "Normal" ? t("appointments.optNormal") : item.priority === "High" ? t("appointments.optHigh") : t("appointments.optLow")}</td>
                   <td><StatusBadge status={item.status} /></td>
                   <td>

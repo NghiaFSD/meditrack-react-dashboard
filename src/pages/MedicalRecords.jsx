@@ -13,6 +13,7 @@ import { doctorApi } from "../api/doctorApi";
 import { useRecords } from "../hooks/useRecords";
 import { ROLES, findLinkedDoctor, findLinkedPatient, getCurrentUser } from "../utils/auth";
 import { useLanguage } from "../context/LanguageContext";
+import { translateDiagnosis, translateRiskLevel } from "../utils/dataTranslations";
 import {
   getBloodPressureStatus,
   getBmiStatus,
@@ -270,9 +271,9 @@ function MedicalRecords() {
                       {record.bloodPressure}<br />
                       <StatusBadge status={bpStatus.label} type={bpStatus.type} />
                     </td>
-                    <td>{record.riskLevel || "Low"}</td>
+                    <td><StatusBadge status={record.riskLevel || "Low"} /></td>
                     <td>{record.followUpDate || "-"}</td>
-                    <td>{record.diagnosis}</td>
+                    <td>{translateDiagnosis(record.diagnosis, lang)}</td>
                     <td>
                       <div className="action-group">
                         {canEdit && <button onClick={() => openEditModal(record)}>{t("patients.btnEdit")}</button>}

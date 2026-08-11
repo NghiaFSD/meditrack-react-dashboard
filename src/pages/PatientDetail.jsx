@@ -11,6 +11,12 @@ import { doctorApi } from "../api/doctorApi";
 import { getGlucoseStatus, getHbA1cStatus } from "../utils/healthStatus";
 import { ROLES, getCurrentUser } from "../utils/auth";
 import { useLanguage } from "../context/LanguageContext";
+import {
+  translateDiagnosis,
+  translateInsurance,
+  translateReason,
+  translateRiskLevel,
+} from "../utils/dataTranslations";
 
 // Trang chi tiết bệnh nhân sử dụng route /patients/:id + i18n.
 function PatientDetail() {
@@ -91,8 +97,8 @@ function PatientDetail() {
             <div><span>{t("patientDetail.age")}</span><strong>{patient.age}</strong></div>
             <div><span>{t("patientDetail.phone")}</span><strong>{patient.phone}</strong></div>
             <div><span>{t("patientDetail.address")}</span><strong>{patient.address}</strong></div>
-            <div><span>{t("patientDetail.insurance")}</span><strong>{patient.insuranceType || "Standard"}</strong></div>
-            <div><span>{t("patientDetail.riskLevel")}</span><strong>{patient.riskLevel || "Low"}</strong></div>
+            <div><span>{t("patientDetail.insurance")}</span><strong><StatusBadge status={patient.insuranceType || "Standard"} /></strong></div>
+            <div><span>{t("patientDetail.riskLevel")}</span><strong><StatusBadge status={patient.riskLevel || "Low"} /></strong></div>
             <div><span>{t("patientDetail.lastVisit")}</span><strong>{patient.lastVisit || "-"}</strong></div>
           </div>
         </div>
@@ -158,7 +164,7 @@ function PatientDetail() {
                   <td>{item.date}</td>
                   <td>{item.time}</td>
                   <td>{getDoctorName(item.doctorId)}</td>
-                  <td>{item.reason}</td>
+                  <td>{translateReason(item.reason, lang)}</td>
                   <td><StatusBadge status={item.status} /></td>
                 </tr>
               ))}
@@ -195,7 +201,7 @@ function PatientDetail() {
                 <td>{record.hba1c}</td>
                 <td>{record.bmi}</td>
                 <td>{record.bloodPressure}</td>
-                <td>{record.diagnosis}</td>
+                <td>{translateDiagnosis(record.diagnosis, lang)}</td>
               </tr>
             ))}
           </tbody>
