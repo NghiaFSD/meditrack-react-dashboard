@@ -22,9 +22,11 @@ import {
   getGlucoseStatus,
   getHbA1cStatus,
 } from "../utils/healthStatus";
+import { useLanguage } from "../context/LanguageContext";
 
 // Dashboard tổng quan cho toàn hệ thống.
 function Dashboard() {
+  const { lang, t } = useLanguage();
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
@@ -173,7 +175,7 @@ function Dashboard() {
       ]
     : [];
 
-  if (loading) return <Loading text="Loading dashboard..." />;
+  if (loading) return <Loading text={t("common.loading")} />;
 
   return (
     <div className={`dashboard-shell ${currentRole ? `role-${currentRole.toLowerCase()}` : ""}`}>

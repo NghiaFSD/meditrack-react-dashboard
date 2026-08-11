@@ -9,10 +9,15 @@ import { appointmentApi } from "../api/appointmentApi";
 import { recordApi } from "../api/recordApi";
 import { doctorApi } from "../api/doctorApi";
 import { getGlucoseStatus, getHbA1cStatus } from "../utils/healthStatus";
+import { ROLES, getCurrentUser } from "../utils/auth";
+import { useLanguage } from "../context/LanguageContext";
 
-// Trang chi tiết bệnh nhân sử dụng route /patients/:id.
+// Trang chi tiết bệnh nhân sử dụng route /patients/:id + i18n.
 function PatientDetail() {
   const { id } = useParams();
+  const { lang, t } = useLanguage();
+  const currentUser = getCurrentUser();
+  const canManage = currentUser?.role === ROLES.ADMIN || currentUser?.role === ROLES.DOCTOR;
   const [patient, setPatient] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [records, setRecords] = useState([]);
@@ -53,17 +58,24 @@ function PatientDetail() {
     return doctors.find((doctor) => Number(doctor.id) === Number(doctorId))?.fullName || "Unknown doctor";
   };
 
-  if (loading) return <Loading text="Loading patient detail..." />;
-  if (!patient) return <EmptyState title="Patient not found" message="The selected patient does not exist." />;
+  if (loading) return <Loading text={t("common.loading")} />;
+  if (!patient) return <EmptyState title={lang === "vi" ? "Không tìm thấy bệnh nhân" : "Patient not found"} message={lang === "vi" ? "Bệnh nhân được chọn không tồn tại." : "The selected patient does not exist."} />;
 
   return (
     <div>
       <div className="page-title">
         <div>
           <h1>{patient.fullName}</h1>
-          <p>Patient profile, appointments and medical records.</p>
+          <p>{t("patientDetail.subtitle")}</p>
         </div>
-        <Link className="btn btn-secondary" to="/patients">← Back</Link>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          {canManage && (
+            <Link className="btn btn-primary" to={`/patients/${patient.id}/edit`}>
+              {t("patientDetail.btnEdit")}
+            </Link>
+          )}
+          <Link className="btn btn-secondary" to="/patients">{t("patientDetail.btnBack")}</Link>
+        </div>
       </div>
 
       <div className="detail-grid">
@@ -74,48 +86,48 @@ function PatientDetail() {
           <StatusBadge status={patient.status} />
 
           <div className="info-list">
-            <div><span>Code</span><strong>{patient.patientCode || `PT-${String(patient.id).padStart(3, "0")}`}</strong></div>
-            <div><span>Gender</span><strong>{patient.gender}</strong></div>
-            <div><span>Age</span><strong>{patient.age}</strong></div>
-            <div><span>Phone</span><strong>{patient.phone}</strong></div>
-            <div><span>Address</span><strong>{patient.address}</strong></div>
-            <div><span>Insurance</span><strong>{patient.insuranceType || "Standard"}</strong></div>
-            <div><span>Risk Level</span><strong>{patient.riskLevel || "Low"}</strong></div>
-            <div><span>Last Visit</span><strong>{patient.lastVisit || "-"}</strong></div>
+            <div><span>{t("patientDetail.code")}</span><strong>{patient.patientCode || `PT-${String(patient.id).padStart(3, "0")}`}</strong></div>
+            <div><span>{t("patientDetail.gender")}</span><strong>{patient.gender === "Male" ? t("patients.male") : t("patients.female")}</strong></div>
+            <div><span>{t("patientDetail.age")}</span><strong>{patient.age}</strong></div>
+            <div><span>{t("patientDetail.phone")}</span><strong>{patient.phone}</strong></div>
+            <div><span>{t("patientDetail.address")}</span><strong>{patient.address}</strong></div>
+            <div><span>{t("patientDetail.insurance")}</span><strong>{patient.insuranceType || "Standard"}</strong></div>
+            <div><span>{t("patientDetail.riskLevel")}</span><strong>{patient.riskLevel || "Low"}</strong></div>
+            <div><span>{t("patientDetail.lastVisit")}</span><strong>{patient.lastVisit || "-"}</strong></div>
           </div>
         </div>
 
         <div className="table-card">
           <div className="section-title compact">
             <div>
-              <h3>Latest Health Status</h3>
-              <p>Based on the latest medical record</p>
+              <h3>{t("patientDetail.latestHealthStatus")}</h3>
+              <p>{t("patientDetail.latestHealthSub")}</p>
             </div>
           </div>
 
           {latestRecord ? (
             <div className="health-summary">
               <div>
-                <span>Glucose</span>
+                <span>{t("patientDetail.glucose")}</span>
                 <strong>{latestRecord.glucose} mg/dL</strong>
                 <StatusBadge status={getGlucoseStatus(latestRecord.glucose).label} type={getGlucoseStatus(latestRecord.glucose).type} />
               </div>
               <div>
-                <span>HbA1c</span>
+                <span>{t("patientDetail.hba1c")}</span>
                 <strong>{latestRecord.hba1c}%</strong>
                 <StatusBadge status={getHbA1cStatus(latestRecord.hba1c).label} type={getHbA1cStatus(latestRecord.hba1c).type} />
               </div>
               <div>
-                <span>BMI</span>
+                <span>{t("patientDetail.bmi")}</span>
                 <strong>{latestRecord.bmi}</strong>
               </div>
               <div>
-                <span>Blood Pressure</span>
+                <span>{t("patientDetail.bloodPressure")}</span>
                 <strong>{latestRecord.bloodPressure}</strong>
               </div>
             </div>
           ) : (
-            <EmptyState title="No record" message="This patient has no medical record yet." />
+            <EmptyState title={t("patientDetail.noRecordTitle")} message={t("patientDetail.noRecordMsg")} />
           )}
         </div>
       </div>
@@ -126,18 +138,18 @@ function PatientDetail() {
         <div className="table-card">
           <div className="section-title compact">
             <div>
-              <h3>Appointments</h3>
-              <p>Appointments of this patient</p>
+              <h3>{t("patientDetail.appointmentsTitle")}</h3>
+              <p>{t("patientDetail.appointmentsSub")}</p>
             </div>
           </div>
           <table>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Doctor</th>
-                <th>Reason</th>
-                <th>Status</th>
+                <th>{t("patientDetail.date")}</th>
+                <th>{t("patientDetail.time")}</th>
+                <th>{t("patientDetail.doctor")}</th>
+                <th>{t("patientDetail.reason")}</th>
+                <th>{t("patientDetail.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -158,20 +170,20 @@ function PatientDetail() {
       <div className="table-card">
         <div className="section-title compact">
           <div>
-            <h3>Medical Records</h3>
-            <p>Patient health record history</p>
+            <h3>{t("patientDetail.recordsTitle")}</h3>
+            <p>{t("patientDetail.recordsSub")}</p>
           </div>
         </div>
         <table>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Doctor</th>
-              <th>Glucose</th>
-              <th>HbA1c</th>
-              <th>BMI</th>
-              <th>Blood Pressure</th>
-              <th>Diagnosis</th>
+              <th>{t("patientDetail.date")}</th>
+              <th>{t("patientDetail.doctor")}</th>
+              <th>{t("patientDetail.glucose")}</th>
+              <th>{t("patientDetail.hba1c")}</th>
+              <th>{t("patientDetail.bmi")}</th>
+              <th>{t("patientDetail.bloodPressure")}</th>
+              <th>{t("patientDetail.diagnosis")}</th>
             </tr>
           </thead>
           <tbody>

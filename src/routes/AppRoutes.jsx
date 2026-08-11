@@ -4,6 +4,7 @@ import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Patients from "../pages/Patients";
 import PatientDetail from "../pages/PatientDetail";
+import PatientEdit from "../pages/PatientEdit";
 import Appointments from "../pages/Appointments";
 import MedicalRecords from "../pages/MedicalRecords";
 import AccessDenied from "../pages/AccessDenied";
@@ -55,6 +56,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR]}>
               <PatientDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="patients/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR]}>
+              <PatientEdit />
             </ProtectedRoute>
           }
         />

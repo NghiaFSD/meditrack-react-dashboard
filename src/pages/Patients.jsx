@@ -14,6 +14,7 @@ import { recordApi } from "../api/recordApi";
 import { usePatients } from "../hooks/usePatients";
 import { ROLES, getCurrentUser } from "../utils/auth";
 import { isValidEmail, isValidPhone } from "../utils/validation";
+import { useLanguage } from "../context/LanguageContext";
 
 const emptyPatient = {
   patientCode: "",
@@ -29,9 +30,10 @@ const emptyPatient = {
   status: "Active",
 };
 
-// Trang quản lý bệnh nhân: CRUD + search/filter.
+// Trang quản lý bệnh nhân: CRUD + search/filter + i18n.
 function Patients() {
   const { patients, loading, error, fetchPatients } = usePatients();
+  const { lang, t } = useLanguage();
   const currentUser = getCurrentUser();
   const currentRole = currentUser?.role;
   const canManagePatients = currentRole === ROLES.ADMIN;
@@ -179,24 +181,24 @@ function Patients() {
     }
   };
 
-  if (loading) return <Loading text="Loading patients..." />;
+  if (loading) return <Loading text={t("common.loading")} />;
 
   return (
     <div>
       <div className="page-title">
         <div>
-          <h1>Patients</h1>
-          <p>{canManagePatients ? "Manage patient information and medical profiles." : "View patient information and medical profiles."}</p>
+          <h1>{t("patients.title")}</h1>
+          <p>{canManagePatients ? t("patients.subtitleAdmin") : t("patients.subtitleView")}</p>
         </div>
-        {canManagePatients && <Button onClick={openAddModal}>+ Add Patient</Button>}
+        {canManagePatients && <Button onClick={openAddModal}>{t("patients.addPatient")}</Button>}
       </div>
 
       <div className="toolbar">
-        <SearchBox value={search} onChange={setSearch} placeholder="Search by name, email or phone..." />
+        <SearchBox value={search} onChange={setSearch} placeholder={t("patients.searchPlaceholder")} />
         <select value={genderFilter} onChange={(event) => setGenderFilter(event.target.value)}>
-          <option value="All">All genders</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
+          <option value="All">{t("patients.allGenders")}</option>
+          <option value="Male">{t("patients.male")}</option>
+          <option value="Female">{t("patients.female")}</option>
         </select>
       </div>
 
@@ -204,23 +206,23 @@ function Patients() {
 
       <div className="table-card">
         {filteredPatients.length === 0 ? (
-          <EmptyState title="No patients found" message="Try changing your search keyword or filter." />
+          <EmptyState title={t("patients.noPatientsFound")} message={t("patients.noPatientsMsg")} />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Code</th>
-                <th>Full Name</th>
-                <th>Gender</th>
-                <th>Age</th>
-                <th>Insurance</th>
-                <th>Risk</th>
-                <th>Last Visit</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Action</th>
+                <th>{t("patients.tableId")}</th>
+                <th>{t("patients.tableCode")}</th>
+                <th>{t("patients.tableName")}</th>
+                <th>{t("patients.tableGender")}</th>
+                <th>{t("patients.tableAge")}</th>
+                <th>{t("patients.tableInsurance")}</th>
+                <th>{t("patients.tableRisk")}</th>
+                <th>{t("patients.tableLastVisit")}</th>
+                <th>{t("patients.tablePhone")}</th>
+                <th>{t("patients.tableEmail")}</th>
+                <th>{t("patients.tableStatus")}</th>
+                <th>{t("patients.tableAction")}</th>
               </tr>
             </thead>
             <tbody>
@@ -229,7 +231,7 @@ function Patients() {
                   <td>#{patient.id}</td>
                   <td>{patient.patientCode || `PT-${String(patient.id).padStart(3, "0")}`}</td>
                   <td>{patient.fullName}</td>
-                  <td>{patient.gender}</td>
+                  <td>{patient.gender === "Male" ? t("patients.male") : t("patients.female")}</td>
                   <td>{patient.age}</td>
                   <td>{patient.insuranceType || "Standard"}</td>
                   <td>{patient.riskLevel || "Low"}</td>
@@ -239,9 +241,9 @@ function Patients() {
                   <td><StatusBadge status={patient.status} /></td>
                   <td>
                     <div className="action-group">
-                      <Link className="link-btn" to={`/patients/${patient.id}`}>View</Link>
-                      {canManagePatients && <button onClick={() => openEditModal(patient)}>Edit</button>}
-                      {canManagePatients && <button className="danger" onClick={() => handleDelete(patient)}>Delete</button>}
+                      <Link className="link-btn" to={`/patients/${patient.id}`}>{t("patients.btnView")}</Link>
+                      {canManagePatients && <Link className="link-btn" to={`/patients/${patient.id}/edit`}>{t("patients.btnEdit")}</Link>}
+                      {canManagePatients && <button className="danger" onClick={() => handleDelete(patient)}>{t("patients.btnDelete")}</button>}
                     </div>
                   </td>
                 </tr>
@@ -252,34 +254,34 @@ function Patients() {
       </div>
 
       <Modal
-        title={editingPatient ? "Edit Patient" : "Add Patient"}
+        title={editingPatient ? t("patients.modalEditTitle") : t("patients.modalAddTitle")}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       >
         <form onSubmit={handleSubmit} className="form-grid">
-          <Input label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} required />
+          <Input label={t("patients.lblFullName")} name="fullName" value={form.fullName} onChange={handleChange} required />
           <div className="form-group">
-            <label>Gender</label>
+            <label>{t("patients.lblGender")}</label>
             <select name="gender" value={form.gender} onChange={handleChange}>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
+              <option value="Male">{t("patients.male")}</option>
+              <option value="Female">{t("patients.female")}</option>
             </select>
           </div>
-          <Input label="Age" name="age" type="number" value={form.age} onChange={handleChange} required />
-          <Input label="Phone" name="phone" value={form.phone} onChange={handleChange} required />
-          <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} required />
-          <Input label="Address" name="address" value={form.address} onChange={handleChange} />
+          <Input label={t("patients.lblAge")} name="age" type="number" value={form.age} onChange={handleChange} required />
+          <Input label={t("patients.lblPhone")} name="phone" value={form.phone} onChange={handleChange} required />
+          <Input label={t("patients.lblEmail")} name="email" type="email" value={form.email} onChange={handleChange} required />
+          <Input label={t("patients.lblAddress")} name="address" value={form.address} onChange={handleChange} />
           <div className="form-group">
-            <label>Status</label>
+            <label>{t("patients.lblStatus")}</label>
             <select name="status" value={form.status} onChange={handleChange}>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
+              <option value="Active">{t("common.statusActive")}</option>
+              <option value="Inactive">{t("common.statusInactive")}</option>
             </select>
           </div>
 
           <div className="modal-actions">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit">Save</Button>
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>{t("patients.btnCancel")}</Button>
+            <Button type="submit">{t("patients.btnSave")}</Button>
           </div>
         </form>
       </Modal>

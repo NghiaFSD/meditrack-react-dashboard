@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { authApi } from "../api/authApi";
 import { getCurrentUser } from "../utils/auth";
+import { useLanguage } from "../context/LanguageContext";
 
-// Trang đăng nhập demo.
-// Tài khoản được lấy từ db.json thông qua json-server.
+// Trang đăng nhập demo với i18n.
 function Login() {
   const navigate = useNavigate();
+  const { lang, toggleLanguage, t } = useLanguage();
   const [form, setForm] = useState({ email: "admin@gmail.com", password: "MediTrack#2026!" });
   const [loading, setLoading] = useState(false);
 
@@ -31,15 +32,27 @@ function Login() {
       const user = users.find((item) => item.password === form.password);
 
       if (!user) {
-        Swal.fire("Login failed", "Email or password is incorrect.", "error");
+        Swal.fire(
+          lang === "vi" ? "Đăng nhập thất bại" : "Login failed",
+          t("login.invalidCreds"),
+          "error"
+        );
         return;
       }
 
       localStorage.setItem("currentUser", JSON.stringify(user));
-      Swal.fire("Success", `Welcome ${user.fullName}!`, "success");
+      Swal.fire(
+        lang === "vi" ? "Thành công" : "Success",
+        lang === "vi" ? `Xin chào ${user.fullName}!` : `Welcome ${user.fullName}!`,
+        "success"
+      );
       navigate("/dashboard");
     } catch (err) {
-      Swal.fire("Error", "Cannot connect to API server. Please run npm run server.", "error");
+      Swal.fire(
+        lang === "vi" ? "Lỗi kết nối" : "Error",
+        lang === "vi" ? "Không thể kết nối đến máy chủ API. Vui lòng chạy npm start." : "Cannot connect to API server. Please run npm start.",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -52,15 +65,38 @@ function Login() {
 
   return (
     <div className="login-page">
+      <div style={{ position: "absolute", top: "1rem", right: "1.5rem" }}>
+        <button
+          onClick={toggleLanguage}
+          className="lang-toggle-btn"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "20px",
+            border: "1px solid #cbd5e1",
+            background: "white",
+            fontWeight: "600",
+            fontSize: "0.9rem",
+            cursor: "pointer",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+          }}
+        >
+          <span>🌐</span>
+          <span>{lang === "vi" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}</span>
+        </button>
+      </div>
+
       <div className="login-card">
         <div className="login-brand">
           <div className="brand-logo large">M</div>
           <h1>MediTrack</h1>
-          <p>React Medical Dashboard for CV Portfolio</p>
+          <p>{t("login.subtitle")}</p>
         </div>
 
         <form onSubmit={handleLogin} className="login-form">
-          <label>Email</label>
+          <label>{t("login.lblEmail")}</label>
           <input
             name="email"
             value={form.email}
@@ -68,7 +104,7 @@ function Login() {
             placeholder="admin@gmail.com"
           />
 
-          <label>Password</label>
+          <label>{t("login.lblPassword")}</label>
           <input
             name="password"
             type="password"
@@ -78,15 +114,15 @@ function Login() {
           />
 
           <button className="btn btn-primary full" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+            {loading ? (lang === "vi" ? "Đang đăng nhập..." : "Logging in...") : t("login.btnSignIn")}
           </button>
         </form>
 
         <div className="demo-box">
-          <p>Demo accounts</p>
-          <button onClick={() => useDemoAccount("admin@gmail.com")}>Admin</button>
-          <button onClick={() => useDemoAccount("doctor@gmail.com")}>Doctor</button>
-          <button onClick={() => useDemoAccount("patient@gmail.com")}>Patient</button>
+          <p>{t("login.demoAccounts")}</p>
+          <button onClick={() => useDemoAccount("admin@gmail.com")}>{t("login.roleAdmin")}</button>
+          <button onClick={() => useDemoAccount("doctor@gmail.com")}>{t("login.roleDoctor")}</button>
+          <button onClick={() => useDemoAccount("patient@gmail.com")}>{t("login.rolePatient")}</button>
         </div>
       </div>
     </div>
