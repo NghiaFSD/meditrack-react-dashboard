@@ -78,6 +78,120 @@ button {
 }
 
 /* =============================
+   Action 3-dots Dropdown Menu
+   ============================= */
+.action-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.action-dots-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--muted);
+  font-size: 1.3rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.action-dots-btn:hover {
+  background: #f1f5f9;
+  color: var(--text);
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.action-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 150px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 100;
+  animation: fadeInDown 0.15s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.action-dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.action-dropdown-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.action-dropdown-item.primary {
+  color: var(--primary);
+}
+.action-dropdown-item.primary:hover {
+  background: #eff6ff;
+}
+
+.action-dropdown-item.success {
+  color: var(--success);
+}
+.action-dropdown-item.success:hover {
+  background: #f0fdf4;
+}
+
+.action-dropdown-item.danger {
+  color: var(--danger);
+}
+.action-dropdown-item.danger:hover {
+  background: #fff1f2;
+}
+
+.action-dropdown-item.warning {
+  color: var(--warning);
+}
+.action-dropdown-item.warning:hover {
+  background: #fffbeb;
+}
+
+.action-item-icon {
+  font-size: 1rem;
+}
+
+/* =============================
    Login
    ============================= */
 .login-page {

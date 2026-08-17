@@ -7,6 +7,7 @@ import Loading from "../components/common/Loading";
 import Modal from "../components/common/Modal";
 import SearchBox from "../components/common/SearchBox";
 import StatusBadge from "../components/common/StatusBadge";
+import ActionMenu from "../components/common/ActionMenu";
 import { recordApi } from "../api/recordApi";
 import { patientApi } from "../api/patientApi";
 import { doctorApi } from "../api/doctorApi";
@@ -190,13 +191,27 @@ function MedicalRecords() {
                   <td>{item.bloodPressure || "-"}</td>
                   <td>{translateDiagnosis(item.diagnosis, lang)}</td>
                   {canManage && (
-                    <td>
-                      <div className="action-group">
-                        <button className="link-btn" onClick={() => handleOpenEdit(item)}>Sửa</button>
-                        {currentRole === ROLES.ADMIN && (
-                          <button className="danger" onClick={() => handleDelete(item.id)}>Xóa</button>
-                        )}
-                      </div>
+                    <td style={{ textAlign: "center" }}>
+                      <ActionMenu
+                        items={[
+                          {
+                            label: lang === "vi" ? "Chỉnh sửa" : "Edit",
+                            icon: "✏️",
+                            tone: "primary",
+                            onClick: () => handleOpenEdit(item),
+                          },
+                          ...(currentRole === ROLES.ADMIN
+                            ? [
+                                {
+                                  label: lang === "vi" ? "Xóa bệnh án" : "Delete",
+                                  icon: "🗑️",
+                                  tone: "danger",
+                                  onClick: () => handleDelete(item.id),
+                                },
+                              ]
+                            : []),
+                        ]}
+                      />
                     </td>
                   )}
                 </tr>

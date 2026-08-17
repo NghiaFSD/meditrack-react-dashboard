@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import Button from "../components/common/Button";
 import EmptyState from "../components/common/EmptyState";
@@ -8,6 +8,7 @@ import Loading from "../components/common/Loading";
 import Modal from "../components/common/Modal";
 import SearchBox from "../components/common/SearchBox";
 import StatusBadge from "../components/common/StatusBadge";
+import ActionMenu from "../components/common/ActionMenu";
 import { appointmentApi } from "../api/appointmentApi";
 import { patientApi } from "../api/patientApi";
 import { recordApi } from "../api/recordApi";
@@ -16,7 +17,6 @@ import { ROLES, getCurrentUser } from "../utils/auth";
 import { isValidEmail, isValidPhone } from "../utils/validation";
 import { useLanguage } from "../context/LanguageContext";
 import { ROUTES } from "../config/routes";
-
 import { useAuth } from "../context/AuthContext";
 
 const emptyPatient = {
@@ -37,6 +37,7 @@ const emptyPatient = {
  * Trang quản lý bệnh nhân: CRUD + search/filter + i18n
  */
 function Patients() {
+  const navigate = useNavigate();
   const { patients, loading, error, fetchPatients } = usePatients();
   const { lang, t } = useLanguage();
   const { user } = useAuth();
@@ -237,13 +238,33 @@ function Patients() {
                   <td>{patient.lastVisit || "-"}</td>
                   <td>{patient.phone}</td>
                   <td>{patient.email}</td>
-                  <td><StatusBadge status={patient.status} /></td>
-                  <td>
-                    <div className="action-group">
-                      <Link className="link-btn" to={ROUTES.PATIENT_DETAIL(patient.id)}>{t("patients.btnView")}</Link>
-                      {canManagePatients && <Link className="link-btn" to={ROUTES.PATIENT_EDIT(patient.id)}>{t("patients.btnEdit")}</Link>}
-                      {canManagePatients && <button className="danger" onClick={() => handleDelete(patient)}>{t("patients.btnDelete")}</button>}
-                    </div>
+                  <td style={{ textAlign: "center" }}>
+                    <ActionMenu
+                      items={[
+                        {
+                          label: t("patients.btnView"),
+                          icon: "👁️",
+                          tone: "primary",
+                          onClick: () => navigate(ROUTES.PATIENT_DETAIL(patient.id)),
+                        },
+                        ...(canManagePatients
+                          ? [
+                              {
+                                label: t("patients.btnEdit"),
+                                icon: "✏️",
+                                tone: "primary",
+                                onClick: () => navigate(ROUTES.PATIENT_EDIT(patient.id)),
+                              },
+                              {
+                                label: t("patients.btnDelete"),
+                                icon: "🗑️",
+                                tone: "danger",
+                                onClick: () => handleDelete(patient),
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

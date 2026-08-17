@@ -7,6 +7,7 @@ import Loading from "../components/common/Loading";
 import Modal from "../components/common/Modal";
 import SearchBox from "../components/common/SearchBox";
 import StatusBadge from "../components/common/StatusBadge";
+import ActionMenu from "../components/common/ActionMenu";
 import { appointmentApi } from "../api/appointmentApi";
 import { patientApi } from "../api/patientApi";
 import { doctorApi } from "../api/doctorApi";
@@ -28,7 +29,7 @@ const emptyAppointment = {
 };
 
 /**
- * Trang quản lý Lịch hẹn khám (CRUD + Duyệt/Hủy lịch hẹn)
+ * Trang quản lý Lịch hẹn khám (CRUD + Menu 3 chấm thao tác)
  */
 function Appointments() {
   const { appointments, loading, fetchAppointments } = useAppointments();
@@ -159,6 +160,55 @@ function Appointments() {
     }
   };
 
+  // Tạo danh sách tác vụ cho Menu 3 chấm dọc
+  const getAppointmentActions = (item) => {
+    const actions = [];
+
+    if (canManage && item.status === "Pending") {
+      actions.push({
+        label: lang === "vi" ? "Duyệt lịch" : "Approve",
+        icon: "✅",
+        tone: "success",
+        onClick: () => handleUpdateStatus(item, "Approved"),
+      });
+    }
+
+    if (canManage && item.status === "Approved") {
+      actions.push({
+        label: lang === "vi" ? "Hoàn thành" : "Complete",
+        icon: "🎯",
+        tone: "primary",
+        onClick: () => handleUpdateStatus(item, "Completed"),
+      });
+    }
+
+    if (item.status !== "Cancelled" && item.status !== "Completed") {
+      actions.push({
+        label: lang === "vi" ? "Hủy lịch" : "Cancel",
+        icon: "❌",
+        tone: "danger",
+        onClick: () => handleUpdateStatus(item, "Cancelled"),
+      });
+    }
+
+    if (currentRole === ROLES.ADMIN) {
+      actions.push({
+        label: lang === "vi" ? "Chỉnh sửa" : "Edit",
+        icon: "✏️",
+        tone: "primary",
+        onClick: () => handleOpenEdit(item),
+      });
+      actions.push({
+        label: lang === "vi" ? "Xóa" : "Delete",
+        icon: "🗑️",
+        tone: "danger",
+        onClick: () => handleDelete(item.id),
+      });
+    }
+
+    return actions;
+  };
+
   if (loading) return <Loading text={t("common.loading")} />;
 
   return (
@@ -196,7 +246,7 @@ function Appointments() {
                 <th>{t("appointments.tableDoctor")}</th>
                 <th>{t("patientDetail.reason")}</th>
                 <th>{t("patientDetail.status")}</th>
-                <th>Thao tác</th>
+                <th style={{ textAlign: "center", width: "70px" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -209,24 +259,8 @@ function Appointments() {
                   <td>{getDoctorName(item.doctorId)}</td>
                   <td>{translateReason(item.reason, lang)}</td>
                   <td><StatusBadge status={item.status} /></td>
-                  <td>
-                    <div className="action-group">
-                      {canManage && item.status === "Pending" && (
-                        <button className="link-btn" onClick={() => handleUpdateStatus(item, "Approved")}>Duyệt</button>
-                      )}
-                      {canManage && item.status === "Approved" && (
-                        <button className="link-btn" onClick={() => handleUpdateStatus(item, "Completed")}>Hoàn thành</button>
-                      )}
-                      {item.status !== "Cancelled" && item.status !== "Completed" && (
-                        <button className="danger" onClick={() => handleUpdateStatus(item, "Cancelled")}>Hủy</button>
-                      )}
-                      {currentRole === ROLES.ADMIN && (
-                        <>
-                          <button className="link-btn" onClick={() => handleOpenEdit(item)}>Sửa</button>
-                          <button className="danger" onClick={() => handleDelete(item.id)}>Xóa</button>
-                        </>
-                      )}
-                    </div>
+                  <td style={{ textAlign: "center" }}>
+                    <ActionMenu items={getAppointmentActions(item)} />
                   </td>
                 </tr>
               ))}
