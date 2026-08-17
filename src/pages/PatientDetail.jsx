@@ -11,14 +11,12 @@ import { doctorApi } from "../api/doctorApi";
 import { getGlucoseStatus, getHbA1cStatus } from "../utils/healthStatus";
 import { ROLES, getCurrentUser } from "../utils/auth";
 import { useLanguage } from "../context/LanguageContext";
-import {
-  translateDiagnosis,
-  translateInsurance,
-  translateReason,
-  translateRiskLevel,
-} from "../utils/dataTranslations";
+import { ROUTES } from "../config/routes";
+import { translateDiagnosis, translateReason } from "../utils/translations";
 
-// Trang chi tiết bệnh nhân sử dụng route /patients/:id + i18n.
+/**
+ * Trang chi tiết bệnh nhân (Route: /patients/:id)
+ */
 function PatientDetail() {
   const { id } = useParams();
   const { lang, t } = useLanguage();
@@ -76,11 +74,11 @@ function PatientDetail() {
         </div>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           {canManage && (
-            <Link className="btn btn-primary" to={`/patients/${patient.id}/edit`}>
+            <Link className="btn btn-primary" to={ROUTES.PATIENT_EDIT(patient.id)}>
               {t("patientDetail.btnEdit")}
             </Link>
           )}
-          <Link className="btn btn-secondary" to="/patients">{t("patientDetail.btnBack")}</Link>
+          <Link className="btn btn-secondary" to={ROUTES.PATIENTS}>{t("patientDetail.btnBack")}</Link>
         </div>
       </div>
 

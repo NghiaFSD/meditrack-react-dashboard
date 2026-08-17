@@ -1,4 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { ROUTES } from "../config/routes";
+import { useAuth } from "../context/AuthContext";
+import { ROLES } from "../utils/auth";
 import MainLayout from "../components/layout/MainLayout";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
@@ -9,42 +12,51 @@ import Appointments from "../pages/Appointments";
 import MedicalRecords from "../pages/MedicalRecords";
 import AccessDenied from "../pages/AccessDenied";
 import NotFound from "../pages/NotFound";
-import { ROLES, getCurrentUser, hasRole } from "../utils/auth";
 
-// Chặn người chưa đăng nhập vào dashboard.
+/**
+ * Route Guard Component: Bảo vệ route yêu cầu đăng nhập và phân quyền role bằng useAuth hook
+ */
 function ProtectedRoute({ children, allowedRoles = [] }) {
-  const currentUser = getCurrentUser();
+  const { user, hasRole } = useAuth();
 
-  if (!currentUser) {
-    return <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
-  if (!hasRole(currentUser.role, allowedRoles)) {
-    return <Navigate to="/access-denied" replace />;
+  if (!hasRole(allowedRoles)) {
+    return <Navigate to={ROUTES.ACCESS_DENIED} replace />;
   }
 
   return children;
 }
 
-// Tất cả route của ứng dụng được đặt tại đây.
+/**
+ * Toàn bộ cấu hình Route của MediTrack tập trung tại đây
+ */
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/access-denied" element={<AccessDenied />} />
+      {/* Route Công khai: Đăng nhập & Báo lỗi quyền truy cập */}
+      <Route path={ROUTES.LOGIN} element={<Login />} />
+      <Route path={ROUTES.ACCESS_DENIED} element={<AccessDenied />} />
 
+      {/* Route Yêu cầu Đăng nhập (bọc trong MainLayout) */}
       <Route
-        path="/"
+        path={ROUTES.HOME}
         element={
           <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]}>
             <MainLayout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
+        <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+        
+        {/* Dashboard */}
+        <Route path={ROUTES.DASHBOARD.replace(/^\//, "")} element={<Dashboard />} />
+
+        {/* Quản lý Bệnh nhân (Admin, Doctor) */}
         <Route
-          path="patients"
+          path={ROUTES.PATIENTS.replace(/^\//, "")}
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR]}>
               <Patients />
@@ -52,7 +64,7 @@ function AppRoutes() {
           }
         />
         <Route
-          path="patients/:id"
+          path={ROUTES.PATIENT_DETAIL().replace(/^\//, "")}
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR]}>
               <PatientDetail />
@@ -60,23 +72,27 @@ function AppRoutes() {
           }
         />
         <Route
-          path="patients/:id/edit"
+          path={ROUTES.PATIENT_EDIT().replace(/^\//, "")}
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR]}>
               <PatientEdit />
             </ProtectedRoute>
           }
         />
+
+        {/* Quản lý Lịch hẹn */}
         <Route
-          path="appointments"
+          path={ROUTES.APPOINTMENTS.replace(/^\//, "")}
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]}>
               <Appointments />
             </ProtectedRoute>
           }
         />
+
+        {/* Hồ sơ Y tế / Bệnh án */}
         <Route
-          path="records"
+          path={ROUTES.RECORDS.replace(/^\//, "")}
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]}>
               <MedicalRecords />
@@ -85,7 +101,8 @@ function AppRoutes() {
         />
       </Route>
 
-      <Route path="*" element={<NotFound />} />
+      {/* Trang 404 Not Found */}
+      <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />
     </Routes>
   );
 }

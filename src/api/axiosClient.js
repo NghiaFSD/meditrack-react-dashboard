@@ -1,15 +1,18 @@
 import axios from "axios";
+import { APP_CONFIG } from "../config/appConfig";
 
-// File này gom cấu hình Axios dùng chung cho toàn bộ project.
-// Khi đổi backend thật, chỉ cần đổi baseURL ở đây.
+/**
+ * Cấu hình Axios Client tập trung cho toàn bộ ứng dụng MediTrack
+ * URL API được đọc từ config/appConfig.js
+ */
 const axiosClient = axios.create({
-  baseURL: "http://localhost:9999",
+  baseURL: APP_CONFIG.apiBaseUrl,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Interceptor giúp lấy trực tiếp response.data thay vì response.data ở mọi nơi.
+// Interceptor giúp tự động trích xuất response.data
 axiosClient.interceptors.response.use(
   (response) => response.data,
   (error) => {

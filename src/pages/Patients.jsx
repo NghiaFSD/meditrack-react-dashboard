@@ -12,11 +12,12 @@ import { appointmentApi } from "../api/appointmentApi";
 import { patientApi } from "../api/patientApi";
 import { recordApi } from "../api/recordApi";
 import { usePatients } from "../hooks/usePatients";
-import { useAppointments } from "../hooks/useAppointments";
 import { ROLES, getCurrentUser } from "../utils/auth";
 import { isValidEmail, isValidPhone } from "../utils/validation";
 import { useLanguage } from "../context/LanguageContext";
-import { translateInsurance, translateRiskLevel } from "../utils/dataTranslations";
+import { ROUTES } from "../config/routes";
+
+import { useAuth } from "../context/AuthContext";
 
 const emptyPatient = {
   patientCode: "",
@@ -32,12 +33,14 @@ const emptyPatient = {
   status: "Active",
 };
 
-// Trang quản lý bệnh nhân: CRUD + search/filter + i18n.
+/**
+ * Trang quản lý bệnh nhân: CRUD + search/filter + i18n
+ */
 function Patients() {
   const { patients, loading, error, fetchPatients } = usePatients();
   const { lang, t } = useLanguage();
-  const currentUser = getCurrentUser();
-  const currentRole = currentUser?.role;
+  const { user } = useAuth();
+  const currentRole = user?.role;
   const canManagePatients = currentRole === ROLES.ADMIN;
   const [search, setSearch] = useState("");
   const [genderFilter, setGenderFilter] = useState("All");
@@ -63,13 +66,6 @@ function Patients() {
     if (!canManagePatients) return;
     setEditingPatient(null);
     setForm(emptyPatient);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (patient) => {
-    if (!canManagePatients) return;
-    setEditingPatient(patient);
-    setForm(patient);
     setIsModalOpen(true);
   };
 
@@ -244,8 +240,8 @@ function Patients() {
                   <td><StatusBadge status={patient.status} /></td>
                   <td>
                     <div className="action-group">
-                      <Link className="link-btn" to={`/patients/${patient.id}`}>{t("patients.btnView")}</Link>
-                      {canManagePatients && <Link className="link-btn" to={`/patients/${patient.id}/edit`}>{t("patients.btnEdit")}</Link>}
+                      <Link className="link-btn" to={ROUTES.PATIENT_DETAIL(patient.id)}>{t("patients.btnView")}</Link>
+                      {canManagePatients && <Link className="link-btn" to={ROUTES.PATIENT_EDIT(patient.id)}>{t("patients.btnEdit")}</Link>}
                       {canManagePatients && <button className="danger" onClick={() => handleDelete(patient)}>{t("patients.btnDelete")}</button>}
                     </div>
                   </td>

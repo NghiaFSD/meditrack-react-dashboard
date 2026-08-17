@@ -2,21 +2,27 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { authApi } from "../api/authApi";
-import { getCurrentUser } from "../utils/auth";
+import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { ROUTES } from "../config/routes";
+import { APP_CONFIG } from "../config/appConfig";
 
-// Trang đăng nhập demo với i18n.
+/**
+ * Trang đăng nhập demo với đa ngôn ngữ i18n và AuthContext
+ */
 function Login() {
   const navigate = useNavigate();
+  const { user, login } = useAuth();
   const { lang, toggleLanguage, t } = useLanguage();
   const [form, setForm] = useState({ email: "admin@gmail.com", password: "MediTrack#2026!" });
   const [loading, setLoading] = useState(false);
 
+  // Nếu đã đăng nhập, tự động chuyển hướng vào Dashboard
   useEffect(() => {
-    if (getCurrentUser()) {
-      navigate("/dashboard", { replace: true });
+    if (user) {
+      navigate(ROUTES.DASHBOARD, { replace: true });
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -29,9 +35,9 @@ function Login() {
     try {
       setLoading(true);
       const users = await authApi.login(form.email);
-      const user = users.find((item) => item.password === form.password);
+      const matchedUser = users.find((item) => item.password === form.password);
 
-      if (!user) {
+      if (!matchedUser) {
         Swal.fire(
           lang === "vi" ? "Đăng nhập thất bại" : "Login failed",
           t("login.invalidCreds"),
@@ -40,13 +46,15 @@ function Login() {
         return;
       }
 
-      localStorage.setItem("currentUser", JSON.stringify(user));
+      // Đăng nhập qua AuthContext
+      login(matchedUser);
+
       Swal.fire(
         lang === "vi" ? "Thành công" : "Success",
-        lang === "vi" ? `Xin chào ${user.fullName}!` : `Welcome ${user.fullName}!`,
+        lang === "vi" ? `Xin chào ${matchedUser.fullName}!` : `Welcome ${matchedUser.fullName}!`,
         "success"
       );
-      navigate("/dashboard");
+      navigate(ROUTES.DASHBOARD);
     } catch (err) {
       Swal.fire(
         lang === "vi" ? "Lỗi kết nối" : "Error",
@@ -58,7 +66,7 @@ function Login() {
     }
   };
 
-  // Gán nhanh tài khoản demo vào form.
+  // Gán nhanh tài khoản demo vào form
   const useDemoAccount = (email) => {
     setForm({ email, password: "MediTrack#2026!" });
   };
@@ -91,7 +99,7 @@ function Login() {
       <div className="login-card">
         <div className="login-brand">
           <div className="brand-logo large">M</div>
-          <h1>MediTrack</h1>
+          <h1>{APP_CONFIG.appName}</h1>
           <p>{t("login.subtitle")}</p>
         </div>
 

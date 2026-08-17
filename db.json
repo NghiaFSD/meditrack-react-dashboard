@@ -203,7 +203,7 @@
       "reason": "Diabetes follow-up",
       "channel": "Clinic",
       "priority": "Normal",
-      "status": "Completed"
+      "status": "Pending"
     },
     {
       "id": "6",
@@ -225,7 +225,7 @@
       "reason": "Routine health check",
       "channel": "Clinic",
       "priority": "Low",
-      "status": "Pending"
+      "status": "Approved"
     },
     {
       "id": "8",
@@ -236,7 +236,7 @@
       "reason": "General check-up",
       "channel": "Online",
       "priority": "Normal",
-      "status": "Completed"
+      "status": "Pending"
     },
     {
       "id": "9",
@@ -324,7 +324,7 @@
       "date": "2026-01-15",
       "glucose": 185,
       "hba1c": 8.6,
-      "bmi": 21.0,
+      "bmi": 21,
       "bloodPressure": "135/85",
       "riskLevel": "High",
       "followUpDate": "2026-03-10",
@@ -407,7 +407,7 @@
       "doctorId": 2,
       "date": "2026-02-10",
       "glucose": 118,
-      "hba1c": 6.0,
+      "hba1c": 6,
       "bmi": 24.5,
       "bloodPressure": "120/78",
       "riskLevel": "Medium",
@@ -590,7 +590,7 @@
       "date": "2026-07-15",
       "glucose": 92,
       "hba1c": 5.2,
-      "bmi": 21.0,
+      "bmi": 21,
       "bloodPressure": "115/72",
       "riskLevel": "Low",
       "followUpDate": "2027-01-15",

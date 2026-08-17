@@ -1,11 +1,34 @@
 import { ROLES } from "../utils/auth";
+import { ROUTES } from "../config/routes";
 
-// Danh sách menu cho sidebar theo quyền.
+/**
+ * Danh sách menu cho Sidebar phân quyền theo User Role
+ */
 export const menuItems = [
-  { path: "/dashboard", label: "Dashboard", icon: "📊", allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT] },
-  { path: "/patients", label: "Patients", icon: "🧑‍⚕️", allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR] },
-  { path: "/appointments", label: "Appointments", icon: "📅", allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT] },
-  { path: "/records", label: "Medical Records", icon: "📋", allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT] },
+  {
+    path: ROUTES.DASHBOARD,
+    label: "Dashboard",
+    icon: "📊",
+    allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT],
+  },
+  {
+    path: ROUTES.PATIENTS,
+    label: "Patients",
+    icon: "🧑‍⚕️",
+    allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR],
+  },
+  {
+    path: ROUTES.APPOINTMENTS,
+    label: "Appointments",
+    icon: "📅",
+    allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT],
+  },
+  {
+    path: ROUTES.RECORDS,
+    label: "Medical Records",
+    icon: "📋",
+    allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT],
+  },
 ];
 
 export function getMenuItemsForRole(role) {

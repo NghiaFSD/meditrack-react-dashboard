@@ -7,6 +7,7 @@ import Loading from "../components/common/Loading";
 import { patientApi } from "../api/patientApi";
 import { isValidEmail, isValidPhone } from "../utils/validation";
 import { useLanguage } from "../context/LanguageContext";
+import { ROUTES } from "../config/routes";
 
 const initialForm = {
   patientCode: "",
@@ -22,7 +23,9 @@ const initialForm = {
   status: "Active",
 };
 
-// Trang chỉnh sửa bệnh nhân riêng theo tiêu chí Activity 3 (React Router + useParams + useNavigate + PUT API + i18n).
+/**
+ * Trang chỉnh sửa bệnh nhân (Route: /patients/:id/edit)
+ */
 function PatientEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -54,7 +57,7 @@ function PatientEdit() {
         }
       } catch (err) {
         Swal.fire("Error", "Cannot load patient data.", "error");
-        navigate("/patients");
+        navigate(ROUTES.PATIENTS);
       } finally {
         setLoading(false);
       }
@@ -113,11 +116,9 @@ function PatientEdit() {
 
     try {
       setSubmitting(true);
-      // PUT Request to update existing patient details
       await patientApi.update(id, payload);
       await Swal.fire(t("patientEdit.updateSuccessTitle"), t("patientEdit.updateSuccessText"), "success");
-      // Redirect back to Patient Detail page using useNavigate
-      navigate(`/patients/${id}`);
+      navigate(ROUTES.PATIENT_DETAIL(id));
     } catch (err) {
       Swal.fire(t("patientEdit.updateErrorTitle"), t("patientEdit.updateErrorText"), "error");
     } finally {
@@ -134,7 +135,7 @@ function PatientEdit() {
           <h1>{lang === "vi" ? `Chỉnh sửa Bệnh nhân #${id}` : `Edit Patient #${id}`}</h1>
           <p>{lang === "vi" ? `Cập nhật hồ sơ bệnh án và thông tin cá nhân cho ${form.fullName || "bệnh nhân"}.` : `Update medical profile and personal details for ${form.fullName || "patient"}.`}</p>
         </div>
-        <Link className="btn btn-secondary" to={`/patients/${id}`}>
+        <Link className="btn btn-secondary" to={ROUTES.PATIENT_DETAIL(id)}>
           {t("patientEdit.btnCancelBack")}
         </Link>
       </div>
@@ -219,7 +220,7 @@ function PatientEdit() {
             <Button
               type="button"
               variant="secondary"
-              onClick={() => navigate(`/patients/${id}`)}
+              onClick={() => navigate(ROUTES.PATIENT_DETAIL(id))}
             >
               {t("patientEdit.btnCancel")}
             </Button>

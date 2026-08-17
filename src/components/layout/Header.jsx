@@ -1,9 +1,13 @@
-import { getCurrentUser, getRoleLabel } from "../../utils/auth";
+import { getRoleLabel } from "../../utils/auth";
+import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 
-// Header hiển thị thông tin user đang đăng nhập và nút chuyển đổi ngôn ngữ.
+/**
+ * Header hiển thị thông tin user đang đăng nhập và nút chuyển đổi ngôn ngữ
+ */
 function Header() {
-  const currentUser = getCurrentUser() || {};
+  const { user } = useAuth();
+  const currentUser = user || {};
   const roleLabel = getRoleLabel(currentUser.role);
   const { lang, toggleLanguage, t } = useLanguage();
 

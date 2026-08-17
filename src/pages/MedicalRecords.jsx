@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import Button from "../components/common/Button";
 import EmptyState from "../components/common/EmptyState";
@@ -11,15 +11,10 @@ import { recordApi } from "../api/recordApi";
 import { patientApi } from "../api/patientApi";
 import { doctorApi } from "../api/doctorApi";
 import { useRecords } from "../hooks/useRecords";
-import { ROLES, findLinkedDoctor, findLinkedPatient, getCurrentUser } from "../utils/auth";
+import { useAuth } from "../context/AuthContext";
+import { ROLES, findLinkedDoctor, findLinkedPatient } from "../utils/auth";
 import { useLanguage } from "../context/LanguageContext";
-import { translateDiagnosis, translateRiskLevel } from "../utils/dataTranslations";
-import {
-  getBloodPressureStatus,
-  getBmiStatus,
-  getGlucoseStatus,
-  getHbA1cStatus,
-} from "../utils/healthStatus";
+import { translateDiagnosis } from "../utils/translations";
 
 const emptyRecord = {
   patientId: "",
@@ -35,173 +30,115 @@ const emptyRecord = {
   note: "",
 };
 
-// Trang quản lý hồ sơ bệnh án + i18n.
+/**
+ * Trang quản lý Hồ sơ bệnh án (CRUD + Xem chỉ số sức khỏe)
+ */
 function MedicalRecords() {
   const { records, loading, fetchRecords } = useRecords();
   const { lang, t } = useLanguage();
+  const { user } = useAuth();
+  const currentRole = user?.role;
+
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
-  const currentUser = getCurrentUser();
-  const currentRole = currentUser?.role;
-  const linkedPatient = useMemo(() => findLinkedPatient(patients, currentUser), [patients, currentUser]);
-  const linkedDoctor = useMemo(() => findLinkedDoctor(doctors, currentUser), [doctors, currentUser]);
-  const canCreate = [ROLES.ADMIN, ROLES.DOCTOR].includes(currentRole);
-  const canEdit = [ROLES.ADMIN, ROLES.DOCTOR].includes(currentRole);
-  const canDelete = currentRole === ROLES.ADMIN;
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [form, setForm] = useState(emptyRecord);
 
   useEffect(() => {
-    async function fetchReferences() {
-      const [patientData, doctorData] = await Promise.all([
-        patientApi.getAll(),
-        doctorApi.getAll(),
-      ]);
-      setPatients(patientData);
-      setDoctors(doctorData);
+    async function loadRefs() {
+      const [p, d] = await Promise.all([patientApi.getAll(), doctorApi.getAll()]);
+      setPatients(p);
+      setDoctors(d);
     }
-
-    fetchReferences();
+    loadRefs();
   }, []);
 
-  const getPatientName = (patientId) => {
-    return patients.find((patient) => Number(patient.id) === Number(patientId))?.fullName || "Unknown patient";
-  };
+  const linkedPatient = useMemo(() => findLinkedPatient(patients, user), [patients, user]);
+  const linkedDoctor = useMemo(() => findLinkedDoctor(doctors, user), [doctors, user]);
 
-  const getDoctorName = (doctorId) => {
-    return doctors.find((doctor) => Number(doctor.id) === Number(doctorId))?.fullName || "Unknown doctor";
-  };
+  const canManage = [ROLES.ADMIN, ROLES.DOCTOR].includes(currentRole);
+
+  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
+  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Unknown";
 
   const filteredRecords = useMemo(() => {
-    const scopedRecords = records.filter((record) => {
-      if (currentRole === ROLES.PATIENT && linkedPatient) {
-        return Number(record.patientId) === Number(linkedPatient.id);
-      }
-
-      if (currentRole === ROLES.DOCTOR && linkedDoctor) {
-        return Number(record.doctorId) === Number(linkedDoctor.id);
-      }
-
+    const scoped = records.filter((r) => {
+      if (currentRole === ROLES.PATIENT && linkedPatient) return Number(r.patientId) === Number(linkedPatient.id);
+      if (currentRole === ROLES.DOCTOR && linkedDoctor) return Number(r.doctorId) === Number(linkedDoctor.id);
       return true;
     });
 
-    return scopedRecords.filter((record) => {
-      const keyword = search.toLowerCase();
+    return scoped.filter((r) => {
+      const q = search.toLowerCase();
       return (
-        getPatientName(record.patientId).toLowerCase().includes(keyword) ||
-        getDoctorName(record.doctorId).toLowerCase().includes(keyword) ||
-        record.diagnosis.toLowerCase().includes(keyword)
+        getPatientName(r.patientId).toLowerCase().includes(q) ||
+        getDoctorName(r.doctorId).toLowerCase().includes(q) ||
+        r.diagnosis.toLowerCase().includes(q)
       );
     });
   }, [records, patients, doctors, search, currentRole, linkedPatient, linkedDoctor]);
 
-  const openAddModal = () => {
-    if (!canCreate) return;
+  const handleOpenAdd = () => {
     setEditingRecord(null);
-    setForm(
-      currentRole === ROLES.DOCTOR && linkedDoctor
-        ? { ...emptyRecord, doctorId: linkedDoctor.id }
-        : emptyRecord
-    );
+    setForm({
+      ...emptyRecord,
+      patientId: linkedPatient ? String(linkedPatient.id) : (patients[0]?.id || ""),
+      doctorId: linkedDoctor ? String(linkedDoctor.id) : (doctors[0]?.id || ""),
+      date: new Date().toISOString().slice(0, 10),
+    });
     setIsModalOpen(true);
   };
 
-  const openEditModal = (record) => {
-    if (!canEdit) return;
-    setEditingRecord(record);
-    setForm(record);
+  const handleOpenEdit = (rec) => {
+    setEditingRecord(rec);
+    setForm(rec);
     setIsModalOpen(true);
   };
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!form.patientId || !form.doctorId || !form.date || !form.diagnosis.trim()) {
-      Swal.fire(t("patients.valInvalidData"), lang === "vi" ? "Vui lòng chọn bệnh nhân, bác sĩ, ngày khám và chẩn đoán." : "Please fill patient, doctor, date and diagnosis.", "warning");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.patientId || !form.doctorId || !form.date || !form.diagnosis) {
+      Swal.fire("Lỗi", "Vui lòng điền đầy đủ bệnh nhân, bác sĩ, ngày khám và chẩn đoán.", "warning");
       return;
     }
-
-    const selectedPatientId = Number(form.patientId);
-    const selectedDoctorId = currentRole === ROLES.DOCTOR ? linkedDoctor?.id : Number(form.doctorId);
-    const validPatient = patients.some((patient) => Number(patient.id) === Number(form.patientId));
-    const validDoctor = doctors.some((doctor) => Number(doctor.id) === Number(form.doctorId));
-
-    if (currentRole === ROLES.DOCTOR && !selectedDoctorId) {
-      Swal.fire(t("patients.valInvalidData"), lang === "vi" ? "Không thể xác định hồ sơ bác sĩ của bạn." : "Unable to determine your doctor profile.", "warning");
-      return;
-    }
-
-    if (!validPatient || !validDoctor) {
-      Swal.fire(t("patients.valInvalidData"), lang === "vi" ? "Bệnh nhân hoặc bác sĩ được chọn không tồn tại." : "Selected patient or doctor does not exist.", "warning");
-      return;
-    }
-
-    if (Number(form.glucose) <= 0 || Number(form.hba1c) <= 0 || Number(form.bmi) <= 0) {
-      Swal.fire(t("patients.valInvalidData"), lang === "vi" ? "Chỉ số Glucose, HbA1c và BMI phải lớn hơn 0." : "Glucose, HbA1c and BMI must be greater than 0.", "warning");
-      return;
-    }
-
-    if (!form.bloodPressure.trim() || !form.bloodPressure.includes("/")) {
-      Swal.fire(t("patients.valInvalidData"), t("records.valBpFormat"), "warning");
-      return;
-    }
-
-    const payload = {
-      ...form,
-      patientId: Number(selectedPatientId),
-      doctorId: Number(selectedDoctorId),
-      glucose: Number(form.glucose),
-      hba1c: Number(form.hba1c),
-      bmi: Number(form.bmi),
-    };
 
     try {
       if (editingRecord) {
-        await recordApi.update(editingRecord.id, payload);
-        Swal.fire(t("patientEdit.updateSuccessTitle"), t("records.valUpdated"), "success");
+        await recordApi.update(editingRecord.id, form);
+        Swal.fire("Thành công", "Cập nhật bệnh án thành công!", "success");
       } else {
-        await recordApi.create(payload);
-        Swal.fire(lang === "vi" ? "Thành công" : "Created", t("records.valCreated"), "success");
+        await recordApi.create(form);
+        Swal.fire("Thành công", "Thêm bệnh án mới thành công!", "success");
       }
-
       setIsModalOpen(false);
       fetchRecords();
     } catch (err) {
-      Swal.fire(t("patientEdit.updateErrorTitle"), t("records.valSaveError"), "error");
+      Swal.fire("Lỗi", "Không thể lưu hồ sơ bệnh án.", "error");
     }
   };
 
-  const handleDelete = async (record) => {
-    if (!canDelete) {
-      Swal.fire(t("common.forbidden"), t("common.onlyAdminsCanDelete"), "warning");
-      return;
-    }
-
-    const result = await Swal.fire({
-      title: t("records.deleteConfirmTitle"),
-      text: t("records.deleteConfirmText"),
+  const handleDelete = async (id) => {
+    const res = await Swal.fire({
+      title: "Xóa bệnh án?",
+      text: "Hành động này không thể hoàn tác.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: t("patients.btnDelete"),
-      cancelButtonText: t("patients.btnCancel"),
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
       confirmButtonColor: "#e11d48",
     });
 
-    if (result.isConfirmed) {
-      try {
-        await recordApi.remove(record.id);
-        Swal.fire(t("patients.deleteSuccessTitle"), t("records.deleteSuccessText"), "success");
-        fetchRecords();
-      } catch (err) {
-        Swal.fire(t("patientEdit.updateErrorTitle"), lang === "vi" ? "Không thể xóa hồ sơ bệnh án." : "Cannot delete medical record.", "error");
-      }
+    if (res.isConfirmed) {
+      await recordApi.remove(id);
+      Swal.fire("Đã xóa", "Hồ sơ bệnh án đã được xóa.", "success");
+      fetchRecords();
     }
   };
 
@@ -211,148 +148,98 @@ function MedicalRecords() {
     <div>
       <div className="page-title">
         <div>
-          <h1>{currentRole === ROLES.PATIENT ? t("records.titleMy") : t("records.title")}</h1>
-          <p>{currentRole === ROLES.PATIENT ? t("records.subtitleView") : t("records.subtitleAdmin")}</p>
+          <h1>{t("nav.medicalRecords")}</h1>
+          <p>{lang === "vi" ? "Theo dõi lịch sử khám bệnh, chỉ số sinh học và chẩn đoán lâm sàng." : "Track medical records and clinical history."}</p>
         </div>
-        {canCreate && <Button onClick={openAddModal}>{t("records.addBtn")}</Button>}
+        {canManage && <Button onClick={handleOpenAdd}>+ {lang === "vi" ? "Thêm bệnh án" : "Add Record"}</Button>}
       </div>
 
       <div className="toolbar">
-        <SearchBox value={search} onChange={setSearch} placeholder={t("records.searchPlaceholder")} />
+        <SearchBox value={search} onChange={setSearch} placeholder={lang === "vi" ? "Tìm theo bệnh nhân, bác sĩ, chẩn đoán..." : "Search records..."} />
       </div>
 
       <div className="table-card">
         {filteredRecords.length === 0 ? (
-          <EmptyState title={t("records.noRecords")} message={t("records.noRecordsMsg")} />
+          <EmptyState title="Không có bệnh án" message="Không tìm thấy hồ sơ bệnh án nào phù hợp." />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>{t("patients.tableId")}</th>
-                <th>{t("records.tablePatient")}</th>
-                <th>{t("records.tableDoctor")}</th>
-                <th>{t("records.tableDate")}</th>
-                <th>{t("records.tableGlucose")}</th>
-                <th>{t("records.tableHbA1c")}</th>
-                <th>{t("records.tableBMI")}</th>
-                <th>{t("records.tableBP")}</th>
-                <th>{t("patients.tableRisk")}</th>
-                <th>{t("patients.tableLastVisit")}</th>
-                <th>{t("records.tableDiagnosis")}</th>
-                <th>{t("patients.tableAction")}</th>
+                <th>ID</th>
+                <th>{t("patientDetail.date")}</th>
+                <th>{t("appointments.tablePatient")}</th>
+                <th>{t("appointments.tableDoctor")}</th>
+                <th>{t("patientDetail.glucose")}</th>
+                <th>{t("patientDetail.hba1c")}</th>
+                <th>{t("patientDetail.bmi")}</th>
+                <th>{t("patientDetail.bloodPressure")}</th>
+                <th>{t("patientDetail.diagnosis")}</th>
+                {canManage && <th>Thao tác</th>}
               </tr>
             </thead>
             <tbody>
-              {filteredRecords.map((record) => {
-                const glucoseStatus = getGlucoseStatus(record.glucose);
-                const hba1cStatus = getHbA1cStatus(record.hba1c);
-                const bmiStatus = getBmiStatus(record.bmi);
-                const bpStatus = getBloodPressureStatus(record.bloodPressure);
-
-                return (
-                  <tr key={record.id}>
-                    <td>#{record.id}</td>
-                    <td>{getPatientName(record.patientId)}</td>
-                    <td>{getDoctorName(record.doctorId)}</td>
-                    <td>{record.date}</td>
-                    <td>
-                      {record.glucose} mg/dL<br />
-                      <StatusBadge status={glucoseStatus.label} type={glucoseStatus.type} />
-                    </td>
-                    <td>
-                      {record.hba1c}%<br />
-                      <StatusBadge status={hba1cStatus.label} type={hba1cStatus.type} />
-                    </td>
-                    <td>
-                      {record.bmi}<br />
-                      <StatusBadge status={bmiStatus.label} type={bmiStatus.type} />
-                    </td>
-                    <td>
-                      {record.bloodPressure}<br />
-                      <StatusBadge status={bpStatus.label} type={bpStatus.type} />
-                    </td>
-                    <td><StatusBadge status={record.riskLevel || "Low"} /></td>
-                    <td>{record.followUpDate || "-"}</td>
-                    <td>{translateDiagnosis(record.diagnosis, lang)}</td>
+              {filteredRecords.map((item) => (
+                <tr key={item.id}>
+                  <td>#{item.id}</td>
+                  <td>{item.date}</td>
+                  <td><strong>{getPatientName(item.patientId)}</strong></td>
+                  <td>{getDoctorName(item.doctorId)}</td>
+                  <td>{item.glucose ? `${item.glucose} mg/dL` : "-"}</td>
+                  <td>{item.hba1c ? `${item.hba1c}%` : "-"}</td>
+                  <td>{item.bmi || "-"}</td>
+                  <td>{item.bloodPressure || "-"}</td>
+                  <td>{translateDiagnosis(item.diagnosis, lang)}</td>
+                  {canManage && (
                     <td>
                       <div className="action-group">
-                        {canEdit && <button onClick={() => openEditModal(record)}>{t("patients.btnEdit")}</button>}
-                        {canDelete && <button className="danger" onClick={() => handleDelete(record)}>{t("patients.btnDelete")}</button>}
-                        {!canEdit && !canDelete && <span className="text-muted">{t("dashboard.viewOnly")}</span>}
+                        <button className="link-btn" onClick={() => handleOpenEdit(item)}>Sửa</button>
+                        {currentRole === ROLES.ADMIN && (
+                          <button className="danger" onClick={() => handleDelete(item.id)}>Xóa</button>
+                        )}
                       </div>
                     </td>
-                  </tr>
-                );
-              })}
+                  )}
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
       </div>
 
       <Modal
-        title={editingRecord ? t("records.modalEditTitle") : t("records.modalAddTitle")}
+        title={editingRecord ? "Chỉnh sửa Bệnh án" : "Thêm Hồ sơ Bệnh án mới"}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       >
         <form onSubmit={handleSubmit} className="form-grid">
           <div className="form-group">
-            <label>{t("records.lblPatient")}</label>
-            {currentRole === ROLES.PATIENT ? (
-              <>
-                <input value={linkedPatient?.fullName || (lang === "vi" ? "Bệnh nhân hiện tại" : "Current patient")} disabled />
-                <input type="hidden" name="patientId" value={linkedPatient?.id || ""} />
-              </>
-            ) : (
-              <select name="patientId" value={form.patientId} onChange={handleChange}>
-                <option value="">{lang === "vi" ? "-- Chọn bệnh nhân --" : "-- Select patient --"}</option>
-                {patients.map((patient) => (
-                  <option key={patient.id} value={patient.id}>{patient.fullName}</option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label>{t("records.lblDoctor")}</label>
-            {currentRole === ROLES.DOCTOR ? (
-              <>
-                <input value={linkedDoctor?.fullName || (lang === "vi" ? "Bác sĩ hiện tại" : "Current doctor")} disabled />
-                <input type="hidden" name="doctorId" value={linkedDoctor?.id || ""} />
-              </>
-            ) : (
-              <select name="doctorId" value={form.doctorId} onChange={handleChange}>
-                <option value="">{lang === "vi" ? "-- Chọn bác sĩ --" : "-- Select doctor --"}</option>
-                {doctors.map((doctor) => (
-                  <option key={doctor.id} value={doctor.id}>{doctor.fullName}</option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          <Input label={t("records.lblDate")} name="date" type="date" value={form.date} onChange={handleChange} />
-          <Input label={t("records.lblGlucose")} name="glucose" type="number" value={form.glucose} onChange={handleChange} />
-          <Input label={t("records.lblHbA1c")} name="hba1c" type="number" value={form.hba1c} onChange={handleChange} />
-          <Input label={t("records.lblBMI")} name="bmi" type="number" value={form.bmi} onChange={handleChange} />
-          <Input label={t("records.lblBP")} name="bloodPressure" value={form.bloodPressure} onChange={handleChange} placeholder="120/80" />
-          <div className="form-group">
-            <label>{t("records.lblRisk")}</label>
-            <select name="riskLevel" value={form.riskLevel} onChange={handleChange}>
-              <option value="Low">{t("common.riskLow")}</option>
-              <option value="Medium">{t("common.riskMedium")}</option>
-              <option value="High">{t("common.riskHigh")}</option>
+            <label>{t("appointments.tablePatient")}</label>
+            <select name="patientId" value={form.patientId} onChange={handleChange} disabled={!!linkedPatient} required>
+              {patients.map((p) => (
+                <option key={p.id} value={p.id}>{p.fullName} ({p.patientCode || `#${p.id}`})</option>
+              ))}
             </select>
           </div>
-          <Input label={t("records.lblFollowUp")} name="followUpDate" type="date" value={form.followUpDate} onChange={handleChange} />
-          <Input label={t("records.lblDiagnosis")} name="diagnosis" value={form.diagnosis} onChange={handleChange} />
 
-          <div className="form-group full-width">
-            <label>{t("records.lblNote")}</label>
-            <textarea name="note" value={form.note} onChange={handleChange} rows="4" />
+          <div className="form-group">
+            <label>{t("appointments.tableDoctor")}</label>
+            <select name="doctorId" value={form.doctorId} onChange={handleChange} disabled={!!linkedDoctor} required>
+              {doctors.map((d) => (
+                <option key={d.id} value={d.id}>{d.fullName}</option>
+              ))}
+            </select>
           </div>
 
-          <div className="modal-actions">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>{t("patients.btnCancel")}</Button>
-            <Button type="submit">{t("patients.btnSave")}</Button>
+          <Input label={t("patientDetail.date")} name="date" type="date" value={form.date} onChange={handleChange} required />
+          <Input label={t("patientDetail.glucose")} name="glucose" type="number" value={form.glucose} onChange={handleChange} placeholder="mg/dL" />
+          <Input label={t("patientDetail.hba1c")} name="hba1c" type="number" step="0.1" value={form.hba1c} onChange={handleChange} placeholder="%" />
+          <Input label={t("patientDetail.bmi")} name="bmi" type="number" step="0.1" value={form.bmi} onChange={handleChange} placeholder="BMI" />
+          <Input label={t("patientDetail.bloodPressure")} name="bloodPressure" value={form.bloodPressure} onChange={handleChange} placeholder="120/80" />
+          <Input label={t("patientDetail.diagnosis")} name="diagnosis" value={form.diagnosis} onChange={handleChange} placeholder="Chẩn đoán..." required />
+
+          <div className="modal-actions" style={{ gridColumn: "1 / -1", marginTop: "1rem" }}>
+            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Hủy</Button>
+            <Button type="submit">Lưu bệnh án</Button>
           </div>
         </form>
       </Modal>
