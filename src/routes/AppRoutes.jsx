@@ -91,11 +91,11 @@ function AppRoutes() {
           }
         />
 
-        {/* Quản lý Lịch hẹn */}
+        {/* Quản lý Lịch hẹn (Bác sĩ & Bệnh nhân — Admin không quản lý lịch hẹn) */}
         <Route
           path={ROUTES.APPOINTMENTS.replace(/^\//, "")}
           element={
-            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]}>
+            <ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.PATIENT]}>
               <Appointments />
             </ProtectedRoute>
           }

@@ -6,7 +6,6 @@ import StatCard from "./StatCard";
 import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
-import { translateReason } from "../../utils/translations";
 import { getDoctorWeeklySchedule } from "../../utils/dutySchedule";
 
 const RISK_COLORS = {
@@ -52,8 +51,16 @@ function AdminDashboard({
   };
 
   const todayAppointments = appointments.filter((a) => a.date === today);
-  const pendingAppointments = appointments.filter((a) => a.status === "Pending");
   const recentPatients = [...patients].slice(-5).reverse();
+
+  // Số bác sĩ đang trực hôm nay
+  const doctorsOnDutyToday = useMemo(() => {
+    return doctors.filter((doc) => {
+      const schedule = getDoctorWeeklySchedule(doc, appointments);
+      const todayItem = schedule.find((s) => s.isToday);
+      return todayItem && todayItem.isWorking;
+    });
+  }, [doctors, appointments]);
 
   const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
   const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Chưa xác định";
@@ -194,18 +201,24 @@ function AdminDashboard({
         </Col>
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title="Lịch hẹn hôm nay"
-            value={todayAppointments.length}
-            icon={<i className="bi bi-calendar-check-fill"></i>}
-            note="Lịch khám đã lên"
-            onClick={() =>
+            title="Lịch trực hôm nay"
+            value={doctorsOnDutyToday.length}
+            icon={<i className="bi bi-calendar-week-fill"></i>}
+            note="Bác sĩ đang trực"
+            onClick={() => {
+              const allSchedules = doctors.flatMap((doc) =>
+                getDoctorWeeklySchedule(doc, appointments).map((s) => ({
+                  ...s,
+                  doctorName: doc.fullName,
+                }))
+              );
               openQuickView(
-                "appointments",
-                "Danh sách Lịch khám Hôm nay",
-                `Các ca khám đã lên lịch trong ngày ${today}`,
-                todayAppointments
-              )
-            }
+                "dutySchedule",
+                "Lịch Trực Toàn Viện Hôm nay",
+                `Phân bổ ca trực của toàn bộ bác sĩ ngày ${today}`,
+                allSchedules.filter((s) => s.isToday)
+              );
+            }}
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -364,7 +377,6 @@ function AdminDashboard({
         data={modalConfig.data}
         patients={patients}
         doctors={doctors}
-        onApproveAppointment={onUpdateAppointmentStatus}
       />
     </div>
   );

@@ -28,13 +28,19 @@ export const menuItems = [
     path: ROUTES.APPOINTMENTS,
     label: "Lịch hẹn khám",
     icon: "bi-calendar2-check-fill",
-    allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT],
+    allowedRoles: [ROLES.DOCTOR, ROLES.PATIENT],
   },
   {
     path: ROUTES.RECORDS,
     label: "Hồ sơ bệnh án",
     icon: "bi-file-earmark-medical-fill",
     allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT],
+  },
+  {
+    path: ROUTES.DOCTORS,
+    label: "Lịch trực Bác sĩ",
+    icon: "bi-calendar-week-fill",
+    allowedRoles: [ROLES.ADMIN],
   },
 ];
 
