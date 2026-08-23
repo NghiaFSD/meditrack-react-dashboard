@@ -33,9 +33,9 @@ function Sidebar() {
   };
 
   return (
-    <aside className="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white sidebar-container" style={{ width: "260px", minHeight: "100vh" }}>
+    <aside className="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white sidebar-container" style={{ width: "260px", height: "100vh", position: "sticky", top: 0 }}>
       {/* Brand Header */}
-      <div className="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom border-secondary px-2">
+      <div className="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom border-secondary px-2 flex-shrink-0">
         <div
           className="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center fw-bold shadow"
           style={{ width: "40px", height: "40px", fontSize: "1.2rem" }}
@@ -50,10 +50,10 @@ function Sidebar() {
         </div>
       </div>
 
-      {/* Navigation Links */}
-      <Nav className="nav-pills flex-column mb-auto gap-1">
+      {/* Navigation Links — có thể scroll nếu menu dài */}
+      <Nav className="nav-pills flex-column gap-1 flex-grow-1 overflow-y-auto" style={{ overflowY: "auto" }}>
         {menuList.map((item) => (
-          <Nav.Item key={item.path}>
+          <Nav.Item key={`${item.path}-${item.label}`}>
             <NavLink
               to={item.path}
               className={({ isActive }) =>
@@ -71,8 +71,8 @@ function Sidebar() {
         ))}
       </Nav>
 
-      {/* Logout Button */}
-      <div className="pt-3 border-top border-secondary mt-auto">
+      {/* Logout Button — luôn hiển thị ở cuối sidebar */}
+      <div className="pt-3 border-top border-secondary flex-shrink-0">
         <Button
           variant="outline-danger"
           className="w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-medium rounded-3"

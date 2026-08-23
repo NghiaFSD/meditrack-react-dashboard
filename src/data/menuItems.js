@@ -36,12 +36,6 @@ export const menuItems = [
     icon: "bi-file-earmark-medical-fill",
     allowedRoles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT],
   },
-  {
-    path: ROUTES.DOCTORS,
-    label: "Lịch trực Bác sĩ",
-    icon: "bi-calendar-week-fill",
-    allowedRoles: [ROLES.ADMIN],
-  },
 ];
 
 export function getMenuItemsForRole(role) {

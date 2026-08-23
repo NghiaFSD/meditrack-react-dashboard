@@ -8,11 +8,11 @@ import Header from "./Header";
  */
 function MainLayout() {
   return (
-    <div className="d-flex min-vh-100 bg-light">
+    <div className="d-flex bg-light" style={{ height: "100vh", overflow: "hidden" }}>
       <Sidebar />
-      <div className="d-flex flex-column flex-grow-1 overflow-hidden" style={{ minWidth: 0 }}>
+      <div className="d-flex flex-column flex-grow-1" style={{ minWidth: 0, overflow: "hidden" }}>
         <Header />
-        <main className="flex-grow-1 px-4 pb-5 overflow-auto">
+        <main className="flex-grow-1 px-4 pb-5" style={{ overflowY: "auto" }}>
           <Outlet />
         </main>
       </div>
