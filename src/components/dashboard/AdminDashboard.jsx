@@ -120,11 +120,12 @@ function AdminDashboard({
           </Button>
           <Button
             variant="outline-primary"
-            className="d-flex align-items-center gap-2 bg-white"
-            onClick={() => navigate(ROUTES.APPOINTMENTS)}
+            className="d-flex align-items-center gap-2 bg-white shadow-sm"
+            onClick={() => navigate(ROUTES.DOCTORS)}
+            title="Phân ca trực và xếp lịch làm việc cho đội ngũ Bác sĩ"
           >
-            <i className="bi bi-calendar-plus"></i>
-            <span>Tạo Lịch hẹn</span>
+            <i className="bi bi-calendar2-week-fill text-primary"></i>
+            <span>Tạo Lịch trực</span>
           </Button>
         </div>
       </div>
