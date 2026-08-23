@@ -103,6 +103,14 @@ function AdminDashboard({
         {/* Thanh tác vụ nhanh của Admin */}
         <div className="d-flex flex-wrap gap-2">
           <Button
+            variant="danger"
+            className="d-flex align-items-center gap-2 shadow-sm"
+            onClick={() => navigate(ROUTES.DOCTORS)}
+          >
+            <i className="bi bi-person-badge-fill"></i>
+            <span>Quản lý Bác sĩ</span>
+          </Button>
+          <Button
             variant="primary"
             className="d-flex align-items-center gap-2 shadow-sm"
             onClick={() => navigate(ROUTES.PATIENTS)}
@@ -117,14 +125,6 @@ function AdminDashboard({
           >
             <i className="bi bi-calendar-plus"></i>
             <span>Tạo Lịch hẹn</span>
-          </Button>
-          <Button
-            variant="outline-secondary"
-            className="d-flex align-items-center gap-2 bg-white"
-            onClick={() => navigate(ROUTES.RECORDS)}
-          >
-            <i className="bi bi-file-earmark-medical"></i>
-            <span>Thêm Bệnh án</span>
           </Button>
         </div>
       </div>

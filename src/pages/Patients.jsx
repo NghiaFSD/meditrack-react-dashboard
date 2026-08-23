@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Table, Form } from "react-bootstrap";
 import Swal from "sweetalert2";
@@ -13,8 +13,9 @@ import ActionMenu from "../components/common/ActionMenu";
 import { appointmentApi } from "../api/appointmentApi";
 import { patientApi } from "../api/patientApi";
 import { recordApi } from "../api/recordApi";
+import { doctorApi } from "../api/doctorApi";
 import { usePatients } from "../hooks/usePatients";
-import { ROLES } from "../utils/auth";
+import { ROLES, findLinkedDoctor } from "../utils/auth";
 import { isValidEmail, isValidPhone } from "../utils/validation";
 import { ROUTES } from "../config/routes";
 import { useAuth } from "../context/AuthContext";
@@ -34,7 +35,9 @@ const emptyPatient = {
 };
 
 /**
- * Trang quản lý bệnh nhân: CRUD + search/filter (Thuần Tiếng Việt)
+ * Trang quản lý bệnh nhân: Phân quyền rõ ràng
+ * - Admin: Quản lý bệnh nhân toàn viện
+ * - Doctor: Quản lý các bệnh nhân do Bác sĩ phụ trách ("Bệnh nhân của tôi")
  */
 function Patients() {
   const navigate = useNavigate();
@@ -42,25 +45,69 @@ function Patients() {
   const { user } = useAuth();
   const currentRole = user?.role;
   const canManagePatients = currentRole === ROLES.ADMIN;
+
+  const [doctors, setDoctors] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [records, setRecords] = useState([]);
+
   const [search, setSearch] = useState("");
   const [genderFilter, setGenderFilter] = useState("All");
+  const [riskFilter, setRiskFilter] = useState("All");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
   const [form, setForm] = useState(emptyPatient);
 
+  useEffect(() => {
+    async function loadAuxData() {
+      try {
+        const [docs, appts, recs] = await Promise.all([
+          doctorApi.getAll(),
+          appointmentApi.getAll(),
+          recordApi.getAll(),
+        ]);
+        setDoctors(docs || []);
+        setAppointments(appts || []);
+        setRecords(recs || []);
+      } catch (err) {
+        // auxiliary load error handling
+      }
+    }
+    loadAuxData();
+  }, []);
+
+  const linkedDoctor = useMemo(() => findLinkedDoctor(doctors, user), [doctors, user]);
+
+  // Danh sách bệnh nhân phân cấp theo Role:
+  // Nếu là Doctor -> Chỉ lấy các bệnh nhân có lịch hẹn hoặc hồ sơ bệnh án với bác sĩ này
+  const roleScopedPatients = useMemo(() => {
+    if (currentRole === ROLES.DOCTOR) {
+      const docId = Number(linkedDoctor?.id || 1);
+      const assignedPatientIds = new Set([
+        ...appointments.filter((a) => Number(a.doctorId) === docId).map((a) => Number(a.patientId)),
+        ...records.filter((r) => Number(r.doctorId) === docId).map((r) => Number(r.patientId)),
+      ]);
+      return patients.filter((p) => assignedPatientIds.has(Number(p.id)));
+    }
+    return patients;
+  }, [patients, currentRole, linkedDoctor, appointments, records]);
+
+  // Bộ lọc tìm kiếm và thuộc tính
   const filteredPatients = useMemo(() => {
-    return patients.filter((patient) => {
+    return roleScopedPatients.filter((patient) => {
       const keyword = search.toLowerCase();
       const matchSearch =
         patient.fullName.toLowerCase().includes(keyword) ||
         patient.email.toLowerCase().includes(keyword) ||
-        patient.phone.includes(keyword);
+        patient.phone.includes(keyword) ||
+        (patient.patientCode || "").toLowerCase().includes(keyword);
 
       const matchGender = genderFilter === "All" || patient.gender === genderFilter;
+      const matchRisk = riskFilter === "All" || patient.riskLevel === riskFilter;
 
-      return matchSearch && matchGender;
+      return matchSearch && matchGender && matchRisk;
     });
-  }, [patients, search, genderFilter]);
+  }, [roleScopedPatients, search, genderFilter, riskFilter]);
 
   const openAddModal = () => {
     if (!canManagePatients) return;
@@ -139,7 +186,7 @@ function Patients() {
 
   const handleDelete = async (patient) => {
     if (!canManagePatients) {
-      Swal.fire("Không có quyền", "Chỉ quản trị viên mới có quyền xóa dữ liệu.", "warning");
+      Swal.fire("Không có quyền", "Chỉ quản trị viên mới có quyền xóa dữ liệu bệnh nhân.", "warning");
       return;
     }
 
@@ -155,18 +202,18 @@ function Patients() {
 
     if (result.isConfirmed) {
       try {
-        const [appointments, records] = await Promise.all([
+        const [appts, recs] = await Promise.all([
           appointmentApi.getAll(),
           recordApi.getAll(),
         ]);
 
-        const hasAppointments = appointments.some((item) => Number(item.patientId) === Number(patient.id));
-        const hasRecords = records.some((item) => Number(item.patientId) === Number(patient.id));
+        const hasAppointments = appts.some((item) => Number(item.patientId) === Number(patient.id));
+        const hasRecords = recs.some((item) => Number(item.patientId) === Number(patient.id));
 
         if (hasAppointments || hasRecords) {
           Swal.fire(
             "Không thể xóa",
-            "Bệnh nhân này đã có lịch hẹn hoặc hồ sơ bệnh án liên quan.",
+            "Bệnh nhân này đã có lịch hẹn hoặc hồ sơ bệnh án liên quan trong hệ thống.",
             "warning"
           );
           return;
@@ -176,33 +223,45 @@ function Patients() {
         Swal.fire("Đã xóa", "Xóa bệnh nhân thành công.", "success");
         fetchPatients();
       } catch (err) {
-        Swal.fire(
-          "Lỗi",
-          "Không thể xóa bệnh nhân.",
-          "error"
-        );
+        Swal.fire("Lỗi", "Không thể xóa bệnh nhân.", "error");
       }
     }
   };
 
-  if (loading) return <Loading text="Đang tải dữ liệu..." />;
+  if (loading) return <Loading text="Đang tải dữ liệu bệnh nhân..." />;
+
+  const isDoctorRole = currentRole === ROLES.DOCTOR;
 
   return (
     <Container fluid className="px-0">
       {/* Header & Nút thêm bệnh nhân */}
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
-          <h2 className="fw-bold text-dark mb-1">Quản lý Bệnh nhân</h2>
+          <div className="d-flex align-items-center gap-2 mb-1">
+            <h2 className="fw-bold text-dark mb-0">
+              {isDoctorRole ? "Bệnh nhân của tôi" : "Quản lý Bệnh nhân Toàn viện"}
+            </h2>
+            {isDoctorRole ? (
+              <span className="badge bg-primary rounded-pill px-2 py-1 fs-6">
+                <i className="bi bi-person-badge me-1"></i>
+                Bác sĩ phụ trách: {linkedDoctor?.fullName || "Bác sĩ"}
+              </span>
+            ) : (
+              <span className="badge bg-danger rounded-pill px-2 py-1 fs-6">
+                <i className="bi bi-shield-lock me-1"></i>ADMIN
+              </span>
+            )}
+          </div>
           <p className="text-muted mb-0">
-            {canManagePatients
-              ? "Quản lý hồ sơ bệnh án và danh sách bệnh nhân trong hệ thống."
-              : "Xem danh sách và thông tin chi tiết bệnh nhân."}
+            {isDoctorRole
+              ? `Danh sách các bệnh nhân đang trực tiếp điều trị và theo dõi cùng ${linkedDoctor?.fullName || "Bác sĩ"}.`
+              : "Quản lý toàn diện hồ sơ bệnh án và danh sách bệnh nhân trên toàn hệ thống phòng khám."}
           </p>
         </div>
         {canManagePatients && (
           <Button variant="primary" onClick={openAddModal} className="d-flex align-items-center gap-2 shadow-sm">
             <i className="bi bi-person-plus-fill"></i>
-            <span>+ Thêm Bệnh nhân</span>
+            <span>+ Thêm Bệnh nhân mới</span>
           </Button>
         )}
       </div>
@@ -211,14 +270,14 @@ function Patients() {
       <Card className="border-0 shadow-sm rounded-3 mb-4">
         <Card.Body className="p-3">
           <Row className="g-3">
-            <Col xs={12} md={8}>
+            <Col xs={12} md={6}>
               <SearchBox
                 value={search}
                 onChange={setSearch}
-                placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
+                placeholder="Tìm theo mã BN, họ tên, email hoặc SĐT..."
               />
             </Col>
-            <Col xs={12} md={4}>
+            <Col xs={12} sm={6} md={3}>
               <Form.Select
                 value={genderFilter}
                 onChange={(event) => setGenderFilter(event.target.value)}
@@ -227,6 +286,18 @@ function Patients() {
                 <option value="All">Tất cả giới tính</option>
                 <option value="Male">Nam</option>
                 <option value="Female">Nữ</option>
+              </Form.Select>
+            </Col>
+            <Col xs={12} sm={6} md={3}>
+              <Form.Select
+                value={riskFilter}
+                onChange={(event) => setRiskFilter(event.target.value)}
+                className="bg-light"
+              >
+                <option value="All">Tất cả mức nguy cơ</option>
+                <option value="High">Nguy cơ Cao (High)</option>
+                <option value="Medium">Nguy cơ Trung bình (Medium)</option>
+                <option value="Low">Nguy cơ Thấp (Low)</option>
               </Form.Select>
             </Col>
           </Row>
@@ -241,8 +312,12 @@ function Patients() {
           {filteredPatients.length === 0 ? (
             <div className="p-4">
               <EmptyState
-                title="Không tìm thấy bệnh nhân"
-                message="Không có bệnh nhân nào phù hợp với bộ lọc tìm kiếm."
+                title={isDoctorRole ? "Chưa có bệnh nhân phụ trách" : "Không tìm thấy bệnh nhân"}
+                message={
+                  isDoctorRole
+                    ? "Hiện tại Bác sĩ chưa có bệnh nhân nào trong danh sách phụ trách theo dõi."
+                    : "Không có bệnh nhân nào phù hợp với bộ lọc tìm kiếm."
+                }
                 icon="bi-person-x"
               />
             </div>
@@ -250,14 +325,13 @@ function Patients() {
             <Table responsive hover className="align-middle mb-0">
               <thead className="table-light">
                 <tr>
-                  <th className="ps-3">ID</th>
-                  <th>Mã BN</th>
+                  <th className="ps-3">Mã BN</th>
                   <th>Họ và tên</th>
                   <th>Giới tính</th>
                   <th>Tuổi</th>
                   <th>Bảo hiểm</th>
                   <th>Mức nguy cơ</th>
-                  <th>Lần khám gần nhất</th>
+                  <th>Khám gần nhất</th>
                   <th>Số điện thoại</th>
                   <th>Email</th>
                   <th>Trạng thái</th>
@@ -267,8 +341,7 @@ function Patients() {
               <tbody>
                 {filteredPatients.map((patient) => (
                   <tr key={patient.id}>
-                    <td className="ps-3 text-muted">#{patient.id}</td>
-                    <td className="fw-semibold text-primary">
+                    <td className="ps-3 fw-semibold text-primary">
                       {patient.patientCode || `PT-${String(patient.id).padStart(3, "0")}`}
                     </td>
                     <td className="fw-medium text-dark">{patient.fullName}</td>

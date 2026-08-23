@@ -5,6 +5,7 @@ import { ROLES } from "../utils/auth";
 import MainLayout from "../components/layout/MainLayout";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
+import Doctors from "../pages/Doctors";
 import Patients from "../pages/Patients";
 import PatientDetail from "../pages/PatientDetail";
 import PatientEdit from "../pages/PatientEdit";
@@ -54,7 +55,17 @@ function AppRoutes() {
         {/* Dashboard */}
         <Route path={ROUTES.DASHBOARD.replace(/^\//, "")} element={<Dashboard />} />
 
-        {/* Quản lý Bệnh nhân (Admin, Doctor) */}
+        {/* Quản lý Bác sĩ (Dành riêng cho Admin) */}
+        <Route
+          path={ROUTES.DOCTORS.replace(/^\//, "")}
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+              <Doctors />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Quản lý Bệnh nhân (Admin: Toàn viện, Doctor: Bệnh nhân của tôi) */}
         <Route
           path={ROUTES.PATIENTS.replace(/^\//, "")}
           element={

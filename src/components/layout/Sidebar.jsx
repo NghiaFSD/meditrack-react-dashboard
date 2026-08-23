@@ -7,27 +7,13 @@ import { useAuth } from "../../context/AuthContext";
 import { ROUTES } from "../../config/routes";
 import { APP_CONFIG } from "../../config/appConfig";
 
-const ICON_MAP = {
-  "/": "bi-speedometer2",
-  "/patients": "bi-people-fill",
-  "/appointments": "bi-calendar2-check-fill",
-  "/records": "bi-file-earmark-medical-fill",
-};
-
-const MENU_LABELS = {
-  [ROUTES.DASHBOARD]: "Bảng điều khiển",
-  [ROUTES.PATIENTS]: "Bệnh nhân",
-  [ROUTES.APPOINTMENTS]: "Lịch hẹn khám",
-  [ROUTES.RECORDS]: "Hồ sơ bệnh án",
-};
-
 /**
  * Sidebar chứa menu điều hướng chính với React-Bootstrap và Bootstrap Icons (Thuần Tiếng Việt)
  */
 function Sidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const menuItems = getMenuItemsForRole(user?.role);
+  const menuList = getMenuItemsForRole(user?.role);
 
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -66,27 +52,23 @@ function Sidebar() {
 
       {/* Navigation Links */}
       <Nav className="nav-pills flex-column mb-auto gap-1">
-        {menuItems.map((item) => {
-          const iconClass = ICON_MAP[item.path] || "bi-grid-fill";
-          const label = MENU_LABELS[item.path] || item.label;
-          return (
-            <Nav.Item key={item.path}>
-              <NavLink
-                to={item.path}
-                className={({ isActive }) =>
-                  `nav-link d-flex align-items-center gap-2 px-3 py-2 rounded-3 fw-medium transition-all ${
-                    isActive
-                      ? "active bg-primary text-white shadow-sm"
-                      : "text-light text-opacity-75 hover-bg-secondary"
-                  }`
-                }
-              >
-                <i className={`bi ${iconClass} fs-5`}></i>
-                <span>{label}</span>
-              </NavLink>
-            </Nav.Item>
-          );
-        })}
+        {menuList.map((item) => (
+          <Nav.Item key={item.path}>
+            <NavLink
+              to={item.path}
+              className={({ isActive }) =>
+                `nav-link d-flex align-items-center gap-2 px-3 py-2 rounded-3 fw-medium transition-all ${
+                  isActive
+                    ? "active bg-primary text-white shadow-sm"
+                    : "text-light text-opacity-75 hover-bg-secondary"
+                }`
+              }
+            >
+              <i className={`bi ${item.icon || "bi-grid-fill"} fs-5`}></i>
+              <span>{item.label}</span>
+            </NavLink>
+          </Nav.Item>
+        ))}
       </Nav>
 
       {/* Logout Button */}
