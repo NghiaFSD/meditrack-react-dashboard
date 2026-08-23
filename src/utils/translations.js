@@ -159,6 +159,8 @@ export const translations = {
       descHealthSummary: "Các chỉ số đo sinh học mới nhất",
       sectionNextAppointment: "Lịch hẹn tiếp theo",
       descNextAppointment: "Thời gian khám sắp tới của bạn",
+      chartGlucoseTitle: "Chỉ số Glucose",
+      chartGlucoseSub: "Theo dõi qua các lần khám",
     },
     appointments: {
       tablePatient: "Bệnh nhân",
@@ -338,6 +340,8 @@ export const translations = {
       descHealthSummary: "Latest vital signs",
       sectionNextAppointment: "Next Appointment",
       descNextAppointment: "Your upcoming schedule",
+      chartGlucoseTitle: "Glucose Trends",
+      chartGlucoseSub: "Longitudinal tracking over time",
     },
     appointments: {
       tablePatient: "Patient",
