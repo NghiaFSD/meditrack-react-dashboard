@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from "react";
 import { Row, Col, Card, Table, Badge, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import StatCard from "./StatCard";
 import HealthChart from "./HealthChart";
 import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
 import { translateReason } from "../../utils/translations";
+import { getDoctorWeeklySchedule } from "../../utils/dutySchedule";
 
 /**
  * Giao diện Bàn làm việc Bác sĩ Lâm sàng (Doctor Clinical Workstation - Thuần Tiếng Việt)
@@ -78,6 +80,17 @@ function DoctorDashboard({
     [myAppointments]
   );
 
+  // Lịch trực 7 ngày trong tuần
+  const weeklySchedule = useMemo(
+    () => getDoctorWeeklySchedule(doctor, appointments),
+    [doctor, appointments]
+  );
+
+  const todayScheduleItem = useMemo(
+    () => weeklySchedule.find((item) => item.isToday) || weeklySchedule[0],
+    [weeklySchedule]
+  );
+
   // Hàng đợi cần xử lý hôm nay: Lịch hẹn hôm nay HOẶC lịch hẹn đang Pending
   const activeQueue = useMemo(() => {
     return myAppointments
@@ -106,6 +119,44 @@ function DoctorDashboard({
       });
   }, [myPatients, myRecords]);
 
+  const handleRequestShiftChange = () => {
+    Swal.fire({
+      title: "Đăng ký đổi ca trực",
+      html: `
+        <div class="text-start">
+          <p class="mb-2">Ca hiện tại: <strong>${todayScheduleItem?.shiftType} (${todayScheduleItem?.shiftHours})</strong></p>
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Chọn ngày muốn đổi:</label>
+            <input type="date" id="swapDate" class="form-control" value="${today}" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Lý do xin đổi ca:</label>
+            <textarea id="swapReason" class="form-control" rows="2" placeholder="Ví dụ: Có lịch hội chẩn đột xuất..."></textarea>
+          </div>
+        </div>
+      `,
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: "Gửi yêu cầu",
+      cancelButtonText: "Hủy",
+      preConfirm: () => {
+        const reason = document.getElementById("swapReason")?.value;
+        if (!reason) {
+          Swal.showValidationMessage("Vui lòng nhập lý do đổi ca");
+        }
+        return { reason };
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire(
+          "Đã gửi yêu cầu",
+          "Yêu cầu đổi ca trực đã được gửi tới Quản trị viên phòng khám xét duyệt.",
+          "success"
+        );
+      }
+    });
+  };
+
   const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
 
   return (
@@ -133,18 +184,33 @@ function DoctorDashboard({
                       <i className="bi bi-door-open me-1"></i>
                       Phòng khám: {doctor?.room || "A-201"}
                     </Badge>
-                    <Badge bg="light" text="dark" className="fw-semibold">
-                      <i className="bi bi-clock me-1"></i>
-                      Ca trực: {doctor?.shift === "Morning" ? "Ca sáng" : "Ca chiều"}
+                    <Badge bg="warning" text="dark" className="fw-bold">
+                      <i className="bi bi-clock-history me-1"></i>
+                      Hôm nay: {todayScheduleItem?.shiftType} ({todayScheduleItem?.shiftHours})
                     </Badge>
                   </div>
                 </div>
               </div>
             </Col>
-            <Col xs={12} md={4} className="text-md-end mt-3 mt-md-0">
+            <Col xs={12} md={4} className="text-md-end mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">
+              <Button
+                variant="outline-light"
+                className="fw-semibold px-3 py-2 rounded-pill d-inline-flex align-items-center gap-1 shadow-sm"
+                onClick={() =>
+                  openQuickView(
+                    "schedule",
+                    "Lịch Trực Lâm Sàng Tuần Này",
+                    `Phân bổ ca trực và lịch làm việc của ${doctor?.fullName || "Bác sĩ"}`,
+                    weeklySchedule
+                  )
+                }
+              >
+                <i className="bi bi-calendar-week-fill"></i>
+                <span>Xem lịch trực tuần</span>
+              </Button>
               <Button
                 variant="light"
-                className="text-primary fw-bold px-3 py-2 shadow-sm rounded-pill d-inline-flex align-items-center gap-2"
+                className="text-primary fw-bold px-3 py-2 shadow-sm rounded-pill d-inline-flex align-items-center gap-1"
                 onClick={() => navigate(ROUTES.RECORDS)}
               >
                 <i className="bi bi-file-earmark-plus-fill"></i>
@@ -178,7 +244,7 @@ function DoctorDashboard({
             title="Lịch khám hôm nay"
             value={myTodayAppointments.length}
             icon={<i className="bi bi-calendar-event-fill"></i>}
-            note="Lịch khám đã lên lịch"
+            note={`Ca khám: ${todayScheduleItem?.shiftHours || "Ca sáng"}`}
             onClick={() =>
               openQuickView(
                 "appointments",
@@ -191,9 +257,25 @@ function DoctorDashboard({
         </Col>
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title="Yêu cầu chờ tôi duyệt"
+            title="Ca trực tuần này"
+            value="5 ca trực"
+            icon={<i className="bi bi-calendar-week-fill text-warning"></i>}
+            note="Phòng khám A-201"
+            onClick={() =>
+              openQuickView(
+                "schedule",
+                "Lịch Trực Lâm Sàng Tuần Này",
+                `Chi tiết 7 ngày phân bổ ca trực của ${doctor?.fullName || "Bác sĩ"}`,
+                weeklySchedule
+              )
+            }
+          />
+        </Col>
+        <Col xs={12} sm={6} lg={3}>
+          <StatCard
+            title="Yêu cầu chờ duyệt"
             value={myPendingApprovals.length}
-            icon={<i className="bi bi-clock-history"></i>}
+            icon={<i className="bi bi-clock-history text-danger"></i>}
             note="Cần duyệt gấp"
             onClick={() =>
               openQuickView(
@@ -205,23 +287,107 @@ function DoctorDashboard({
             }
           />
         </Col>
-        <Col xs={12} sm={6} lg={3}>
-          <StatCard
-            title="Bệnh án đã chẩn đoán"
-            value={myRecords.length}
-            icon={<i className="bi bi-clipboard-pulse"></i>}
-            note="Bệnh án đã lập"
-            onClick={() =>
-              openQuickView(
-                "records",
-                "Bệnh án do Bác sĩ đã chẩn đoán",
-                "Lịch sử các hồ sơ bệnh án và lời dặn điều trị đã ghi nhận",
-                myRecords
-              )
-            }
-          />
-        </Col>
       </Row>
+
+      {/* SECTION MỚI: LỊCH TRỰC LÂM SÀNG & PHÂN CÔNG CA KHÁM TUẦN NÀY */}
+      <Card className="border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+        <Card.Header className="bg-white border-0 pt-3 pb-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <Card.Title as="h5" className="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+              <i className="bi bi-calendar-range-fill text-primary"></i>
+              <span>Lịch Trực Lâm Sàng & Phân Công Ca Khám Tuần Này</span>
+            </Card.Title>
+            <Card.Subtitle className="text-muted small">
+              Theo dõi ca trực hàng ngày, phòng khám phân bổ và điều dưỡng phối hợp
+            </Card.Subtitle>
+          </div>
+          <div className="d-flex gap-2">
+            <Button
+              size="sm"
+              variant="outline-secondary"
+              className="rounded-pill d-flex align-items-center gap-1"
+              onClick={handleRequestShiftChange}
+            >
+              <i className="bi bi-arrow-left-right"></i>
+              <span>Đổi ca trực</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="primary"
+              className="rounded-pill d-flex align-items-center gap-1 shadow-sm"
+              onClick={() =>
+                openQuickView(
+                  "schedule",
+                  "Lịch Trực Lâm Sàng Tuần Này",
+                  `Chi tiết 7 ngày phân bổ ca trực của ${doctor?.fullName || "Bác sĩ"}`,
+                  weeklySchedule
+                )
+              }
+            >
+              <i className="bi bi-arrows-fullscreen"></i>
+              <span>Xem chi tiết lịch</span>
+            </Button>
+          </div>
+        </Card.Header>
+        <Card.Body className="pt-1 pb-3">
+          <Row className="g-2">
+            {weeklySchedule.map((day, idx) => (
+              <Col key={idx} xs={12} sm={6} md={4} lg className="d-flex">
+                <Card
+                  className={`w-100 border rounded-3 p-3 transition-all ${
+                    day.isToday
+                      ? "border-primary bg-primary bg-opacity-10 shadow-sm"
+                      : day.status === "off"
+                      ? "bg-light border-light text-muted"
+                      : "bg-white"
+                  }`}
+                  style={{ minHeight: "155px" }}
+                >
+                  <div className="d-flex justify-content-between align-items-center mb-1">
+                    <span className={`fw-bold small ${day.isToday ? "text-primary" : "text-dark"}`}>
+                      {day.dayName}
+                    </span>
+                    <small className="text-muted">{day.displayDate}</small>
+                  </div>
+
+                  {day.isToday && (
+                    <Badge bg="danger" className="mb-2 align-self-start rounded-pill" style={{ fontSize: "0.65rem" }}>
+                      Hôm nay
+                    </Badge>
+                  )}
+
+                  <div className="my-auto">
+                    <div className="fw-semibold small text-dark mb-1 d-flex align-items-center gap-1">
+                      {day.shiftType === "Ca sáng" ? (
+                        <i className="bi bi-sun-fill text-warning"></i>
+                      ) : day.shiftType === "Ca chiều" ? (
+                        <i className="bi bi-moon-stars-fill text-info"></i>
+                      ) : (
+                        <i className="bi bi-cup-hot text-secondary"></i>
+                      )}
+                      <span>{day.shiftType}</span>
+                    </div>
+                    <div className="text-muted" style={{ fontSize: "0.75rem" }}>
+                      {day.shiftHours}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-top mt-2 small d-flex justify-content-between align-items-center">
+                    <span className="text-muted" style={{ fontSize: "0.7rem" }}>
+                      {day.room !== "-" ? `Phòng: ${day.room}` : "Nghỉ"}
+                    </span>
+                    {day.appointmentsCount > 0 && (
+                      <Badge bg="primary" pill style={{ fontSize: "0.65rem" }}>
+                        {day.appointmentsCount} ca
+                      </Badge>
+                    )}
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </Card.Body>
+      </Card>
 
       {/* Hàng đợi Khám & Duyệt lịch hôm nay (Active Clinical Queue) */}
       <Row className="g-4 mb-4">

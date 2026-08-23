@@ -24,7 +24,7 @@ function QuickViewModal({
   if (!isOpen) return null;
 
   const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
-  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Chưa xác định";
+  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(d.id))?.fullName || "Chưa xác định";
 
   const getTargetPageUrl = () => {
     switch (type) {
@@ -54,12 +54,14 @@ function QuickViewModal({
                   ? "bi-person-badge-fill text-info"
                   : type === "appointments"
                   ? "bi-calendar-check-fill text-success"
+                  : type === "schedule"
+                  ? "bi-calendar-week-fill text-warning"
                   : "bi-clipboard2-pulse-fill text-danger"
               }`}
             ></i>
             <span>{title}</span>
             <Badge bg="primary" className="rounded-pill ms-2" style={{ fontSize: "0.75rem" }}>
-              {data.length} kết quả
+              {data.length} {type === "schedule" ? "ngày" : "kết quả"}
             </Badge>
           </Modal.Title>
           {subtitle && <small className="text-muted">{subtitle}</small>}
@@ -249,6 +251,75 @@ function QuickViewModal({
                       <td>{r.bloodPressure || "-"}</td>
                       <td>{translateDiagnosis(r.diagnosis)}</td>
                       <td className="pe-3 small text-muted">{r.followUpDate || "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </>
+            )}
+
+            {/* 5. BẢNG LỊCH TRỰC TUẦN (DOCTOR DUTY SCHEDULE) */}
+            {type === "schedule" && (
+              <>
+                <thead className="table-light">
+                  <tr>
+                    <th className="ps-3">Thứ</th>
+                    <th>Ngày</th>
+                    <th>Ca trực</th>
+                    <th>Khung giờ làm việc</th>
+                    <th>Phòng khám</th>
+                    <th>Điều dưỡng hỗ trợ</th>
+                    <th>Lịch hẹn đã đặt</th>
+                    <th className="pe-3">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((item, idx) => (
+                    <tr key={idx} className={item.isToday ? "table-primary bg-opacity-25" : ""}>
+                      <td className="ps-3 fw-bold text-dark">
+                        {item.dayName}{" "}
+                        {item.isToday && (
+                          <Badge bg="danger" className="ms-1 rounded-pill">
+                            Hôm nay
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="fw-medium">{item.date}</td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            item.shiftType === "Ca sáng"
+                              ? "bg-warning bg-opacity-25 text-dark border border-warning"
+                              : item.shiftType === "Ca chiều"
+                              ? "bg-info bg-opacity-25 text-dark border border-info"
+                              : "bg-secondary bg-opacity-25 text-secondary"
+                          } px-2 py-1 fw-semibold`}
+                        >
+                          {item.shiftType === "Ca sáng"
+                            ? "☀️ Ca sáng"
+                            : item.shiftType === "Ca chiều"
+                            ? "🌙 Ca chiều"
+                            : "🏖️ Nghỉ trực"}
+                        </span>
+                      </td>
+                      <td className="small fw-medium text-dark">{item.shiftHours}</td>
+                      <td className="fw-semibold text-primary">{item.room}</td>
+                      <td className="small text-muted">{item.nurse}</td>
+                      <td>
+                        {item.appointmentsCount > 0 ? (
+                          <Badge bg="primary" className="rounded-pill px-2 py-1">
+                            {item.appointmentsCount} bệnh nhân
+                          </Badge>
+                        ) : (
+                          <span className="text-muted small">0 ca hẹn</span>
+                        )}
+                      </td>
+                      <td className="pe-3">
+                        {item.status === "active" ? (
+                          <Badge bg="success">Đang xếp trực</Badge>
+                        ) : (
+                          <Badge bg="secondary">Nghỉ ca</Badge>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
