@@ -48,10 +48,10 @@ export function findLinkedDoctor(doctors = [], user = getCurrentUser()) {
 
 export function getRoleLabel(role) {
   const labels = {
-    [ROLES.ADMIN]: "Admin",
-    [ROLES.DOCTOR]: "Doctor",
-    [ROLES.PATIENT]: "Patient",
+    [ROLES.ADMIN]: "Quản trị viên",
+    [ROLES.DOCTOR]: "Bác sĩ",
+    [ROLES.PATIENT]: "Bệnh nhân",
   };
 
-  return labels[role] || "User";
+  return labels[role] || "Người dùng";
 }

@@ -20,13 +20,13 @@ function QuickViewModal({
   doctors = [],
   onApproveAppointment,
 }) {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   if (!isOpen) return null;
 
-  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
-  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Unknown";
+  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
+  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Chưa xác định";
 
   const getTargetPageUrl = () => {
     switch (type) {
@@ -61,7 +61,7 @@ function QuickViewModal({
             ></i>
             <span>{title}</span>
             <Badge bg="primary" className="rounded-pill ms-2" style={{ fontSize: "0.75rem" }}>
-              {data.length} {lang === "vi" ? "kết quả" : "items"}
+              {data.length} kết quả
             </Badge>
           </Modal.Title>
           {subtitle && <small className="text-muted">{subtitle}</small>}
@@ -72,7 +72,7 @@ function QuickViewModal({
         {data.length === 0 ? (
           <div className="text-center py-5 text-muted">
             <i className="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
-            <p className="mb-0">{lang === "vi" ? "Không có dữ liệu trong mục này." : "No data available in this section."}</p>
+            <p className="mb-0">Không có dữ liệu trong mục này.</p>
           </div>
         ) : (
           <Table responsive hover className="align-middle mb-0">
@@ -118,7 +118,7 @@ function QuickViewModal({
                           }}
                         >
                           <i className="bi bi-eye me-1"></i>
-                          {lang === "vi" ? "Xem chi tiết" : "View"}
+                          Xem chi tiết
                         </Button>
                       </td>
                     </tr>
@@ -133,7 +133,7 @@ function QuickViewModal({
                 <thead className="table-light">
                   <tr>
                     <th className="ps-3">ID</th>
-                    <th>{lang === "vi" ? "Bác sĩ" : "Doctor"}</th>
+                    <th>Bác sĩ</th>
                     <th>{t("dashboard.docSpecialty")}</th>
                     <th>{t("dashboard.docRoom")}</th>
                     <th>{t("dashboard.docShift")}</th>
@@ -148,11 +148,11 @@ function QuickViewModal({
                       <td className="fw-semibold text-primary">{d.fullName}</td>
                       <td>
                         <Badge bg="light" text="dark" className="border">
-                          {d.specialization || d.specialty || "General Medicine"}
+                          {d.specialization || d.specialty || "Nội tổng quát"}
                         </Badge>
                       </td>
                       <td>{d.room || "A-201"}</td>
-                      <td>{d.shift || "Morning"}</td>
+                      <td>{d.shift === "Morning" ? "Ca sáng" : "Ca chiều"}</td>
                       <td>{d.phone}</td>
                       <td className="pe-3">{d.email}</td>
                     </tr>
@@ -184,7 +184,7 @@ function QuickViewModal({
                       <td>{a.time}</td>
                       <td className="fw-semibold text-primary">{getPatientName(a.patientId)}</td>
                       <td>{getDoctorName(a.doctorId)}</td>
-                      <td>{translateReason(a.reason, lang)}</td>
+                      <td>{translateReason(a.reason)}</td>
                       <td>
                         <StatusBadge status={a.status} />
                       </td>
@@ -211,7 +211,7 @@ function QuickViewModal({
                               {t("dashboard.btnComplete")}
                             </Button>
                           ) : (
-                            <span className="text-muted small">✓ {lang === "vi" ? "Đã duyệt" : "Done"}</span>
+                            <span className="text-muted small">✓ Đã duyệt</span>
                           )}
                         </td>
                       )}
@@ -234,7 +234,7 @@ function QuickViewModal({
                     <th>{t("patientDetail.hba1c")}</th>
                     <th>{t("patientDetail.bloodPressure")}</th>
                     <th>{t("patientDetail.diagnosis")}</th>
-                    <th className="pe-3">{lang === "vi" ? "Tái khám" : "Follow-up"}</th>
+                    <th className="pe-3">Tái khám</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -249,7 +249,7 @@ function QuickViewModal({
                       </td>
                       <td>{r.hba1c ? `${r.hba1c}%` : "-"}</td>
                       <td>{r.bloodPressure || "-"}</td>
-                      <td>{translateDiagnosis(r.diagnosis, lang)}</td>
+                      <td>{translateDiagnosis(r.diagnosis)}</td>
                       <td className="pe-3 small text-muted">{r.followUpDate || "-"}</td>
                     </tr>
                   ))}
@@ -270,14 +270,14 @@ function QuickViewModal({
               navigate(targetPage);
             }}
           >
-            {lang === "vi" ? "Mở trang quản lý đầy đủ →" : "Go to full management page →"}
+            Mở trang quản lý đầy đủ →
           </Button>
         ) : (
           <div></div>
         )}
 
         <Button variant="secondary" size="sm" className="px-3 rounded-pill" onClick={onClose}>
-          {lang === "vi" ? "Đóng" : "Close"}
+          Đóng
         </Button>
       </Modal.Footer>
     </Modal>

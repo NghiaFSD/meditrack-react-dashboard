@@ -1,23 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Container, Row, Col, Card, Table, Form } from "react-bootstrap";
+import { Container, Row, Col, Card, Table, Form, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
-import Button from "../components/common/Button";
-import EmptyState from "../components/common/EmptyState";
-import Input from "../components/common/Input";
-import Loading from "../components/common/Loading";
-import Modal from "../components/common/Modal";
-import SearchBox from "../components/common/SearchBox";
-import ActionMenu from "../components/common/ActionMenu";
 import { recordApi } from "../api/recordApi";
 import { patientApi } from "../api/patientApi";
 import { doctorApi } from "../api/doctorApi";
-import { useRecords } from "../hooks/useRecords";
-import { useAuth } from "../context/AuthContext";
+import Loading from "../components/common/Loading";
+import SearchBox from "../components/common/SearchBox";
+import Modal from "../components/common/Modal";
+import Input from "../components/common/Input";
+import ActionMenu from "../components/common/ActionMenu";
+import EmptyState from "../components/common/EmptyState";
 import { ROLES, findLinkedDoctor, findLinkedPatient } from "../utils/auth";
+import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { translateDiagnosis } from "../utils/translations";
 
-const emptyRecord = {
+const INITIAL_FORM = {
   patientId: "",
   doctorId: "",
   date: "",
@@ -25,70 +23,85 @@ const emptyRecord = {
   hba1c: "",
   bmi: "",
   bloodPressure: "",
-  riskLevel: "Low",
-  followUpDate: "",
   diagnosis: "",
   note: "",
 };
 
 /**
- * Trang quản lý Hồ sơ bệnh án (CRUD + Xem chỉ số sức khỏe) sử dụng React-Bootstrap
+ * Trang Quản lý Hồ sơ Bệnh án Y tế (Thuần Tiếng Việt)
  */
 function MedicalRecords() {
-  const { records, loading, fetchRecords } = useRecords();
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const currentRole = user?.role;
 
+  const [records, setRecords] = useState([]);
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  const [form, setForm] = useState(emptyRecord);
+  const [form, setForm] = useState(INITIAL_FORM);
+
+  const fetchRecords = async () => {
+    try {
+      setLoading(true);
+      const [recs, pts, docs] = await Promise.all([
+        recordApi.getAll(),
+        patientApi.getAll(),
+        doctorApi.getAll(),
+      ]);
+      setRecords(recs || []);
+      setPatients(pts || []);
+      setDoctors(docs || []);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadRefs() {
-      const [p, d] = await Promise.all([patientApi.getAll(), doctorApi.getAll()]);
-      setPatients(p);
-      setDoctors(d);
-    }
-    loadRefs();
+    fetchRecords();
   }, []);
 
   const linkedPatient = useMemo(() => findLinkedPatient(patients, user), [patients, user]);
   const linkedDoctor = useMemo(() => findLinkedDoctor(doctors, user), [doctors, user]);
 
-  const canManage = [ROLES.ADMIN, ROLES.DOCTOR].includes(currentRole);
+  const canManage = currentRole === ROLES.ADMIN || currentRole === ROLES.DOCTOR;
 
-  const getPatientName = (id) =>
-    patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
-  const getDoctorName = (id) =>
-    doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Unknown";
+  // Lọc theo Role
+  const roleFilteredRecords = useMemo(() => {
+    if (currentRole === ROLES.PATIENT) {
+      if (!linkedPatient) return [];
+      return records.filter((r) => Number(r.patientId) === Number(linkedPatient.id));
+    }
+    if (currentRole === ROLES.DOCTOR) {
+      if (!linkedDoctor) return [];
+      return records.filter((r) => Number(r.doctorId) === Number(linkedDoctor.id));
+    }
+    return records;
+  }, [records, currentRole, linkedPatient, linkedDoctor]);
 
+  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
+  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Chưa xác định";
+
+  // Lọc theo tìm kiếm
   const filteredRecords = useMemo(() => {
-    const scoped = records.filter((r) => {
-      if (currentRole === ROLES.PATIENT && linkedPatient)
-        return Number(r.patientId) === Number(linkedPatient.id);
-      if (currentRole === ROLES.DOCTOR && linkedDoctor)
-        return Number(r.doctorId) === Number(linkedDoctor.id);
-      return true;
-    });
+    return roleFilteredRecords.filter((item) => {
+      const pName = getPatientName(item.patientId).toLowerCase();
+      const dName = getDoctorName(item.doctorId).toLowerCase();
+      const diag = (item.diagnosis || "").toLowerCase();
+      const query = search.toLowerCase();
 
-    return scoped.filter((r) => {
-      const q = search.toLowerCase();
-      return (
-        getPatientName(r.patientId).toLowerCase().includes(q) ||
-        getDoctorName(r.doctorId).toLowerCase().includes(q) ||
-        r.diagnosis.toLowerCase().includes(q)
-      );
+      return pName.includes(query) || dName.includes(query) || diag.includes(query);
     });
-  }, [records, patients, doctors, search, currentRole, linkedPatient, linkedDoctor]);
+  }, [roleFilteredRecords, search, patients, doctors]);
 
   const handleOpenAdd = () => {
     setEditingRecord(null);
     setForm({
-      ...emptyRecord,
+      ...INITIAL_FORM,
       patientId: linkedPatient ? String(linkedPatient.id) : patients[0]?.id || "",
       doctorId: linkedDoctor ? String(linkedDoctor.id) : doctors[0]?.id || "",
       date: new Date().toISOString().slice(0, 10),
@@ -111,10 +124,8 @@ function MedicalRecords() {
     e.preventDefault();
     if (!form.patientId || !form.doctorId || !form.date || !form.diagnosis) {
       Swal.fire(
-        lang === "vi" ? "Thiếu thông tin" : "Missing fields",
-        lang === "vi"
-          ? "Vui lòng điền đầy đủ bệnh nhân, bác sĩ, ngày khám và chẩn đoán."
-          : "Please fill in patient, doctor, date and diagnosis.",
+        "Thiếu thông tin",
+        "Vui lòng điền đầy đủ bệnh nhân, bác sĩ, ngày khám và chẩn đoán.",
         "warning"
       );
       return;
@@ -123,51 +134,32 @@ function MedicalRecords() {
     try {
       if (editingRecord) {
         await recordApi.update(editingRecord.id, form);
-        Swal.fire(
-          lang === "vi" ? "Thành công" : "Success",
-          lang === "vi" ? "Cập nhật bệnh án thành công!" : "Record updated successfully!",
-          "success"
-        );
+        Swal.fire("Thành công", "Cập nhật bệnh án thành công!", "success");
       } else {
         await recordApi.create(form);
-        Swal.fire(
-          lang === "vi" ? "Thành công" : "Success",
-          lang === "vi" ? "Thêm bệnh án mới thành công!" : "Record added successfully!",
-          "success"
-        );
+        Swal.fire("Thành công", "Thêm bệnh án mới thành công!", "success");
       }
       setIsModalOpen(false);
       fetchRecords();
     } catch (err) {
-      Swal.fire(
-        lang === "vi" ? "Lỗi" : "Error",
-        lang === "vi" ? "Không thể lưu hồ sơ bệnh án." : "Cannot save medical record.",
-        "error"
-      );
+      Swal.fire("Lỗi", "Không thể lưu hồ sơ bệnh án.", "error");
     }
   };
 
   const handleDelete = async (id) => {
     const res = await Swal.fire({
-      title: lang === "vi" ? "Xóa bệnh án?" : "Delete record?",
-      text:
-        lang === "vi"
-          ? "Hành động này không thể hoàn tác."
-          : "This action cannot be undone.",
+      title: "Xóa bệnh án?",
+      text: "Hành động này không thể hoàn tác.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: lang === "vi" ? "Xóa" : "Delete",
-      cancelButtonText: lang === "vi" ? "Hủy" : "Cancel",
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
       confirmButtonColor: "#dc3545",
     });
 
     if (res.isConfirmed) {
       await recordApi.remove(id);
-      Swal.fire(
-        lang === "vi" ? "Đã xóa" : "Deleted",
-        lang === "vi" ? "Hồ sơ bệnh án đã được xóa." : "Medical record deleted.",
-        "success"
-      );
+      Swal.fire("Đã xóa", "Hồ sơ bệnh án đã được xóa.", "success");
       fetchRecords();
     }
   };
@@ -181,15 +173,13 @@ function MedicalRecords() {
         <div>
           <h2 className="fw-bold text-dark mb-1">{t("nav.medicalRecords")}</h2>
           <p className="text-muted mb-0">
-            {lang === "vi"
-              ? "Theo dõi lịch sử khám bệnh, chỉ số sinh học và chẩn đoán lâm sàng."
-              : "Track medical records and clinical history."}
+            Theo dõi lịch sử khám bệnh, chỉ số sinh học và chẩn đoán lâm sàng.
           </p>
         </div>
         {canManage && (
           <Button variant="primary" onClick={handleOpenAdd} className="d-flex align-items-center gap-2 shadow-sm">
             <i className="bi bi-file-earmark-plus-fill"></i>
-            <span>{lang === "vi" ? "Thêm bệnh án" : "Add Record"}</span>
+            <span>Thêm bệnh án</span>
           </Button>
         )}
       </div>
@@ -200,9 +190,7 @@ function MedicalRecords() {
           <SearchBox
             value={search}
             onChange={setSearch}
-            placeholder={
-              lang === "vi" ? "Tìm theo bệnh nhân, bác sĩ, chẩn đoán..." : "Search records..."
-            }
+            placeholder="Tìm theo bệnh nhân, bác sĩ, chẩn đoán..."
           />
         </Card.Body>
       </Card>
@@ -213,12 +201,8 @@ function MedicalRecords() {
           {filteredRecords.length === 0 ? (
             <div className="p-4">
               <EmptyState
-                title={lang === "vi" ? "Không có bệnh án" : "No Medical Records"}
-                message={
-                  lang === "vi"
-                    ? "Không tìm thấy hồ sơ bệnh án nào phù hợp."
-                    : "No matching medical records found."
-                }
+                title="Không có bệnh án"
+                message="Không tìm thấy hồ sơ bệnh án nào phù hợp."
                 icon="bi-file-earmark-x"
               />
             </div>
@@ -249,20 +233,20 @@ function MedicalRecords() {
                     <td>{item.hba1c ? `${item.hba1c}%` : "-"}</td>
                     <td>{item.bmi || "-"}</td>
                     <td>{item.bloodPressure || "-"}</td>
-                    <td>{translateDiagnosis(item.diagnosis, lang)}</td>
+                    <td>{translateDiagnosis(item.diagnosis)}</td>
                     {canManage && (
                       <td className="text-center pe-3">
                         <ActionMenu
                           items={[
                             {
-                              label: lang === "vi" ? "Chỉnh sửa" : "Edit",
+                              label: "Chỉnh sửa",
                               icon: <i className="bi bi-pencil-square text-primary"></i>,
                               onClick: () => handleOpenEdit(item),
                             },
                             ...(currentRole === ROLES.ADMIN
                               ? [
                                   {
-                                    label: lang === "vi" ? "Xóa bệnh án" : "Delete",
+                                    label: "Xóa bệnh án",
                                     icon: <i className="bi bi-trash3 text-danger"></i>,
                                     tone: "danger",
                                     onClick: () => handleDelete(item.id),
@@ -283,15 +267,7 @@ function MedicalRecords() {
 
       {/* Modal Thêm/Sửa Hồ sơ Bệnh án */}
       <Modal
-        title={
-          editingRecord
-            ? lang === "vi"
-              ? "Chỉnh sửa Bệnh án"
-              : "Edit Medical Record"
-            : lang === "vi"
-            ? "Thêm Hồ sơ Bệnh án mới"
-            : "Add Medical Record"
-        }
+        title={editingRecord ? "Chỉnh sửa Bệnh án" : "Thêm Hồ sơ Bệnh án mới"}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         size="lg"
@@ -354,7 +330,7 @@ function MedicalRecords() {
                 type="number"
                 value={form.glucose}
                 onChange={handleChange}
-                placeholder="mg/dL (e.g. 105)"
+                placeholder="mg/dL (ví dụ: 105)"
               />
             </Col>
 
@@ -366,7 +342,7 @@ function MedicalRecords() {
                 step="0.1"
                 value={form.hba1c}
                 onChange={handleChange}
-                placeholder="% (e.g. 5.7)"
+                placeholder="% (ví dụ: 5.7)"
               />
             </Col>
 
@@ -378,7 +354,7 @@ function MedicalRecords() {
                 step="0.1"
                 value={form.bmi}
                 onChange={handleChange}
-                placeholder="BMI (e.g. 22.4)"
+                placeholder="BMI (ví dụ: 22.4)"
               />
             </Col>
 
@@ -388,7 +364,7 @@ function MedicalRecords() {
                 name="bloodPressure"
                 value={form.bloodPressure}
                 onChange={handleChange}
-                placeholder="e.g. 120/80"
+                placeholder="ví dụ: 120/80"
               />
             </Col>
 
@@ -398,7 +374,7 @@ function MedicalRecords() {
                 name="diagnosis"
                 value={form.diagnosis}
                 onChange={handleChange}
-                placeholder={lang === "vi" ? "Chẩn đoán lâm sàng..." : "Clinical diagnosis..."}
+                placeholder="Chẩn đoán lâm sàng..."
                 required
               />
             </Col>
@@ -409,7 +385,7 @@ function MedicalRecords() {
               {t("patients.btnCancel")}
             </Button>
             <Button variant="primary" type="submit">
-              {lang === "vi" ? "Lưu bệnh án" : "Save Record"}
+              Lưu bệnh án
             </Button>
           </div>
         </Form>

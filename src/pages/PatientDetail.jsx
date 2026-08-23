@@ -70,12 +70,8 @@ function PatientDetail() {
   if (!patient)
     return (
       <EmptyState
-        title={lang === "vi" ? "Không tìm thấy bệnh nhân" : "Patient not found"}
-        message={
-          lang === "vi"
-            ? "Bệnh nhân được chọn không tồn tại."
-            : "The selected patient does not exist."
-        }
+        title="Không tìm thấy bệnh nhân"
+        message="Bệnh nhân được chọn không tồn tại."
         icon="bi-person-x"
       />
     );

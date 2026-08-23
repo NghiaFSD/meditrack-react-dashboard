@@ -16,7 +16,7 @@ const RISK_COLORS = {
 };
 
 /**
- * Giao diện Dashboard chuyên biệt cho Quản trị viên (Admin Operations Center) có hỗ trợ Click xem nhanh
+ * Giao diện Dashboard chuyên biệt cho Quản trị viên (Admin Operations Center - Thuần Tiếng Việt)
  */
 function AdminDashboard({
   patients = [],
@@ -25,7 +25,7 @@ function AdminDashboard({
   records = [],
   onUpdateAppointmentStatus,
 }) {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -56,26 +56,22 @@ function AdminDashboard({
   const pendingAppointments = appointments.filter((a) => a.status === "Pending");
   const recentPatients = [...patients].slice(-5).reverse();
 
-  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
-  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Unknown";
+  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
+  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Chưa xác định";
 
   // Thống kê trạng thái lịch hẹn
   const appointmentStatusData = useMemo(() => {
-    const statusKeys = ["Pending", "Approved", "Completed", "Cancelled"];
-    return statusKeys.map((k) => ({
-      status:
-        lang === "vi"
-          ? k === "Pending"
-            ? "Chờ duyệt"
-            : k === "Approved"
-            ? "Đã duyệt"
-            : k === "Completed"
-            ? "Hoàn thành"
-            : "Đã hủy"
-          : k,
+    const statusMap = {
+      Pending: "Chờ duyệt",
+      Approved: "Đã duyệt",
+      Completed: "Hoàn thành",
+      Cancelled: "Đã hủy",
+    };
+    return ["Pending", "Approved", "Completed", "Cancelled"].map((k) => ({
+      status: statusMap[k],
       total: appointments.filter((a) => a.status === k).length,
     }));
-  }, [appointments, lang]);
+  }, [appointments]);
 
   // Thống kê phân loại rủi ro bệnh nhân
   const riskData = useMemo(() => {
@@ -86,11 +82,11 @@ function AdminDashboard({
       else counts.Low++;
     });
     return [
-      { name: lang === "vi" ? "Nguy cơ Cao" : "High Risk", value: counts.High, color: RISK_COLORS.High },
-      { name: lang === "vi" ? "Trung bình" : "Medium Risk", value: counts.Medium, color: RISK_COLORS.Medium },
-      { name: lang === "vi" ? "Thấp" : "Low Risk", value: counts.Low, color: RISK_COLORS.Low },
+      { name: "Nguy cơ Cao", value: counts.High, color: RISK_COLORS.High },
+      { name: "Trung bình", value: counts.Medium, color: RISK_COLORS.Medium },
+      { name: "Thấp", value: counts.Low, color: RISK_COLORS.Low },
     ];
-  }, [patients, lang]);
+  }, [patients]);
 
   return (
     <div>
@@ -135,7 +131,7 @@ function AdminDashboard({
         </div>
       </div>
 
-      {/* 4 Thẻ KPI điều hành toàn viện - CÓ HỖ TRỢ CLICK XEM NHANH */}
+      {/* 4 Thẻ KPI điều hành toàn viện */}
       <Row className="g-3 mb-4">
         <Col xs={12} sm={6} lg={3}>
           <StatCard
@@ -146,8 +142,8 @@ function AdminDashboard({
             onClick={() =>
               openQuickView(
                 "patients",
-                lang === "vi" ? "Danh sách Bệnh nhân Toàn hệ thống" : "All Registered Patients",
-                lang === "vi" ? "Xem nhanh danh sách tất cả hồ sơ bệnh nhân trong phòng khám" : "Quick overview of all patient profiles",
+                "Danh sách Bệnh nhân Toàn hệ thống",
+                "Xem nhanh danh sách tất cả hồ sơ bệnh nhân trong phòng khám",
                 patients
               )
             }
@@ -162,8 +158,8 @@ function AdminDashboard({
             onClick={() =>
               openQuickView(
                 "doctors",
-                lang === "vi" ? "Danh sách Bác sĩ Phòng khám" : "Medical Staff & Doctors",
-                lang === "vi" ? "Thông tin chuyên khoa, phòng khám và ca trực của bác sĩ" : "Specialty, room and shift details",
+                "Danh sách Bác sĩ Phòng khám",
+                "Thông tin chuyên khoa, phòng khám và ca trực của bác sĩ",
                 doctors
               )
             }
@@ -178,8 +174,8 @@ function AdminDashboard({
             onClick={() =>
               openQuickView(
                 "appointments",
-                lang === "vi" ? "Danh sách Lịch khám Hôm nay" : "Today's Scheduled Appointments",
-                lang === "vi" ? `Các ca khám đã lên lịch trong ngày ${today}` : `Appointments scheduled for ${today}`,
+                "Danh sách Lịch khám Hôm nay",
+                `Các ca khám đã lên lịch trong ngày ${today}`,
                 todayAppointments
               )
             }
@@ -194,8 +190,8 @@ function AdminDashboard({
             onClick={() =>
               openQuickView(
                 "records",
-                lang === "vi" ? "Hồ sơ Bệnh án Toàn viện" : "Hospital Medical Records",
-                lang === "vi" ? "Tổng hợp kết quả khám và chỉ số sinh học của tất cả bệnh nhân" : "Comprehensive diagnostic records",
+                "Hồ sơ Bệnh án Toàn viện",
+                "Tổng hợp kết quả khám và chỉ số sinh học của tất cả bệnh nhân",
                 records
               )
             }
@@ -240,10 +236,10 @@ function AdminDashboard({
           <Card className="border-0 shadow-sm rounded-3 h-100">
             <Card.Header className="bg-white border-0 pt-3 pb-0">
               <Card.Title as="h5" className="fw-bold mb-1">
-                {lang === "vi" ? "Phân loại Nguy cơ Bệnh nhân" : "Patient Risk Stratification"}
+                Phân loại Nguy cơ Bệnh nhân
               </Card.Title>
               <Card.Subtitle className="text-muted small">
-                {lang === "vi" ? "Tỷ lệ mức độ rủi ro tiểu đường toàn viện" : "Hospital-wide diabetes risk distribution"}
+                Tỷ lệ mức độ rủi ro tiểu đường toàn viện
               </Card.Subtitle>
             </Card.Header>
             <Card.Body className="d-flex flex-column justify-content-center">
@@ -288,7 +284,7 @@ function AdminDashboard({
                 </Card.Subtitle>
               </div>
               <Badge bg="warning" text="dark" className="px-2 py-1 rounded-pill">
-                {pendingAppointments.length} {lang === "vi" ? "Chờ duyệt" : "Pending"}
+                {pendingAppointments.length} Chờ duyệt
               </Badge>
             </Card.Header>
             <Card.Body className="p-0">
@@ -310,7 +306,7 @@ function AdminDashboard({
                       </td>
                       <td className="fw-semibold text-primary">{getPatientName(item.patientId)}</td>
                       <td>{getDoctorName(item.doctorId)}</td>
-                      <td>{translateReason(item.reason, lang)}</td>
+                      <td>{translateReason(item.reason)}</td>
                       <td className="text-center pe-3">
                         <Button
                           size="sm"
@@ -328,7 +324,7 @@ function AdminDashboard({
                     <tr>
                       <td colSpan={5} className="text-center py-4 text-muted">
                         <i className="bi bi-check-circle fs-3 text-success d-block mb-1"></i>
-                        {lang === "vi" ? "Tất cả lịch khám đã được xử lý xong!" : "All appointments have been processed!"}
+                        Tất cả lịch khám đã được xử lý xong!
                       </td>
                     </tr>
                   )}
@@ -348,11 +344,11 @@ function AdminDashboard({
                   {t("dashboard.admRecentPatients")}
                 </Card.Title>
                 <Card.Subtitle className="text-muted small">
-                  {lang === "vi" ? "Danh sách hồ sơ bệnh nhân đăng ký mới" : "Recently registered patient records"}
+                  Danh sách hồ sơ bệnh nhân đăng ký mới
                 </Card.Subtitle>
               </div>
               <Link to={ROUTES.PATIENTS} className="small fw-semibold text-primary">
-                {lang === "vi" ? "Xem tất cả →" : "View all →"}
+                Xem tất cả →
               </Link>
             </Card.Header>
             <Card.Body className="p-0">

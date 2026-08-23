@@ -1,114 +1,129 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Container, Row, Col, Card, Table, Form } from "react-bootstrap";
+import { Container, Row, Col, Card, Table, Form, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
-import Button from "../components/common/Button";
-import EmptyState from "../components/common/EmptyState";
-import Input from "../components/common/Input";
-import Loading from "../components/common/Loading";
-import Modal from "../components/common/Modal";
-import SearchBox from "../components/common/SearchBox";
-import StatusBadge from "../components/common/StatusBadge";
-import ActionMenu from "../components/common/ActionMenu";
 import { appointmentApi } from "../api/appointmentApi";
 import { patientApi } from "../api/patientApi";
 import { doctorApi } from "../api/doctorApi";
-import { useAppointments } from "../hooks/useAppointments";
+import Loading from "../components/common/Loading";
+import SearchBox from "../components/common/SearchBox";
+import StatusBadge from "../components/common/StatusBadge";
+import Modal from "../components/common/Modal";
+import Input from "../components/common/Input";
+import ActionMenu from "../components/common/ActionMenu";
+import EmptyState from "../components/common/EmptyState";
+import { ROLES, findLinkedDoctor, findLinkedPatient } from "../utils/auth";
 import { useAuth } from "../context/AuthContext";
-import { ROLES, findLinkedPatient, findLinkedDoctor } from "../utils/auth";
 import { useLanguage } from "../context/LanguageContext";
 import { translateReason } from "../utils/translations";
 
-const emptyAppointment = {
+const INITIAL_FORM = {
   patientId: "",
   doctorId: "",
   date: "",
   time: "",
   reason: "",
-  channel: "Clinic",
-  priority: "Normal",
   status: "Pending",
 };
 
 /**
- * Trang quản lý Lịch hẹn khám (CRUD + Menu 3 chấm thao tác) sử dụng React-Bootstrap
+ * Trang Quản lý Lịch hẹn khám (Thuần Tiếng Việt)
  */
 function Appointments() {
-  const { appointments, loading, fetchAppointments } = useAppointments();
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const currentRole = user?.role;
 
+  const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
-  const [form, setForm] = useState(emptyAppointment);
+  const [form, setForm] = useState(INITIAL_FORM);
+
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const [appts, pts, docs] = await Promise.all([
+        appointmentApi.getAll(),
+        patientApi.getAll(),
+        doctorApi.getAll(),
+      ]);
+      setAppointments(appts || []);
+      setPatients(pts || []);
+      setDoctors(docs || []);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadRefs() {
-      const [pData, dData] = await Promise.all([patientApi.getAll(), doctorApi.getAll()]);
-      setPatients(pData);
-      setDoctors(dData);
-    }
-    loadRefs();
+    fetchAppointments();
   }, []);
 
   const linkedPatient = useMemo(() => findLinkedPatient(patients, user), [patients, user]);
   const linkedDoctor = useMemo(() => findLinkedDoctor(doctors, user), [doctors, user]);
 
-  const canCreate = [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT].includes(currentRole);
-  const canManage = [ROLES.ADMIN, ROLES.DOCTOR].includes(currentRole);
+  const canCreate = currentRole === ROLES.ADMIN || currentRole === ROLES.PATIENT;
+  const canManage = currentRole === ROLES.ADMIN || currentRole === ROLES.DOCTOR;
 
-  const getPatientName = (id) =>
-    patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
-  const getDoctorName = (id) =>
-    doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Unknown";
+  // Lọc dữ liệu theo Role
+  const roleFilteredAppointments = useMemo(() => {
+    if (currentRole === ROLES.PATIENT) {
+      if (!linkedPatient) return [];
+      return appointments.filter((a) => Number(a.patientId) === Number(linkedPatient.id));
+    }
+    if (currentRole === ROLES.DOCTOR) {
+      if (!linkedDoctor) return [];
+      return appointments.filter((a) => Number(a.doctorId) === Number(linkedDoctor.id));
+    }
+    return appointments;
+  }, [appointments, currentRole, linkedPatient, linkedDoctor]);
 
-  // Lọc lịch hẹn theo Role và Từ khóa
+  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
+  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(d.id))?.fullName || "Chưa xác định";
+
+  // Lọc theo tìm kiếm và trạng thái
   const filteredAppointments = useMemo(() => {
-    const scoped = appointments.filter((item) => {
-      if (currentRole === ROLES.PATIENT && linkedPatient)
-        return Number(item.patientId) === Number(linkedPatient.id);
-      if (currentRole === ROLES.DOCTOR && linkedDoctor)
-        return Number(item.doctorId) === Number(linkedDoctor.id);
-      return true;
-    });
+    return roleFilteredAppointments.filter((item) => {
+      const pName = getPatientName(item.patientId).toLowerCase();
+      const dName = getDoctorName(item.doctorId).toLowerCase();
+      const reason = (item.reason || "").toLowerCase();
+      const query = search.toLowerCase();
 
-    return scoped.filter((item) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        getPatientName(item.patientId).toLowerCase().includes(q) ||
-        getDoctorName(item.doctorId).toLowerCase().includes(q) ||
-        item.reason.toLowerCase().includes(q);
-      const matchStatus = statusFilter === "All" || item.status === statusFilter;
-      return matchSearch && matchStatus;
+      const matchesSearch = pName.includes(query) || dName.includes(query) || reason.includes(query);
+      const matchesStatus = statusFilter === "All" || item.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
     });
-  }, [
-    appointments,
-    patients,
-    doctors,
-    search,
-    statusFilter,
-    currentRole,
-    linkedPatient,
-    linkedDoctor,
-  ]);
+  }, [roleFilteredAppointments, search, statusFilter, patients, doctors]);
 
   const handleOpenAdd = () => {
     setEditingAppointment(null);
     setForm({
-      ...emptyAppointment,
+      ...INITIAL_FORM,
       patientId: linkedPatient ? String(linkedPatient.id) : patients[0]?.id || "",
       doctorId: linkedDoctor ? String(linkedDoctor.id) : doctors[0]?.id || "",
+      date: new Date().toISOString().slice(0, 10),
+      time: "09:00",
     });
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (item) => {
     setEditingAppointment(item);
-    setForm(item);
+    setForm({
+      patientId: String(item.patientId),
+      doctorId: String(item.doctorId),
+      date: item.date,
+      time: item.time,
+      reason: item.reason,
+      status: item.status,
+    });
     setIsModalOpen(true);
   };
 
@@ -121,8 +136,8 @@ function Appointments() {
     e.preventDefault();
     if (!form.patientId || !form.doctorId || !form.date || !form.time) {
       Swal.fire(
-        lang === "vi" ? "Thiếu thông tin" : "Missing fields",
-        lang === "vi" ? "Vui lòng nhập đầy đủ thông tin lịch hẹn." : "Please fill in all required appointment fields.",
+        "Thiếu thông tin",
+        "Vui lòng nhập đầy đủ thông tin lịch hẹn.",
         "warning"
       );
       return;
@@ -131,80 +146,57 @@ function Appointments() {
     try {
       if (editingAppointment) {
         await appointmentApi.update(editingAppointment.id, form);
-        Swal.fire(
-          lang === "vi" ? "Thành công" : "Success",
-          lang === "vi" ? "Cập nhật lịch hẹn thành công!" : "Appointment updated successfully!",
-          "success"
-        );
+        Swal.fire("Thành công", "Cập nhật lịch hẹn thành công!", "success");
       } else {
         await appointmentApi.create(form);
-        Swal.fire(
-          lang === "vi" ? "Thành công" : "Success",
-          lang === "vi" ? "Tạo lịch hẹn mới thành công!" : "Appointment created successfully!",
-          "success"
-        );
+        Swal.fire("Thành công", "Tạo lịch hẹn mới thành công!", "success");
       }
       setIsModalOpen(false);
       fetchAppointments();
     } catch (err) {
-      Swal.fire(
-        lang === "vi" ? "Lỗi" : "Error",
-        lang === "vi" ? "Không thể lưu lịch hẹn." : "Cannot save appointment.",
-        "error"
-      );
+      Swal.fire("Lỗi", "Không thể lưu lịch hẹn.", "error");
     }
   };
 
   const handleUpdateStatus = async (item, newStatus) => {
     const confirmText =
       newStatus === "Cancelled"
-        ? lang === "vi"
-          ? "Hủy lịch hẹn?"
-          : "Cancel this appointment?"
-        : lang === "vi"
-        ? `Chuyển trạng thái sang ${newStatus}?`
-        : `Change status to ${newStatus}?`;
+        ? "Hủy lịch hẹn?"
+        : newStatus === "Approved"
+        ? "Duyệt lịch hẹn này?"
+        : newStatus === "Completed"
+        ? "Đánh dấu hoàn thành buổi khám?"
+        : `Chuyển trạng thái sang ${newStatus}?`;
 
     const res = await Swal.fire({
       title: confirmText,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: lang === "vi" ? "Đồng ý" : "Confirm",
-      cancelButtonText: lang === "vi" ? "Hủy" : "Cancel",
+      confirmButtonText: "Đồng ý",
+      cancelButtonText: "Hủy",
     });
 
     if (res.isConfirmed) {
       await appointmentApi.update(item.id, { ...item, status: newStatus });
-      Swal.fire(
-        lang === "vi" ? "Thành công" : "Success",
-        lang === "vi" ? "Trạng thái đã được cập nhật." : "Status updated successfully.",
-        "success"
-      );
+      Swal.fire("Thành công", "Trạng thái đã được cập nhật.", "success");
       fetchAppointments();
     }
   };
 
   const handleDelete = async (id) => {
     const res = await Swal.fire({
-      title: lang === "vi" ? "Xóa lịch hẹn?" : "Delete appointment?",
-      text:
-        lang === "vi"
-          ? "Hành động này không thể hoàn tác."
-          : "This action cannot be undone.",
+      title: "Xóa lịch hẹn?",
+      text: "Hành động này không thể hoàn tác.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: lang === "vi" ? "Xóa" : "Delete",
-      cancelButtonText: lang === "vi" ? "Hủy" : "Cancel",
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
       confirmButtonColor: "#dc3545",
     });
 
     if (res.isConfirmed) {
       await appointmentApi.remove(id);
-      Swal.fire(
-        lang === "vi" ? "Đã xóa" : "Deleted",
-        lang === "vi" ? "Lịch hẹn đã được xóa." : "Appointment deleted.",
-        "success"
-      );
+      Swal.fire("Đã xóa", "Lịch hẹn đã được xóa.", "success");
       fetchAppointments();
     }
   };
@@ -215,7 +207,7 @@ function Appointments() {
 
     if (canManage && item.status === "Pending") {
       actions.push({
-        label: lang === "vi" ? "Duyệt lịch" : "Approve",
+        label: "Duyệt lịch",
         icon: <i className="bi bi-check-circle text-success"></i>,
         onClick: () => handleUpdateStatus(item, "Approved"),
       });
@@ -223,7 +215,7 @@ function Appointments() {
 
     if (canManage && item.status === "Approved") {
       actions.push({
-        label: lang === "vi" ? "Hoàn thành" : "Complete",
+        label: "Hoàn thành",
         icon: <i className="bi bi-check2-all text-primary"></i>,
         onClick: () => handleUpdateStatus(item, "Completed"),
       });
@@ -231,7 +223,7 @@ function Appointments() {
 
     if (item.status !== "Cancelled" && item.status !== "Completed") {
       actions.push({
-        label: lang === "vi" ? "Hủy lịch" : "Cancel",
+        label: "Hủy lịch",
         icon: <i className="bi bi-x-circle text-danger"></i>,
         tone: "danger",
         onClick: () => handleUpdateStatus(item, "Cancelled"),
@@ -240,12 +232,12 @@ function Appointments() {
 
     if (currentRole === ROLES.ADMIN) {
       actions.push({
-        label: lang === "vi" ? "Chỉnh sửa" : "Edit",
+        label: "Chỉnh sửa",
         icon: <i className="bi bi-pencil-square text-primary"></i>,
         onClick: () => handleOpenEdit(item),
       });
       actions.push({
-        label: lang === "vi" ? "Xóa" : "Delete",
+        label: "Xóa",
         icon: <i className="bi bi-trash3 text-danger"></i>,
         tone: "danger",
         onClick: () => handleDelete(item.id),
@@ -264,15 +256,13 @@ function Appointments() {
         <div>
           <h2 className="fw-bold text-dark mb-1">{t("nav.appointments")}</h2>
           <p className="text-muted mb-0">
-            {lang === "vi"
-              ? "Quản lý lịch hẹn khám và theo dõi trạng thái tiếp nhận."
-              : "Manage and track clinical appointments."}
+            Quản lý lịch hẹn khám và theo dõi trạng thái tiếp nhận.
           </p>
         </div>
         {canCreate && (
           <Button variant="primary" onClick={handleOpenAdd} className="d-flex align-items-center gap-2 shadow-sm">
             <i className="bi bi-calendar-plus-fill"></i>
-            <span>{lang === "vi" ? "Đặt lịch hẹn" : "Book Appointment"}</span>
+            <span>Đặt lịch hẹn</span>
           </Button>
         )}
       </div>
@@ -285,9 +275,7 @@ function Appointments() {
               <SearchBox
                 value={search}
                 onChange={setSearch}
-                placeholder={
-                  lang === "vi" ? "Tìm theo bệnh nhân, bác sĩ, lý do..." : "Search appointments..."
-                }
+                placeholder="Tìm theo bệnh nhân, bác sĩ, lý do..."
               />
             </Col>
             <Col xs={12} md={4}>
@@ -296,11 +284,11 @@ function Appointments() {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="bg-light"
               >
-                <option value="All">{lang === "vi" ? "Tất cả trạng thái" : "All Status"}</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
+                <option value="All">Tất cả trạng thái</option>
+                <option value="Pending">Chờ duyệt (Pending)</option>
+                <option value="Approved">Đã duyệt (Approved)</option>
+                <option value="Completed">Hoàn thành (Completed)</option>
+                <option value="Cancelled">Đã hủy (Cancelled)</option>
               </Form.Select>
             </Col>
           </Row>
@@ -313,12 +301,8 @@ function Appointments() {
           {filteredAppointments.length === 0 ? (
             <div className="p-4">
               <EmptyState
-                title={lang === "vi" ? "Không có lịch hẹn" : "No Appointments"}
-                message={
-                  lang === "vi"
-                    ? "Không tìm thấy lịch hẹn nào phù hợp."
-                    : "No matching appointments found."
-                }
+                title="Không có lịch hẹn"
+                message="Không tìm thấy lịch hẹn nào phù hợp."
                 icon="bi-calendar-x"
               />
             </div>
@@ -344,7 +328,7 @@ function Appointments() {
                     <td>{item.time}</td>
                     <td className="fw-semibold text-primary">{getPatientName(item.patientId)}</td>
                     <td>{getDoctorName(item.doctorId)}</td>
-                    <td>{translateReason(item.reason, lang)}</td>
+                    <td>{translateReason(item.reason)}</td>
                     <td>
                       <StatusBadge status={item.status} />
                     </td>
@@ -361,15 +345,7 @@ function Appointments() {
 
       {/* Modal Đặt/Sửa Lịch hẹn */}
       <Modal
-        title={
-          editingAppointment
-            ? lang === "vi"
-              ? "Chỉnh sửa Lịch hẹn"
-              : "Edit Appointment"
-            : lang === "vi"
-            ? "Đặt Lịch hẹn mới"
-            : "Book New Appointment"
-        }
+        title={editingAppointment ? "Chỉnh sửa Lịch hẹn" : "Đặt Lịch hẹn mới"}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         size="lg"
@@ -442,7 +418,7 @@ function Appointments() {
                 name="reason"
                 value={form.reason}
                 onChange={handleChange}
-                placeholder={lang === "vi" ? "Lý do khám bệnh..." : "Reason for visit..."}
+                placeholder="Lý do khám bệnh..."
                 required
               />
             </Col>
@@ -453,7 +429,7 @@ function Appointments() {
               {t("patients.btnCancel")}
             </Button>
             <Button variant="primary" type="submit">
-              {lang === "vi" ? "Lưu lịch hẹn" : "Save Appointment"}
+              Lưu lịch hẹn
             </Button>
           </div>
         </Form>

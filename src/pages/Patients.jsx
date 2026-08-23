@@ -129,7 +129,7 @@ function Patients() {
         Swal.fire(t("patientEdit.updateSuccessTitle"), t("patients.valUpdateSuccess"), "success");
       } else {
         await patientApi.create(payload);
-        Swal.fire(lang === "vi" ? "Thành công" : "Created", t("patients.valCreateSuccess"), "success");
+        Swal.fire("Thành công", t("patients.valCreateSuccess"), "success");
       }
 
       setIsModalOpen(false);
@@ -147,10 +147,7 @@ function Patients() {
 
     const result = await Swal.fire({
       title: t("patients.deleteConfirmTitle"),
-      text:
-        lang === "vi"
-          ? `Hành động này sẽ xóa bệnh nhân ${patient.fullName}.`
-          : `This will remove ${patient.fullName}.`,
+      text: `Hành động này sẽ xóa bệnh nhân ${patient.fullName}.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: t("patients.btnDelete"),
@@ -179,7 +176,7 @@ function Patients() {
       } catch (err) {
         Swal.fire(
           t("patientEdit.updateErrorTitle"),
-          lang === "vi" ? "Không thể xóa bệnh nhân." : "Cannot delete patient.",
+          "Không thể xóa bệnh nhân.",
           "error"
         );
       }

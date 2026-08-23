@@ -17,13 +17,13 @@ const ICON_MAP = {
 };
 
 /**
- * Sidebar chứa menu điều hướng chính với React-Bootstrap và Bootstrap Icons
+ * Sidebar chứa menu điều hướng chính với React-Bootstrap và Bootstrap Icons (Thuần Tiếng Việt)
  */
 function Sidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const menuItems = getMenuItemsForRole(user?.role);
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
 
   const getMenuTranslationKey = (path) => {
     if (path === ROUTES.DASHBOARD) return "nav.dashboard";
@@ -35,15 +35,12 @@ function Sidebar() {
 
   const handleLogout = async () => {
     const result = await Swal.fire({
-      title: lang === "vi" ? "Đăng xuất?" : "Logout?",
-      text:
-        lang === "vi"
-          ? `Bạn có chắc chắn muốn đăng xuất khỏi ${APP_CONFIG.appName}?`
-          : `Do you want to log out of ${APP_CONFIG.appName}?`,
+      title: "Đăng xuất?",
+      text: `Bạn có chắc chắn muốn đăng xuất khỏi ${APP_CONFIG.appName}?`,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: lang === "vi" ? "Đăng xuất" : "Logout",
-      cancelButtonText: lang === "vi" ? "Hủy" : "Cancel",
+      confirmButtonText: "Đăng xuất",
+      cancelButtonText: "Hủy",
       confirmButtonColor: "#dc3545",
     });
 
@@ -66,7 +63,7 @@ function Sidebar() {
         <div>
           <h5 className="fw-bold mb-0 text-white tracking-wide">{APP_CONFIG.appName}</h5>
           <small className="text-secondary" style={{ fontSize: "0.75rem" }}>
-            {lang === "vi" ? APP_CONFIG.appSubtitleVi : `${getRoleLabel(user?.role)} Dashboard`}
+            {APP_CONFIG.appSubtitleVi}
           </small>
         </div>
       </div>

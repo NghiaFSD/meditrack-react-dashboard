@@ -1,6 +1,5 @@
 import React from "react";
 import { Badge } from "react-bootstrap";
-import { useLanguage } from "../../context/LanguageContext";
 
 const STATUS_MAP_VI = {
   Pending: "Chờ duyệt",
@@ -67,13 +66,12 @@ const VARIANT_MAP = {
 };
 
 /**
- * Component Badge hiển thị trạng thái sử dụng React-Bootstrap Badge
+ * Component Badge hiển thị trạng thái thuần Tiếng Việt sử dụng React-Bootstrap Badge
  */
 function StatusBadge({ status, type, className = "" }) {
-  const { lang } = useLanguage();
   const key = type || status || "";
   const bgVariant = VARIANT_MAP[key] || "secondary";
-  const displayStatus = lang === "vi" && STATUS_MAP_VI[status] ? STATUS_MAP_VI[status] : status;
+  const displayStatus = STATUS_MAP_VI[status] || status;
 
   return (
     <Badge

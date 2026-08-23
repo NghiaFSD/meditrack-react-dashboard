@@ -10,7 +10,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { translateReason } from "../../utils/translations";
 
 /**
- * Giao diện Bàn làm việc Bác sĩ Lâm sàng (Doctor Clinical Workstation) có hỗ trợ Click xem nhanh
+ * Giao diện Bàn làm việc Bác sĩ Lâm sàng (Doctor Clinical Workstation - Thuần Tiếng Việt)
  */
 function DoctorDashboard({
   doctor,
@@ -19,7 +19,7 @@ function DoctorDashboard({
   records = [],
   onUpdateAppointmentStatus,
 }) {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -108,7 +108,7 @@ function DoctorDashboard({
       });
   }, [myPatients, myRecords]);
 
-  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
+  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
 
   return (
     <div>
@@ -129,7 +129,7 @@ function DoctorDashboard({
                   <div className="d-flex flex-wrap gap-2 mt-1">
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-hospital me-1"></i>
-                      {t("dashboard.docSpecialty")}: {doctor?.specialization || "Endocrinology"}
+                      {t("dashboard.docSpecialty")}: {doctor?.specialization || "Nội tiết"}
                     </Badge>
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-door-open me-1"></i>
@@ -137,7 +137,7 @@ function DoctorDashboard({
                     </Badge>
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-clock me-1"></i>
-                      {t("dashboard.docShift")}: {doctor?.shift || "Morning"}
+                      {t("dashboard.docShift")}: {doctor?.shift === "Morning" ? "Ca sáng" : "Ca chiều"}
                     </Badge>
                   </div>
                 </div>
@@ -150,26 +150,26 @@ function DoctorDashboard({
                 onClick={() => navigate(ROUTES.RECORDS)}
               >
                 <i className="bi bi-file-earmark-plus-fill"></i>
-                <span>{lang === "vi" ? "+ Tạo Bệnh án mới" : "+ Add Medical Record"}</span>
+                <span>+ Tạo Bệnh án mới</span>
               </Button>
             </Col>
           </Row>
         </Card.Body>
       </Card>
 
-      {/* 4 Thẻ KPI Bác sĩ phụ trách - CÓ HỖ TRỢ CLICK XEM NHANH */}
+      {/* 4 Thẻ KPI Bác sĩ phụ trách */}
       <Row className="g-3 mb-4">
         <Col xs={12} sm={6} lg={3}>
           <StatCard
             title={t("dashboard.docMyAssignedPatients")}
             value={myPatients.length}
             icon={<i className="bi bi-people-fill"></i>}
-            note={lang === "vi" ? "Đang theo dõi điều trị" : "Active clinical cases"}
+            note="Đang theo dõi điều trị"
             onClick={() =>
               openQuickView(
                 "patients",
-                lang === "vi" ? "Bệnh nhân do Bác sĩ phụ trách" : "My Assigned Patients",
-                lang === "vi" ? `Danh sách các bệnh nhân đang điều trị cùng ${doctor?.fullName || "Bác sĩ"}` : "Patients currently assigned to your care",
+                "Bệnh nhân do Bác sĩ phụ trách",
+                `Danh sách các bệnh nhân đang điều trị cùng ${doctor?.fullName || "Bác sĩ"}`,
                 myPatients
               )
             }
@@ -180,12 +180,12 @@ function DoctorDashboard({
             title={t("dashboard.docMyTodayAppointments")}
             value={myTodayAppointments.length}
             icon={<i className="bi bi-calendar-event-fill"></i>}
-            note={lang === "vi" ? "Lịch khám hôm nay" : "Scheduled today"}
+            note="Lịch khám hôm nay"
             onClick={() =>
               openQuickView(
                 "appointments",
-                lang === "vi" ? "Lịch khám của Bác sĩ Hôm nay" : "My Today Consultations",
-                lang === "vi" ? `Các ca khám được xếp lịch trong ngày ${today}` : `Scheduled consultations for ${today}`,
+                "Lịch khám của Bác sĩ Hôm nay",
+                `Các ca khám được xếp lịch trong ngày ${today}`,
                 myTodayAppointments
               )
             }
@@ -196,12 +196,12 @@ function DoctorDashboard({
             title={t("dashboard.docPendingMyApprovals")}
             value={myPendingApprovals.length}
             icon={<i className="bi bi-clock-history"></i>}
-            note={lang === "vi" ? "Cần duyệt gấp" : "Awaiting your approval"}
+            note="Cần duyệt gấp"
             onClick={() =>
               openQuickView(
                 "appointments",
-                lang === "vi" ? "Yêu cầu Lịch hẹn Chờ duyệt" : "Pending Approval Requests",
-                lang === "vi" ? "Các lịch hẹn bệnh nhân vừa đăng ký cần bác sĩ xác nhận duyệt" : "Appointments awaiting your clinical approval",
+                "Yêu cầu Lịch hẹn Chờ duyệt",
+                "Các lịch hẹn bệnh nhân vừa đăng ký cần bác sĩ xác nhận duyệt",
                 myPendingApprovals
               )
             }
@@ -212,12 +212,12 @@ function DoctorDashboard({
             title={t("dashboard.docDiagnosedRecords")}
             value={myRecords.length}
             icon={<i className="bi bi-clipboard-pulse"></i>}
-            note={lang === "vi" ? "Bệnh án đã lập" : "Recorded consultations"}
+            note="Bệnh án đã lập"
             onClick={() =>
               openQuickView(
                 "records",
-                lang === "vi" ? "Bệnh án do Bác sĩ đã chẩn đoán" : "My Clinical Diagnoses",
-                lang === "vi" ? "Lịch sử các hồ sơ bệnh án và lời dặn điều trị đã ghi nhận" : "History of diagnostic records submitted by you",
+                "Bệnh án do Bác sĩ đã chẩn đoán",
+                "Lịch sử các hồ sơ bệnh án và lời dặn điều trị đã ghi nhận",
                 myRecords
               )
             }
@@ -240,7 +240,7 @@ function DoctorDashboard({
                 </Card.Subtitle>
               </div>
               <Badge bg="primary" className="px-2 py-1 rounded-pill">
-                {activeQueue.length} {lang === "vi" ? "Ca khám" : "Cases"}
+                {activeQueue.length} Ca khám
               </Badge>
             </Card.Header>
             <Card.Body className="p-0">
@@ -265,7 +265,7 @@ function DoctorDashboard({
                           {getPatientName(item.patientId)}
                         </Link>
                       </td>
-                      <td>{translateReason(item.reason, lang)}</td>
+                      <td>{translateReason(item.reason)}</td>
                       <td>
                         <StatusBadge status={item.status} />
                       </td>
@@ -296,7 +296,7 @@ function DoctorDashboard({
                             </Button>
                           )}
                           {item.status === "Completed" && (
-                            <span className="text-muted small">✓ {lang === "vi" ? "Đã khám" : "Done"}</span>
+                            <span className="text-muted small">✓ Đã khám</span>
                           )}
                         </div>
                       </td>
@@ -330,7 +330,7 @@ function DoctorDashboard({
                 </Card.Subtitle>
               </div>
               <Badge bg="danger" className="px-2 py-1 rounded-pill">
-                {highRiskPatients.length} {lang === "vi" ? "Cảnh báo" : "Alerts"}
+                {highRiskPatients.length} Cảnh báo
               </Badge>
             </Card.Header>
             <Card.Body className="p-0">
@@ -360,7 +360,7 @@ function DoctorDashboard({
                         <Link to={ROUTES.PATIENT_DETAIL(p.id)}>
                           <Button size="sm" variant="outline-danger" className="rounded-pill py-0 px-2">
                             <i className="bi bi-eye me-1"></i>
-                            {lang === "vi" ? "Xem" : "View"}
+                            Xem
                           </Button>
                         </Link>
                       </td>

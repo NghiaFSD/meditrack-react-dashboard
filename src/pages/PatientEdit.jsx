@@ -139,12 +139,10 @@ function PatientEdit() {
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
           <h2 className="fw-bold text-dark mb-1">
-            {lang === "vi" ? `Chỉnh sửa Bệnh nhân #${id}` : `Edit Patient #${id}`}
+            Chỉnh sửa Bệnh nhân #{id}
           </h2>
           <p className="text-muted mb-0">
-            {lang === "vi"
-              ? `Cập nhật hồ sơ bệnh án và thông tin cá nhân cho ${form.fullName || "bệnh nhân"}.`
-              : `Update medical profile and personal details for ${form.fullName || "patient"}.`}
+            Cập nhật hồ sơ bệnh án và thông tin cá nhân cho {form.fullName || "bệnh nhân"}.
           </p>
         </div>
         <Link to={ROUTES.PATIENT_DETAIL(id)}>

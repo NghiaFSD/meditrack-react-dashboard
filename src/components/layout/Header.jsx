@@ -1,17 +1,17 @@
 import React from "react";
-import { Navbar, Container, Nav, Dropdown, Badge, Button } from "react-bootstrap";
+import { Navbar, Container, Nav, Badge, Button } from "react-bootstrap";
 import { getRoleLabel } from "../../utils/auth";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 
 /**
- * Header hiển thị thông tin user đang đăng nhập và nút chuyển đổi ngôn ngữ bằng React-Bootstrap
+ * Header hiển thị thông tin người dùng đang đăng nhập bằng React-Bootstrap
  */
 function Header() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const currentUser = user || {};
   const roleLabel = getRoleLabel(currentUser.role);
-  const { lang, toggleLanguage, t } = useLanguage();
+  const { t } = useLanguage();
 
   const getRoleBadgeVariant = (role) => {
     switch (role) {
@@ -31,9 +31,7 @@ function Header() {
       <Container fluid className="px-0">
         <div>
           <h4 className="fw-bold mb-0 text-dark">
-            {lang === "vi"
-              ? `Chào mừng trở lại, ${currentUser.fullName || "Khách"}`
-              : `Welcome back, ${currentUser.fullName || "Guest"}`}
+            {`Chào mừng trở lại, ${currentUser.fullName || "Khách"}`}
           </h4>
           <small className="text-muted">
             {currentUser.role === "PATIENT"
@@ -45,18 +43,6 @@ function Header() {
         </div>
 
         <Nav className="ms-auto d-flex flex-row align-items-center gap-2">
-          {/* Nút chuyển đổi ngôn ngữ */}
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={toggleLanguage}
-            className="rounded-pill d-flex align-items-center gap-1 px-3 py-1 fw-semibold"
-            title="Chuyển đổi ngôn ngữ / Switch language"
-          >
-            <i className="bi bi-translate"></i>
-            <span>{lang === "vi" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}</span>
-          </Button>
-
           {/* Thông báo */}
           <Button variant="light" size="sm" className="rounded-circle p-2 text-muted border-0 position-relative">
             <i className="bi bi-bell fs-5"></i>
@@ -74,15 +60,9 @@ function Header() {
               {currentUser.avatar || currentUser.fullName?.charAt(0) || "U"}
             </div>
             <div className="d-none d-md-block text-start">
-              <div className="fw-bold small text-dark lh-sm">{currentUser.fullName || "User"}</div>
+              <div className="fw-bold small text-dark lh-sm">{currentUser.fullName || "Người dùng"}</div>
               <Badge bg={getRoleBadgeVariant(currentUser.role)} className="mt-1" style={{ fontSize: "0.65rem" }}>
-                {lang === "vi"
-                  ? currentUser.role === "ADMIN"
-                    ? "Quản trị viên"
-                    : currentUser.role === "DOCTOR"
-                    ? "Bác sĩ"
-                    : "Bệnh nhân"
-                  : roleLabel}
+                {roleLabel}
               </Badge>
             </div>
           </div>

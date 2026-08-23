@@ -14,13 +14,13 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 
 /**
- * Trang Dashboard thông minh phân tách 3 giao diện nghiệp vụ chuyên sâu:
+ * Trang Dashboard thông minh phân tách 3 giao diện nghiệp vụ chuyên sâu (Thuần Tiếng Việt):
  * 1. Admin: Trung tâm điều hành phòng khám toàn diện
  * 2. Doctor: Bàn làm việc Bác sĩ Lâm sàng & Xử lý hàng đợi
  * 3. Patient: Cổng theo dõi sức khỏe cá nhân & Nhắc lịch
  */
 function Dashboard() {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const currentRole = user?.role;
 
@@ -59,36 +59,26 @@ function Dashboard() {
   const handleUpdateAppointmentStatus = async (item, newStatus) => {
     const confirmText =
       newStatus === "Approved"
-        ? lang === "vi"
-          ? `Duyệt lịch hẹn cho ${item.patientId}?`
-          : "Approve this appointment?"
+        ? "Duyệt lịch hẹn này?"
         : newStatus === "Completed"
-        ? lang === "vi"
-          ? "Đánh dấu hoàn thành ca khám?"
-          : "Complete this consultation?"
-        : lang === "vi"
-        ? "Cập nhật trạng thái lịch hẹn?"
-        : "Update appointment status?";
+        ? "Đánh dấu hoàn thành ca khám?"
+        : "Cập nhật trạng thái lịch hẹn?";
 
     const res = await Swal.fire({
       title: confirmText,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: lang === "vi" ? "Đồng ý" : "Confirm",
-      cancelButtonText: lang === "vi" ? "Hủy" : "Cancel",
+      confirmButtonText: "Đồng ý",
+      cancelButtonText: "Hủy",
     });
 
     if (res.isConfirmed) {
       try {
         await appointmentApi.update(item.id, { ...item, status: newStatus });
-        Swal.fire(
-          lang === "vi" ? "Thành công" : "Success",
-          lang === "vi" ? "Trạng thái đã được cập nhật." : "Status updated successfully.",
-          "success"
-        );
+        Swal.fire("Thành công", "Trạng thái đã được cập nhật.", "success");
         loadData();
       } catch (err) {
-        Swal.fire(lang === "vi" ? "Lỗi" : "Error", "Không thể cập nhật trạng thái.", "error");
+        Swal.fire("Lỗi", "Không thể cập nhật trạng thái.", "error");
       }
     }
   };

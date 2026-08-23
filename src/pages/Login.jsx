@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Row, Col, Card, Form, Button, ButtonGroup } from "react-bootstrap";
+import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { authApi } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
@@ -9,12 +9,12 @@ import { ROUTES } from "../config/routes";
 import { APP_CONFIG } from "../config/appConfig";
 
 /**
- * Trang đăng nhập demo với React-Bootstrap, đa ngôn ngữ i18n và AuthContext
+ * Trang đăng nhập hệ thống MediTrack (Thuần Tiếng Việt)
  */
 function Login() {
   const navigate = useNavigate();
   const { user, login } = useAuth();
-  const { lang, toggleLanguage, t } = useLanguage();
+  const { t } = useLanguage();
   const [form, setForm] = useState({ email: "admin@gmail.com", password: "MediTrack#2026!" });
   const [loading, setLoading] = useState(false);
 
@@ -40,7 +40,7 @@ function Login() {
 
       if (!matchedUser) {
         Swal.fire(
-          lang === "vi" ? "Đăng nhập thất bại" : "Login failed",
+          "Đăng nhập thất bại",
           t("login.invalidCreds"),
           "error"
         );
@@ -51,17 +51,15 @@ function Login() {
       login(matchedUser);
 
       Swal.fire(
-        lang === "vi" ? "Thành công" : "Success",
-        lang === "vi" ? `Xin chào ${matchedUser.fullName}!` : `Welcome ${matchedUser.fullName}!`,
+        "Thành công",
+        `Xin chào ${matchedUser.fullName}!`,
         "success"
       );
       navigate(ROUTES.DASHBOARD);
     } catch (err) {
       Swal.fire(
-        lang === "vi" ? "Lỗi kết nối" : "Error",
-        lang === "vi"
-          ? "Không thể kết nối đến máy chủ API. Vui lòng chạy npm start."
-          : "Cannot connect to API server. Please run npm start.",
+        "Lỗi kết nối",
+        "Không thể kết nối đến máy chủ API. Vui lòng chạy npm start.",
         "error"
       );
     } finally {
@@ -76,18 +74,6 @@ function Login() {
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light position-relative p-3">
-      {/* Nút chuyển đổi ngôn ngữ góc trên phải */}
-      <div className="position-absolute top-0 end-0 p-3">
-        <Button
-          variant="white"
-          onClick={toggleLanguage}
-          className="shadow-sm border rounded-pill d-flex align-items-center gap-2 px-3 py-2 fw-semibold"
-        >
-          <i className="bi bi-translate text-primary"></i>
-          <span>{lang === "vi" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}</span>
-        </Button>
-      </div>
-
       <Container>
         <Row className="justify-content-center">
           <Col xs={12} sm={10} md={8} lg={5}>
@@ -140,7 +126,7 @@ function Login() {
                     {loading ? (
                       <span className="d-flex align-items-center justify-content-center gap-2">
                         <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        <span>{lang === "vi" ? "Đang đăng nhập..." : "Logging in..."}</span>
+                        <span>Đang đăng nhập...</span>
                       </span>
                     ) : (
                       t("login.btnSignIn")

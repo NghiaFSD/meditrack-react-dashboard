@@ -10,7 +10,7 @@ import { getGlucoseStatus, getHbA1cStatus } from "../../utils/healthStatus";
 import { translateDiagnosis, translateReason } from "../../utils/translations";
 
 /**
- * Giao diện Cổng thông tin Sức khỏe Cá nhân cho Bệnh nhân (Patient Health Portal) có hỗ trợ Click xem nhanh
+ * Giao diện Cổng thông tin Sức khỏe Cá nhân cho Bệnh nhân (Patient Health Portal - Thuần Tiếng Việt)
  */
 function PatientDashboard({
   patient,
@@ -18,7 +18,7 @@ function PatientDashboard({
   appointments = [],
   records = [],
 }) {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -85,7 +85,7 @@ function PatientDashboard({
                   <i className="bi bi-heart-pulse-fill"></i>
                 </div>
                 <div>
-                  <h3 className="fw-bold mb-0 text-white">{patient?.fullName || "Le Trong Nghia"}</h3>
+                  <h3 className="fw-bold mb-0 text-white">{patient?.fullName || "Lê Trọng Nghĩa"}</h3>
                   <div className="d-flex flex-wrap gap-2 mt-1 align-items-center">
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-card-text me-1"></i>
@@ -93,11 +93,11 @@ function PatientDashboard({
                     </Badge>
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-shield-check me-1"></i>
-                      {t("dashboard.patInsuranceCard")}: {patient?.insuranceType || "Premium"}
+                      {t("dashboard.patInsuranceCard")}: {patient?.insuranceType || "Cao cấp"}
                     </Badge>
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-activity me-1"></i>
-                      {lang === "vi" ? "Mức nguy cơ" : "Risk"}: {patient?.riskLevel || "Low"}
+                      Mức nguy cơ: <StatusBadge status={patient?.riskLevel || "Low"} className="ms-1" />
                     </Badge>
                   </div>
                 </div>
@@ -117,14 +117,14 @@ function PatientDashboard({
         </Card.Body>
       </Card>
 
-      {/* 4 Thẻ chỉ số đo đạc sinh học mới nhất - CÓ HỖ TRỢ CLICK XEM NHANH */}
+      {/* 4 Thẻ chỉ số đo đạc sinh học mới nhất */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold text-dark mb-0">
           <i className="bi bi-speedometer2 text-success me-2"></i>
           {t("dashboard.patVitalTitle")}
         </h5>
         <small className="text-muted fst-italic">
-          {lang === "vi" ? "💡 Nhấn vào ô để xem toàn bộ lịch sử đo" : "💡 Click card to view history"}
+          💡 Nhấn vào ô để xem toàn bộ lịch sử đo
         </small>
       </div>
 
@@ -136,8 +136,8 @@ function PatientDashboard({
             onClick={() =>
               openQuickView(
                 "records",
-                lang === "vi" ? "Lịch sử Đo Đường huyết (Glucose)" : "Fasting Glucose History",
-                lang === "vi" ? "Theo dõi diễn tiến chỉ số đường huyết qua các lần khám" : "Longitudinal glucose measurements over time",
+                "Lịch sử Đo Đường huyết (Glucose)",
+                "Theo dõi diễn tiến chỉ số đường huyết qua các lần khám",
                 myRecords
               )
             }
@@ -155,7 +155,7 @@ function PatientDashboard({
               {latestRecord ? `${latestRecord.glucose} mg/dL` : "-"}
             </h3>
             <small className="text-muted">
-              {lang === "vi" ? "Đường huyết lúc đói" : "Fasting blood sugar"}
+              Đường huyết lúc đói
             </small>
           </Card>
         </Col>
@@ -167,8 +167,8 @@ function PatientDashboard({
             onClick={() =>
               openQuickView(
                 "records",
-                lang === "vi" ? "Lịch sử Chỉ số HbA1c" : "HbA1c Glycemic History",
-                lang === "vi" ? "Theo dõi mức độ kiểm soát đường huyết trung bình 3 tháng" : "3-month average glycemic control tracking",
+                "Lịch sử Chỉ số HbA1c",
+                "Theo dõi mức độ kiểm soát đường huyết trung bình 3 tháng",
                 myRecords
               )
             }
@@ -186,7 +186,7 @@ function PatientDashboard({
               {latestRecord ? `${latestRecord.hba1c}%` : "-"}
             </h3>
             <small className="text-muted">
-              {lang === "vi" ? "Chỉ số đường huyết 3 tháng" : "3-month average"}
+              Chỉ số đường huyết 3 tháng
             </small>
           </Card>
         </Col>
@@ -198,8 +198,8 @@ function PatientDashboard({
             onClick={() =>
               openQuickView(
                 "records",
-                lang === "vi" ? "Lịch sử Đo Huyết áp" : "Blood Pressure Log",
-                lang === "vi" ? "Chỉ số huyết áp tâm thu và tâm trương qua các lần thăm khám" : "Systolic and diastolic blood pressure logs",
+                "Lịch sử Đo Huyết áp",
+                "Chỉ số huyết áp tâm thu và tâm trương qua các lần thăm khám",
                 myRecords
               )
             }
@@ -212,7 +212,7 @@ function PatientDashboard({
               {latestRecord ? latestRecord.bloodPressure : "-"}
             </h3>
             <small className="text-muted">
-              {lang === "vi" ? "Tâm thu / Tâm trương" : "Systolic / Diastolic"}
+              Tâm thu / Tâm trương
             </small>
           </Card>
         </Col>
@@ -224,21 +224,21 @@ function PatientDashboard({
             onClick={() =>
               openQuickView(
                 "records",
-                lang === "vi" ? "Lịch sử Chỉ số Thể trạng BMI" : "BMI Progression Log",
-                lang === "vi" ? "Theo dõi cân nặng và thể trạng qua các giai đoạn điều trị" : "Body Mass Index monitoring logs",
+                "Lịch sử Chỉ số Thể trạng BMI",
+                "Theo dõi cân nặng và thể trạng qua các giai đoạn điều trị",
                 myRecords
               )
             }
           >
             <div className="d-flex justify-content-between align-items-center mb-1">
               <small className="text-muted text-uppercase fw-semibold">{t("patientDetail.bmi")}</small>
-              <Badge bg="success">{lang === "vi" ? "Chuẩn" : "Normal"}</Badge>
+              <Badge bg="success">Chuẩn</Badge>
             </div>
             <h3 className="fw-bold text-dark mb-1">
               {latestRecord ? latestRecord.bmi : "-"}
             </h3>
             <small className="text-muted">
-              {lang === "vi" ? "Thể trạng cân đối" : "Body Mass Index"}
+              Thể trạng cân đối
             </small>
           </Card>
         </Col>
@@ -270,7 +270,7 @@ function PatientDashboard({
                     </div>
                     <div className="small text-muted mb-2">
                       <i className="bi bi-chat-left-text me-1"></i>
-                      {t("patientDetail.reason")}: {translateReason(nextAppointment.reason, lang)}
+                      {t("patientDetail.reason")}: {translateReason(nextAppointment.reason)}
                     </div>
                     <div>
                       <StatusBadge status={nextAppointment.status} />
@@ -316,15 +316,15 @@ function PatientDashboard({
                   <tr>
                     <th className="ps-3">{t("patientDetail.date")}</th>
                     <th>{t("patientDetail.diagnosis")}</th>
-                    <th>{lang === "vi" ? "Lời dặn & Hướng dẫn" : "Doctor's Advice"}</th>
-                    <th className="pe-3">{lang === "vi" ? "Tái khám" : "Follow-up"}</th>
+                    <th>Lời dặn & Hướng dẫn</th>
+                    <th className="pe-3">Tái khám</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[...myRecords].reverse().slice(0, 4).map((rec) => (
                     <tr key={rec.id}>
                       <td className="ps-3 fw-medium">{rec.date}</td>
-                      <td className="fw-semibold text-primary">{translateDiagnosis(rec.diagnosis, lang)}</td>
+                      <td className="fw-semibold text-primary">{translateDiagnosis(rec.diagnosis)}</td>
                       <td className="small text-muted">{rec.note || "-"}</td>
                       <td className="pe-3 small fw-medium">{rec.followUpDate || "-"}</td>
                     </tr>
