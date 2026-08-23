@@ -9,10 +9,12 @@ import Modal from "../components/common/Modal";
 import SearchBox from "../components/common/SearchBox";
 import ActionMenu from "../components/common/ActionMenu";
 import StatCard from "../components/dashboard/StatCard";
+import QuickViewModal from "../components/dashboard/QuickViewModal";
 import { doctorApi } from "../api/doctorApi";
 import { appointmentApi } from "../api/appointmentApi";
 import { recordApi } from "../api/recordApi";
 import { isValidEmail, isValidPhone } from "../utils/validation";
+import { getDoctorWeeklySchedule } from "../utils/dutySchedule";
 
 const INITIAL_DOCTOR = {
   fullName: "",
@@ -49,6 +51,13 @@ function Doctors() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [form, setForm] = useState(INITIAL_DOCTOR);
+
+  // Quick View Modal for Doctor Duty Schedule
+  const [scheduleModal, setScheduleModal] = useState({
+    isOpen: false,
+    doctor: null,
+    data: [],
+  });
 
   const fetchDoctors = async () => {
     try {
@@ -128,6 +137,15 @@ function Doctors() {
       email: doc.email || "",
     });
     setIsModalOpen(true);
+  };
+
+  const handleViewSchedule = (doc) => {
+    const weeklyData = getDoctorWeeklySchedule(doc, appointments);
+    setScheduleModal({
+      isOpen: true,
+      doctor: doc,
+      data: weeklyData,
+    });
   };
 
   const handleChange = (e) => {
@@ -367,7 +385,9 @@ function Doctors() {
                           doc.shift === "Morning"
                             ? "bg-warning bg-opacity-10 text-warning border border-warning"
                             : "bg-info bg-opacity-10 text-info border border-info"
-                        } px-2 py-1 fw-semibold`}
+                        } px-2 py-1 fw-semibold cursor-pointer`}
+                        onClick={() => handleViewSchedule(doc)}
+                        title="Click để xem lịch trực của bác sĩ này"
                       >
                         {doc.shift === "Morning" ? "☀️ Ca sáng" : "🌙 Ca chiều"}
                       </span>
@@ -382,6 +402,11 @@ function Doctors() {
                     <td className="text-center pe-3">
                       <ActionMenu
                         items={[
+                          {
+                            label: "Xem lịch trực",
+                            icon: <i className="bi bi-calendar-week text-primary"></i>,
+                            onClick: () => handleViewSchedule(doc),
+                          },
                           {
                             label: "Chỉnh sửa",
                             icon: <i className="bi bi-pencil-square text-success"></i>,
@@ -496,6 +521,16 @@ function Doctors() {
           </div>
         </Form>
       </Modal>
+
+      {/* Modal Xem Lịch Trực của từng Bác sĩ */}
+      <QuickViewModal
+        isOpen={scheduleModal.isOpen}
+        onClose={() => setScheduleModal({ isOpen: false, doctor: null, data: [] })}
+        title={`Lịch Trực Tuần - ${scheduleModal.doctor?.fullName || "Bác sĩ"}`}
+        subtitle={`Khoa: ${scheduleModal.doctor?.specialization || scheduleModal.doctor?.specialty || "Nội tổng quát"} | Phòng: ${scheduleModal.doctor?.room || "A-201"}`}
+        type="schedule"
+        data={scheduleModal.data}
+      />
     </Container>
   );
 }
