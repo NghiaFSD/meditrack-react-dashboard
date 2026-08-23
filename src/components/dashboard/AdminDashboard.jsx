@@ -6,8 +6,7 @@ import StatCard from "./StatCard";
 import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
-import { getDoctorWeeklySchedule } from "../../utils/dutySchedule";
-import { getLocalDateStr } from "../../utils/dutySchedule";
+import { getDoctorWeeklySchedule, getLocalDateStr } from "../../utils/dutySchedule";
 
 const RISK_COLORS = {
   High: "#dc3545",
@@ -144,21 +143,8 @@ function AdminDashboard({
           <Button
             variant="outline-primary"
             className="d-flex align-items-center gap-2 bg-white shadow-sm"
-            title="Xem và phân ca trực cho đội ngũ Bác sĩ"
-            onClick={() => {
-              const allSchedules = doctors.flatMap((doc) =>
-                getDoctorWeeklySchedule(doc, appointments).map((s) => ({
-                  ...s,
-                  doctorName: doc.fullName,
-                }))
-              );
-              openQuickView(
-                "dutySchedule",
-                "Lịch Trực Toàn Viện Tuần Này",
-                "Phân bổ ca trực theo từng bác sĩ trong tuần",
-                allSchedules
-              );
-            }}
+            title="Quản lý và phân ca trực cho đội ngũ Bác sĩ"
+            onClick={() => navigate(ROUTES.DUTY_SCHEDULE)}
           >
             <i className="bi bi-calendar2-week-fill text-primary"></i>
             <span>Tạo Lịch trực</span>
