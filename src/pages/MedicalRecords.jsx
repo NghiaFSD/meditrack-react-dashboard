@@ -274,12 +274,17 @@ function MedicalRecords() {
           <Row className="g-3">
             <Col xs={12} md={6}>
               <Form.Group className="mb-3" controlId="recPatient">
-                <Form.Label className="fw-semibold">Bệnh nhân</Form.Label>
+                <Form.Label className="fw-semibold d-flex align-items-center gap-2">
+                  Bệnh nhân
+                  {editingRecord && (
+                    <span className="badge bg-secondary fw-normal" style={{ fontSize: "0.65rem" }}>Không thể thay đổi</span>
+                  )}
+                </Form.Label>
                 <Form.Select
                   name="patientId"
                   value={form.patientId}
                   onChange={handleChange}
-                  disabled={!!linkedPatient}
+                  disabled={!!linkedPatient || !!editingRecord}
                   required
                 >
                   {patients.map((p) => (
@@ -293,12 +298,17 @@ function MedicalRecords() {
 
             <Col xs={12} md={6}>
               <Form.Group className="mb-3" controlId="recDoctor">
-                <Form.Label className="fw-semibold">Bác sĩ</Form.Label>
+                <Form.Label className="fw-semibold d-flex align-items-center gap-2">
+                  Bác sĩ
+                  {editingRecord && (
+                    <span className="badge bg-secondary fw-normal" style={{ fontSize: "0.65rem" }}>Không thể thay đổi</span>
+                  )}
+                </Form.Label>
                 <Form.Select
                   name="doctorId"
                   value={form.doctorId}
                   onChange={handleChange}
-                  disabled={!!linkedDoctor}
+                  disabled={!!linkedDoctor || !!editingRecord}
                   required
                 >
                   {doctors.map((d) => (
@@ -312,11 +322,19 @@ function MedicalRecords() {
 
             <Col xs={12} md={6}>
               <Input
-                label="Ngày khám"
+                label={
+                  <span className="d-flex align-items-center gap-2">
+                    Ngày khám
+                    {editingRecord && (
+                      <span className="badge bg-secondary fw-normal" style={{ fontSize: "0.65rem" }}>Không thể thay đổi</span>
+                    )}
+                  </span>
+                }
                 name="date"
                 type="date"
                 value={form.date}
                 onChange={handleChange}
+                disabled={!!editingRecord}
                 required
               />
             </Col>
