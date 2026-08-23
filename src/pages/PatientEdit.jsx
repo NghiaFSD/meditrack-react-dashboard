@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Container, Card, Form, Row, Col } from "react-bootstrap";
 import Swal from "sweetalert2";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
@@ -24,7 +25,7 @@ const initialForm = {
 };
 
 /**
- * Trang chỉnh sửa bệnh nhân (Route: /patients/:id/edit)
+ * Trang chỉnh sửa bệnh nhân (Route: /patients/:id/edit) sử dụng React-Bootstrap
  */
 function PatientEdit() {
   const { id } = useParams();
@@ -117,7 +118,11 @@ function PatientEdit() {
     try {
       setSubmitting(true);
       await patientApi.update(id, payload);
-      await Swal.fire(t("patientEdit.updateSuccessTitle"), t("patientEdit.updateSuccessText"), "success");
+      await Swal.fire(
+        t("patientEdit.updateSuccessTitle"),
+        t("patientEdit.updateSuccessText"),
+        "success"
+      );
       navigate(ROUTES.PATIENT_DETAIL(id));
     } catch (err) {
       Swal.fire(t("patientEdit.updateErrorTitle"), t("patientEdit.updateErrorText"), "error");
@@ -129,108 +134,154 @@ function PatientEdit() {
   if (loading) return <Loading text={t("common.loading")} />;
 
   return (
-    <div>
-      <div className="page-title">
+    <Container fluid className="px-0">
+      {/* Tiêu đề trang */}
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
-          <h1>{lang === "vi" ? `Chỉnh sửa Bệnh nhân #${id}` : `Edit Patient #${id}`}</h1>
-          <p>{lang === "vi" ? `Cập nhật hồ sơ bệnh án và thông tin cá nhân cho ${form.fullName || "bệnh nhân"}.` : `Update medical profile and personal details for ${form.fullName || "patient"}.`}</p>
+          <h2 className="fw-bold text-dark mb-1">
+            {lang === "vi" ? `Chỉnh sửa Bệnh nhân #${id}` : `Edit Patient #${id}`}
+          </h2>
+          <p className="text-muted mb-0">
+            {lang === "vi"
+              ? `Cập nhật hồ sơ bệnh án và thông tin cá nhân cho ${form.fullName || "bệnh nhân"}.`
+              : `Update medical profile and personal details for ${form.fullName || "patient"}.`}
+          </p>
         </div>
-        <Link className="btn btn-secondary" to={ROUTES.PATIENT_DETAIL(id)}>
-          {t("patientEdit.btnCancelBack")}
+        <Link to={ROUTES.PATIENT_DETAIL(id)}>
+          <Button variant="outline-secondary" className="d-flex align-items-center gap-1">
+            <i className="bi bi-arrow-left"></i>
+            <span>{t("patientEdit.btnCancelBack")}</span>
+          </Button>
         </Link>
       </div>
 
-      <div className="table-card" style={{ maxWidth: "800px", margin: "0 auto" }}>
-        <form onSubmit={handleSubmit} className="form-grid">
-          <Input
-            label={t("patientDetail.code")}
-            name="patientCode"
-            value={form.patientCode}
-            onChange={handleChange}
-            disabled
-          />
-          <Input
-            label={t("patients.lblFullName")}
-            name="fullName"
-            value={form.fullName}
-            onChange={handleChange}
-            required
-          />
-          <div className="form-group">
-            <label>{t("patients.lblGender")}</label>
-            <select name="gender" value={form.gender} onChange={handleChange}>
-              <option value="Male">{t("patients.male")}</option>
-              <option value="Female">{t("patients.female")}</option>
-            </select>
-          </div>
-          <Input
-            label={t("patients.lblAge")}
-            name="age"
-            type="number"
-            value={form.age}
-            onChange={handleChange}
-            required
-          />
-          <Input
-            label={t("patients.lblPhone")}
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
-            required
-          />
-          <Input
-            label={t("patients.lblEmail")}
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            required
-          />
-          <Input
-            label={t("patients.lblAddress")}
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-          />
-          <div className="form-group">
-            <label>{t("patients.lblInsurance")}</label>
-            <select name="insuranceType" value={form.insuranceType} onChange={handleChange}>
-              <option value="Basic">{t("common.insuranceBasic")}</option>
-              <option value="Standard">{t("common.insuranceStandard")}</option>
-              <option value="Premium">{t("common.insurancePremium")}</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label>{t("patients.lblRisk")}</label>
-            <select name="riskLevel" value={form.riskLevel} onChange={handleChange}>
-              <option value="Low">{t("common.riskLow")}</option>
-              <option value="Medium">{t("common.riskMedium")}</option>
-              <option value="High">{t("common.riskHigh")}</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label>{t("patients.lblStatus")}</label>
-            <select name="status" value={form.status} onChange={handleChange}>
-              <option value="Active">{t("common.statusActive")}</option>
-              <option value="Inactive">{t("common.statusInactive")}</option>
-            </select>
-          </div>
+      {/* Form chỉnh sửa thông tin */}
+      <Row className="justify-content-center">
+        <Col xs={12} lg={10}>
+          <Card className="border-0 shadow-sm rounded-3">
+            <Card.Body className="p-4">
+              <Form onSubmit={handleSubmit}>
+                <Row className="g-3">
+                  <Col xs={12} md={6}>
+                    <Input
+                      label={t("patientDetail.code")}
+                      name="patientCode"
+                      value={form.patientCode}
+                      onChange={handleChange}
+                      disabled
+                    />
+                  </Col>
+                  <Col xs={12} md={6}>
+                    <Input
+                      label={t("patients.lblFullName")}
+                      name="fullName"
+                      value={form.fullName}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Col>
 
-          <div className="modal-actions" style={{ gridColumn: "1 / -1", marginTop: "1rem" }}>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => navigate(ROUTES.PATIENT_DETAIL(id))}
-            >
-              {t("patientEdit.btnCancel")}
-            </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? t("patientEdit.btnSaving") : t("patientEdit.btnUpdate")}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+                  <Col xs={12} md={4}>
+                    <Form.Group className="mb-3" controlId="editGender">
+                      <Form.Label className="fw-semibold">{t("patients.lblGender")}</Form.Label>
+                      <Form.Select name="gender" value={form.gender} onChange={handleChange}>
+                        <option value="Male">{t("patients.male")}</option>
+                        <option value="Female">{t("patients.female")}</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col xs={12} md={4}>
+                    <Input
+                      label={t("patients.lblAge")}
+                      name="age"
+                      type="number"
+                      value={form.age}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Col>
+                  <Col xs={12} md={4}>
+                    <Input
+                      label={t("patients.lblPhone")}
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Col>
+
+                  <Col xs={12} md={6}>
+                    <Input
+                      label={t("patients.lblEmail")}
+                      name="email"
+                      type="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Col>
+                  <Col xs={12} md={6}>
+                    <Input
+                      label={t("patients.lblAddress")}
+                      name="address"
+                      value={form.address}
+                      onChange={handleChange}
+                    />
+                  </Col>
+
+                  <Col xs={12} md={4}>
+                    <Form.Group className="mb-3" controlId="editInsurance">
+                      <Form.Label className="fw-semibold">{t("patients.lblInsurance")}</Form.Label>
+                      <Form.Select
+                        name="insuranceType"
+                        value={form.insuranceType}
+                        onChange={handleChange}
+                      >
+                        <option value="Basic">{t("common.insuranceBasic")}</option>
+                        <option value="Standard">{t("common.insuranceStandard")}</option>
+                        <option value="Premium">{t("common.insurancePremium")}</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col xs={12} md={4}>
+                    <Form.Group className="mb-3" controlId="editRisk">
+                      <Form.Label className="fw-semibold">{t("patients.lblRisk")}</Form.Label>
+                      <Form.Select name="riskLevel" value={form.riskLevel} onChange={handleChange}>
+                        <option value="Low">{t("common.riskLow")}</option>
+                        <option value="Medium">{t("common.riskMedium")}</option>
+                        <option value="High">{t("common.riskHigh")}</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col xs={12} md={4}>
+                    <Form.Group className="mb-3" controlId="editStatus">
+                      <Form.Label className="fw-semibold">{t("patients.lblStatus")}</Form.Label>
+                      <Form.Select name="status" value={form.status} onChange={handleChange}>
+                        <option value="Active">{t("common.statusActive")}</option>
+                        <option value="Inactive">{t("common.statusInactive")}</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => navigate(ROUTES.PATIENT_DETAIL(id))}
+                  >
+                    {t("patientEdit.btnCancel")}
+                  </Button>
+                  <Button variant="primary" type="submit" disabled={submitting}>
+                    {submitting ? t("patientEdit.btnSaving") : t("patientEdit.btnUpdate")}
+                  </Button>
+                </div>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 }
 

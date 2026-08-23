@@ -18,7 +18,7 @@ Hệ thống quản lý hồ sơ bệnh án và lịch khám bệnh đa phân qu
 
 ## 🛠️ Công nghệ sử dụng (Tech Stack)
 
-- **Frontend:** React 19, Vite, React Router DOM, Recharts, SweetAlert2.
+- **Frontend:** React 19, Vite, React-Bootstrap, Bootstrap 5, Bootstrap Icons, React Router DOM, Recharts, SweetAlert2.
 - **API & State:** Axios, React Context API, Custom Hooks.
 - **Backend Mock:** json-server (`db.json`).
 

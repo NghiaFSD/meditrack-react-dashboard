@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Container, Row, Col, Card, Table, ListGroup, Button as BsButton } from "react-bootstrap";
+import Button from "../components/common/Button";
 import Loading from "../components/common/Loading";
 import EmptyState from "../components/common/EmptyState";
 import StatusBadge from "../components/common/StatusBadge";
@@ -15,7 +17,7 @@ import { ROUTES } from "../config/routes";
 import { translateDiagnosis, translateReason } from "../utils/translations";
 
 /**
- * Trang chi tiết bệnh nhân (Route: /patients/:id)
+ * Trang chi tiết bệnh nhân (Route: /patients/:id) sử dụng React-Bootstrap
  */
 function PatientDetail() {
   const { id } = useParams();
@@ -59,153 +61,275 @@ function PatientDetail() {
   const latestRecord = useMemo(() => records[records.length - 1], [records]);
 
   const getDoctorName = (doctorId) => {
-    return doctors.find((doctor) => Number(doctor.id) === Number(doctorId))?.fullName || "Unknown doctor";
+    return (
+      doctors.find((doctor) => Number(doctor.id) === Number(doctorId))?.fullName || "Unknown doctor"
+    );
   };
 
   if (loading) return <Loading text={t("common.loading")} />;
-  if (!patient) return <EmptyState title={lang === "vi" ? "Không tìm thấy bệnh nhân" : "Patient not found"} message={lang === "vi" ? "Bệnh nhân được chọn không tồn tại." : "The selected patient does not exist."} />;
+  if (!patient)
+    return (
+      <EmptyState
+        title={lang === "vi" ? "Không tìm thấy bệnh nhân" : "Patient not found"}
+        message={
+          lang === "vi"
+            ? "Bệnh nhân được chọn không tồn tại."
+            : "The selected patient does not exist."
+        }
+        icon="bi-person-x"
+      />
+    );
 
   return (
-    <div>
-      <div className="page-title">
+    <Container fluid className="px-0">
+      {/* Tiêu đề trang & Hành động */}
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
-          <h1>{patient.fullName}</h1>
-          <p>{t("patientDetail.subtitle")}</p>
+          <h2 className="fw-bold text-dark mb-1">{patient.fullName}</h2>
+          <p className="text-muted mb-0">{t("patientDetail.subtitle")}</p>
         </div>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+        <div className="d-flex gap-2">
           {canManage && (
-            <Link className="btn btn-primary" to={ROUTES.PATIENT_EDIT(patient.id)}>
-              {t("patientDetail.btnEdit")}
+            <Link to={ROUTES.PATIENT_EDIT(patient.id)}>
+              <Button variant="primary" className="d-flex align-items-center gap-1 shadow-sm">
+                <i className="bi bi-pencil-square"></i>
+                <span>{t("patientDetail.btnEdit")}</span>
+              </Button>
             </Link>
           )}
-          <Link className="btn btn-secondary" to={ROUTES.PATIENTS}>{t("patientDetail.btnBack")}</Link>
+          <Link to={ROUTES.PATIENTS}>
+            <Button variant="outline-secondary" className="d-flex align-items-center gap-1">
+              <i className="bi bi-arrow-left"></i>
+              <span>{t("patientDetail.btnBack")}</span>
+            </Button>
+          </Link>
         </div>
       </div>
 
-      <div className="detail-grid">
-        <div className="profile-card">
-          <div className="profile-avatar">{patient.fullName.slice(0, 2).toUpperCase()}</div>
-          <h2>{patient.fullName}</h2>
-          <p>{patient.email}</p>
-          <StatusBadge status={patient.status} />
-
-          <div className="info-list">
-            <div><span>{t("patientDetail.code")}</span><strong>{patient.patientCode || `PT-${String(patient.id).padStart(3, "0")}`}</strong></div>
-            <div><span>{t("patientDetail.gender")}</span><strong>{patient.gender === "Male" ? t("patients.male") : t("patients.female")}</strong></div>
-            <div><span>{t("patientDetail.age")}</span><strong>{patient.age}</strong></div>
-            <div><span>{t("patientDetail.phone")}</span><strong>{patient.phone}</strong></div>
-            <div><span>{t("patientDetail.address")}</span><strong>{patient.address}</strong></div>
-            <div><span>{t("patientDetail.insurance")}</span><strong><StatusBadge status={patient.insuranceType || "Standard"} /></strong></div>
-            <div><span>{t("patientDetail.riskLevel")}</span><strong><StatusBadge status={patient.riskLevel || "Low"} /></strong></div>
-            <div><span>{t("patientDetail.lastVisit")}</span><strong>{patient.lastVisit || "-"}</strong></div>
-          </div>
-        </div>
-
-        <div className="table-card">
-          <div className="section-title compact">
-            <div>
-              <h3>{t("patientDetail.latestHealthStatus")}</h3>
-              <p>{t("patientDetail.latestHealthSub")}</p>
-            </div>
-          </div>
-
-          {latestRecord ? (
-            <div className="health-summary">
-              <div>
-                <span>{t("patientDetail.glucose")}</span>
-                <strong>{latestRecord.glucose} mg/dL</strong>
-                <StatusBadge status={getGlucoseStatus(latestRecord.glucose).label} type={getGlucoseStatus(latestRecord.glucose).type} />
+      {/* Thông tin hồ sơ & Tóm tắt chỉ số sức khỏe */}
+      <Row className="g-4 mb-4">
+        {/* Profile Card */}
+        <Col xs={12} lg={4}>
+          <Card className="border-0 shadow-sm rounded-3 text-center h-100">
+            <Card.Body className="p-4">
+              <div
+                className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-3 mb-3 shadow"
+                style={{ width: "70px", height: "70px" }}
+              >
+                {patient.fullName.slice(0, 2).toUpperCase()}
               </div>
-              <div>
-                <span>{t("patientDetail.hba1c")}</span>
-                <strong>{latestRecord.hba1c}%</strong>
-                <StatusBadge status={getHbA1cStatus(latestRecord.hba1c).label} type={getHbA1cStatus(latestRecord.hba1c).type} />
+              <Card.Title as="h4" className="fw-bold mb-1">
+                {patient.fullName}
+              </Card.Title>
+              <Card.Subtitle className="text-muted small mb-2">{patient.email}</Card.Subtitle>
+              <div className="mb-3">
+                <StatusBadge status={patient.status || "Active"} />
               </div>
-              <div>
-                <span>{t("patientDetail.bmi")}</span>
-                <strong>{latestRecord.bmi}</strong>
-              </div>
-              <div>
-                <span>{t("patientDetail.bloodPressure")}</span>
-                <strong>{latestRecord.bloodPressure}</strong>
-              </div>
-            </div>
-          ) : (
-            <EmptyState title={t("patientDetail.noRecordTitle")} message={t("patientDetail.noRecordMsg")} />
-          )}
-        </div>
-      </div>
 
-      <div className="dashboard-grid">
-        <HealthChart data={records} />
+              <ListGroup variant="flush" className="text-start small">
+                <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
+                  <span className="text-muted">{t("patientDetail.code")}:</span>
+                  <span className="fw-semibold text-primary">
+                    {patient.patientCode || `PT-${String(patient.id).padStart(3, "0")}`}
+                  </span>
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
+                  <span className="text-muted">{t("patientDetail.gender")}:</span>
+                  <span className="fw-semibold">
+                    {patient.gender === "Male" ? t("patients.male") : t("patients.female")}
+                  </span>
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
+                  <span className="text-muted">{t("patientDetail.age")}:</span>
+                  <span className="fw-semibold">{patient.age}</span>
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
+                  <span className="text-muted">{t("patientDetail.phone")}:</span>
+                  <span className="fw-semibold">{patient.phone}</span>
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
+                  <span className="text-muted">{t("patientDetail.address")}:</span>
+                  <span className="fw-semibold">{patient.address}</span>
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
+                  <span className="text-muted">{t("patientDetail.insurance")}:</span>
+                  <StatusBadge status={patient.insuranceType || "Standard"} />
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
+                  <span className="text-muted">{t("patientDetail.riskLevel")}:</span>
+                  <StatusBadge status={patient.riskLevel || "Low"} />
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
+                  <span className="text-muted">{t("patientDetail.lastVisit")}:</span>
+                  <span className="fw-semibold">{patient.lastVisit || "-"}</span>
+                </ListGroup.Item>
+              </ListGroup>
+            </Card.Body>
+          </Card>
+        </Col>
 
-        <div className="table-card">
-          <div className="section-title compact">
-            <div>
-              <h3>{t("patientDetail.appointmentsTitle")}</h3>
-              <p>{t("patientDetail.appointmentsSub")}</p>
-            </div>
-          </div>
-          <table>
-            <thead>
+        {/* Chỉ số sức khỏe mới nhất */}
+        <Col xs={12} lg={8}>
+          <Card className="border-0 shadow-sm rounded-3 h-100">
+            <Card.Header className="bg-white border-0 pt-3 pb-2">
+              <Card.Title as="h5" className="fw-bold mb-1">
+                {t("patientDetail.latestHealthStatus")}
+              </Card.Title>
+              <Card.Subtitle className="text-muted small">
+                {t("patientDetail.latestHealthSub")}
+              </Card.Subtitle>
+            </Card.Header>
+            <Card.Body className="p-3">
+              {latestRecord ? (
+                <Row className="g-3">
+                  <Col xs={12} sm={6}>
+                    <div className="p-3 bg-light rounded-3 border">
+                      <small className="text-muted d-block mb-1">{t("patientDetail.glucose")}</small>
+                      <div className="d-flex align-items-baseline justify-content-between">
+                        <h3 className="fw-bold mb-0 text-primary">{latestRecord.glucose} mg/dL</h3>
+                        <StatusBadge
+                          status={getGlucoseStatus(latestRecord.glucose).label}
+                          type={getGlucoseStatus(latestRecord.glucose).type}
+                        />
+                      </div>
+                    </div>
+                  </Col>
+                  <Col xs={12} sm={6}>
+                    <div className="p-3 bg-light rounded-3 border">
+                      <small className="text-muted d-block mb-1">{t("patientDetail.hba1c")}</small>
+                      <div className="d-flex align-items-baseline justify-content-between">
+                        <h3 className="fw-bold mb-0 text-success">{latestRecord.hba1c}%</h3>
+                        <StatusBadge
+                          status={getHbA1cStatus(latestRecord.hba1c).label}
+                          type={getHbA1cStatus(latestRecord.hba1c).type}
+                        />
+                      </div>
+                    </div>
+                  </Col>
+                  <Col xs={12} sm={6}>
+                    <div className="p-3 bg-light rounded-3 border">
+                      <small className="text-muted d-block mb-1">{t("patientDetail.bmi")}</small>
+                      <h3 className="fw-bold mb-0 text-dark">{latestRecord.bmi}</h3>
+                    </div>
+                  </Col>
+                  <Col xs={12} sm={6}>
+                    <div className="p-3 bg-light rounded-3 border">
+                      <small className="text-muted d-block mb-1">{t("patientDetail.bloodPressure")}</small>
+                      <h3 className="fw-bold mb-0 text-dark">{latestRecord.bloodPressure}</h3>
+                    </div>
+                  </Col>
+                </Row>
+              ) : (
+                <EmptyState
+                  title={t("patientDetail.noRecordTitle")}
+                  message={t("patientDetail.noRecordMsg")}
+                  icon="bi-file-earmark-x"
+                />
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Biểu đồ xu hướng và Lịch hẹn */}
+      <Row className="g-4 mb-4">
+        <Col xs={12} lg={6}>
+          <HealthChart data={records} />
+        </Col>
+        <Col xs={12} lg={6}>
+          <Card className="border-0 shadow-sm rounded-3 h-100">
+            <Card.Header className="bg-white border-0 pt-3 pb-2">
+              <Card.Title as="h5" className="fw-bold mb-1">
+                {t("patientDetail.appointmentsTitle")}
+              </Card.Title>
+              <Card.Subtitle className="text-muted small">
+                {t("patientDetail.appointmentsSub")}
+              </Card.Subtitle>
+            </Card.Header>
+            <Card.Body className="p-0">
+              <Table responsive hover className="align-middle mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th className="ps-3">{t("patientDetail.date")}</th>
+                    <th>{t("patientDetail.time")}</th>
+                    <th>{t("patientDetail.doctor")}</th>
+                    <th>{t("patientDetail.reason")}</th>
+                    <th className="pe-3">{t("patientDetail.status")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map((item) => (
+                    <tr key={item.id}>
+                      <td className="ps-3 fw-medium">{item.date}</td>
+                      <td>{item.time}</td>
+                      <td>{getDoctorName(item.doctorId)}</td>
+                      <td>{translateReason(item.reason, lang)}</td>
+                      <td className="pe-3">
+                        <StatusBadge status={item.status} />
+                      </td>
+                    </tr>
+                  ))}
+                  {appointments.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="text-center py-4 text-muted">
+                        {t("dashboard.descRecentAppointments")}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Toàn bộ lịch sử hồ sơ bệnh án */}
+      <Card className="border-0 shadow-sm rounded-3">
+        <Card.Header className="bg-white border-0 pt-3 pb-2">
+          <Card.Title as="h5" className="fw-bold mb-1">
+            {t("patientDetail.recordsTitle")}
+          </Card.Title>
+          <Card.Subtitle className="text-muted small">
+            {t("patientDetail.recordsSub")}
+          </Card.Subtitle>
+        </Card.Header>
+        <Card.Body className="p-0">
+          <Table responsive hover className="align-middle mb-0">
+            <thead className="table-light">
               <tr>
-                <th>{t("patientDetail.date")}</th>
-                <th>{t("patientDetail.time")}</th>
+                <th className="ps-3">{t("patientDetail.date")}</th>
                 <th>{t("patientDetail.doctor")}</th>
-                <th>{t("patientDetail.reason")}</th>
-                <th>{t("patientDetail.status")}</th>
+                <th>{t("patientDetail.glucose")}</th>
+                <th>{t("patientDetail.hba1c")}</th>
+                <th>{t("patientDetail.bmi")}</th>
+                <th>{t("patientDetail.bloodPressure")}</th>
+                <th className="pe-3">{t("patientDetail.diagnosis")}</th>
               </tr>
             </thead>
             <tbody>
-              {appointments.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.date}</td>
-                  <td>{item.time}</td>
-                  <td>{getDoctorName(item.doctorId)}</td>
-                  <td>{translateReason(item.reason, lang)}</td>
-                  <td><StatusBadge status={item.status} /></td>
+              {records.map((record) => (
+                <tr key={record.id}>
+                  <td className="ps-3 fw-medium">{record.date}</td>
+                  <td>{getDoctorName(record.doctorId)}</td>
+                  <td>{record.glucose} mg/dL</td>
+                  <td>{record.hba1c}%</td>
+                  <td>{record.bmi}</td>
+                  <td>{record.bloodPressure}</td>
+                  <td className="pe-3">{translateDiagnosis(record.diagnosis, lang)}</td>
                 </tr>
               ))}
+              {records.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-4 text-muted">
+                    {t("patientDetail.noRecordMsg")}
+                  </td>
+                </tr>
+              )}
             </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="table-card">
-        <div className="section-title compact">
-          <div>
-            <h3>{t("patientDetail.recordsTitle")}</h3>
-            <p>{t("patientDetail.recordsSub")}</p>
-          </div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>{t("patientDetail.date")}</th>
-              <th>{t("patientDetail.doctor")}</th>
-              <th>{t("patientDetail.glucose")}</th>
-              <th>{t("patientDetail.hba1c")}</th>
-              <th>{t("patientDetail.bmi")}</th>
-              <th>{t("patientDetail.bloodPressure")}</th>
-              <th>{t("patientDetail.diagnosis")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.map((record) => (
-              <tr key={record.id}>
-                <td>{record.date}</td>
-                <td>{getDoctorName(record.doctorId)}</td>
-                <td>{record.glucose}</td>
-                <td>{record.hba1c}</td>
-                <td>{record.bmi}</td>
-                <td>{record.bloodPressure}</td>
-                <td>{translateDiagnosis(record.diagnosis, lang)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </Table>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 }
 

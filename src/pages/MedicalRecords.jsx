@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Container, Row, Col, Card, Table, Form } from "react-bootstrap";
 import Swal from "sweetalert2";
 import Button from "../components/common/Button";
 import EmptyState from "../components/common/EmptyState";
@@ -6,7 +7,6 @@ import Input from "../components/common/Input";
 import Loading from "../components/common/Loading";
 import Modal from "../components/common/Modal";
 import SearchBox from "../components/common/SearchBox";
-import StatusBadge from "../components/common/StatusBadge";
 import ActionMenu from "../components/common/ActionMenu";
 import { recordApi } from "../api/recordApi";
 import { patientApi } from "../api/patientApi";
@@ -32,7 +32,7 @@ const emptyRecord = {
 };
 
 /**
- * Trang quản lý Hồ sơ bệnh án (CRUD + Xem chỉ số sức khỏe)
+ * Trang quản lý Hồ sơ bệnh án (CRUD + Xem chỉ số sức khỏe) sử dụng React-Bootstrap
  */
 function MedicalRecords() {
   const { records, loading, fetchRecords } = useRecords();
@@ -61,13 +61,17 @@ function MedicalRecords() {
 
   const canManage = [ROLES.ADMIN, ROLES.DOCTOR].includes(currentRole);
 
-  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
-  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Unknown";
+  const getPatientName = (id) =>
+    patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
+  const getDoctorName = (id) =>
+    doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Unknown";
 
   const filteredRecords = useMemo(() => {
     const scoped = records.filter((r) => {
-      if (currentRole === ROLES.PATIENT && linkedPatient) return Number(r.patientId) === Number(linkedPatient.id);
-      if (currentRole === ROLES.DOCTOR && linkedDoctor) return Number(r.doctorId) === Number(linkedDoctor.id);
+      if (currentRole === ROLES.PATIENT && linkedPatient)
+        return Number(r.patientId) === Number(linkedPatient.id);
+      if (currentRole === ROLES.DOCTOR && linkedDoctor)
+        return Number(r.doctorId) === Number(linkedDoctor.id);
       return true;
     });
 
@@ -85,8 +89,8 @@ function MedicalRecords() {
     setEditingRecord(null);
     setForm({
       ...emptyRecord,
-      patientId: linkedPatient ? String(linkedPatient.id) : (patients[0]?.id || ""),
-      doctorId: linkedDoctor ? String(linkedDoctor.id) : (doctors[0]?.id || ""),
+      patientId: linkedPatient ? String(linkedPatient.id) : patients[0]?.id || "",
+      doctorId: linkedDoctor ? String(linkedDoctor.id) : doctors[0]?.id || "",
       date: new Date().toISOString().slice(0, 10),
     });
     setIsModalOpen(true);
@@ -106,39 +110,64 @@ function MedicalRecords() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.patientId || !form.doctorId || !form.date || !form.diagnosis) {
-      Swal.fire("Lỗi", "Vui lòng điền đầy đủ bệnh nhân, bác sĩ, ngày khám và chẩn đoán.", "warning");
+      Swal.fire(
+        lang === "vi" ? "Thiếu thông tin" : "Missing fields",
+        lang === "vi"
+          ? "Vui lòng điền đầy đủ bệnh nhân, bác sĩ, ngày khám và chẩn đoán."
+          : "Please fill in patient, doctor, date and diagnosis.",
+        "warning"
+      );
       return;
     }
 
     try {
       if (editingRecord) {
         await recordApi.update(editingRecord.id, form);
-        Swal.fire("Thành công", "Cập nhật bệnh án thành công!", "success");
+        Swal.fire(
+          lang === "vi" ? "Thành công" : "Success",
+          lang === "vi" ? "Cập nhật bệnh án thành công!" : "Record updated successfully!",
+          "success"
+        );
       } else {
         await recordApi.create(form);
-        Swal.fire("Thành công", "Thêm bệnh án mới thành công!", "success");
+        Swal.fire(
+          lang === "vi" ? "Thành công" : "Success",
+          lang === "vi" ? "Thêm bệnh án mới thành công!" : "Record added successfully!",
+          "success"
+        );
       }
       setIsModalOpen(false);
       fetchRecords();
     } catch (err) {
-      Swal.fire("Lỗi", "Không thể lưu hồ sơ bệnh án.", "error");
+      Swal.fire(
+        lang === "vi" ? "Lỗi" : "Error",
+        lang === "vi" ? "Không thể lưu hồ sơ bệnh án." : "Cannot save medical record.",
+        "error"
+      );
     }
   };
 
   const handleDelete = async (id) => {
     const res = await Swal.fire({
-      title: "Xóa bệnh án?",
-      text: "Hành động này không thể hoàn tác.",
+      title: lang === "vi" ? "Xóa bệnh án?" : "Delete record?",
+      text:
+        lang === "vi"
+          ? "Hành động này không thể hoàn tác."
+          : "This action cannot be undone.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Xóa",
-      cancelButtonText: "Hủy",
-      confirmButtonColor: "#e11d48",
+      confirmButtonText: lang === "vi" ? "Xóa" : "Delete",
+      cancelButtonText: lang === "vi" ? "Hủy" : "Cancel",
+      confirmButtonColor: "#dc3545",
     });
 
     if (res.isConfirmed) {
       await recordApi.remove(id);
-      Swal.fire("Đã xóa", "Hồ sơ bệnh án đã được xóa.", "success");
+      Swal.fire(
+        lang === "vi" ? "Đã xóa" : "Deleted",
+        lang === "vi" ? "Hồ sơ bệnh án đã được xóa." : "Medical record deleted.",
+        "success"
+      );
       fetchRecords();
     }
   };
@@ -146,119 +175,246 @@ function MedicalRecords() {
   if (loading) return <Loading text={t("common.loading")} />;
 
   return (
-    <div>
-      <div className="page-title">
+    <Container fluid className="px-0">
+      {/* Tiêu đề trang & Nút thêm bệnh án */}
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
-          <h1>{t("nav.medicalRecords")}</h1>
-          <p>{lang === "vi" ? "Theo dõi lịch sử khám bệnh, chỉ số sinh học và chẩn đoán lâm sàng." : "Track medical records and clinical history."}</p>
+          <h2 className="fw-bold text-dark mb-1">{t("nav.medicalRecords")}</h2>
+          <p className="text-muted mb-0">
+            {lang === "vi"
+              ? "Theo dõi lịch sử khám bệnh, chỉ số sinh học và chẩn đoán lâm sàng."
+              : "Track medical records and clinical history."}
+          </p>
         </div>
-        {canManage && <Button onClick={handleOpenAdd}>+ {lang === "vi" ? "Thêm bệnh án" : "Add Record"}</Button>}
-      </div>
-
-      <div className="toolbar">
-        <SearchBox value={search} onChange={setSearch} placeholder={lang === "vi" ? "Tìm theo bệnh nhân, bác sĩ, chẩn đoán..." : "Search records..."} />
-      </div>
-
-      <div className="table-card">
-        {filteredRecords.length === 0 ? (
-          <EmptyState title="Không có bệnh án" message="Không tìm thấy hồ sơ bệnh án nào phù hợp." />
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>{t("patientDetail.date")}</th>
-                <th>{t("appointments.tablePatient")}</th>
-                <th>{t("appointments.tableDoctor")}</th>
-                <th>{t("patientDetail.glucose")}</th>
-                <th>{t("patientDetail.hba1c")}</th>
-                <th>{t("patientDetail.bmi")}</th>
-                <th>{t("patientDetail.bloodPressure")}</th>
-                <th>{t("patientDetail.diagnosis")}</th>
-                {canManage && <th>Thao tác</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRecords.map((item) => (
-                <tr key={item.id}>
-                  <td>#{item.id}</td>
-                  <td>{item.date}</td>
-                  <td><strong>{getPatientName(item.patientId)}</strong></td>
-                  <td>{getDoctorName(item.doctorId)}</td>
-                  <td>{item.glucose ? `${item.glucose} mg/dL` : "-"}</td>
-                  <td>{item.hba1c ? `${item.hba1c}%` : "-"}</td>
-                  <td>{item.bmi || "-"}</td>
-                  <td>{item.bloodPressure || "-"}</td>
-                  <td>{translateDiagnosis(item.diagnosis, lang)}</td>
-                  {canManage && (
-                    <td style={{ textAlign: "center" }}>
-                      <ActionMenu
-                        items={[
-                          {
-                            label: lang === "vi" ? "Chỉnh sửa" : "Edit",
-                            icon: "✏️",
-                            tone: "primary",
-                            onClick: () => handleOpenEdit(item),
-                          },
-                          ...(currentRole === ROLES.ADMIN
-                            ? [
-                                {
-                                  label: lang === "vi" ? "Xóa bệnh án" : "Delete",
-                                  icon: "🗑️",
-                                  tone: "danger",
-                                  onClick: () => handleDelete(item.id),
-                                },
-                              ]
-                            : []),
-                        ]}
-                      />
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {canManage && (
+          <Button variant="primary" onClick={handleOpenAdd} className="d-flex align-items-center gap-2 shadow-sm">
+            <i className="bi bi-file-earmark-plus-fill"></i>
+            <span>{lang === "vi" ? "Thêm bệnh án" : "Add Record"}</span>
+          </Button>
         )}
       </div>
 
+      {/* Thanh công cụ: Tìm kiếm */}
+      <Card className="border-0 shadow-sm rounded-3 mb-4">
+        <Card.Body className="p-3">
+          <SearchBox
+            value={search}
+            onChange={setSearch}
+            placeholder={
+              lang === "vi" ? "Tìm theo bệnh nhân, bác sĩ, chẩn đoán..." : "Search records..."
+            }
+          />
+        </Card.Body>
+      </Card>
+
+      {/* Bảng danh sách Bệnh án */}
+      <Card className="border-0 shadow-sm rounded-3">
+        <Card.Body className="p-0">
+          {filteredRecords.length === 0 ? (
+            <div className="p-4">
+              <EmptyState
+                title={lang === "vi" ? "Không có bệnh án" : "No Medical Records"}
+                message={
+                  lang === "vi"
+                    ? "Không tìm thấy hồ sơ bệnh án nào phù hợp."
+                    : "No matching medical records found."
+                }
+                icon="bi-file-earmark-x"
+              />
+            </div>
+          ) : (
+            <Table responsive hover className="align-middle mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th className="ps-3">ID</th>
+                  <th>{t("patientDetail.date")}</th>
+                  <th>{t("appointments.tablePatient")}</th>
+                  <th>{t("appointments.tableDoctor")}</th>
+                  <th>{t("patientDetail.glucose")}</th>
+                  <th>{t("patientDetail.hba1c")}</th>
+                  <th>{t("patientDetail.bmi")}</th>
+                  <th>{t("patientDetail.bloodPressure")}</th>
+                  <th>{t("patientDetail.diagnosis")}</th>
+                  {canManage && <th className="text-center pe-3">{t("patients.tableAction")}</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRecords.map((item) => (
+                  <tr key={item.id}>
+                    <td className="ps-3 text-muted">#{item.id}</td>
+                    <td className="fw-medium">{item.date}</td>
+                    <td className="fw-semibold text-primary">{getPatientName(item.patientId)}</td>
+                    <td>{getDoctorName(item.doctorId)}</td>
+                    <td>{item.glucose ? `${item.glucose} mg/dL` : "-"}</td>
+                    <td>{item.hba1c ? `${item.hba1c}%` : "-"}</td>
+                    <td>{item.bmi || "-"}</td>
+                    <td>{item.bloodPressure || "-"}</td>
+                    <td>{translateDiagnosis(item.diagnosis, lang)}</td>
+                    {canManage && (
+                      <td className="text-center pe-3">
+                        <ActionMenu
+                          items={[
+                            {
+                              label: lang === "vi" ? "Chỉnh sửa" : "Edit",
+                              icon: <i className="bi bi-pencil-square text-primary"></i>,
+                              onClick: () => handleOpenEdit(item),
+                            },
+                            ...(currentRole === ROLES.ADMIN
+                              ? [
+                                  {
+                                    label: lang === "vi" ? "Xóa bệnh án" : "Delete",
+                                    icon: <i className="bi bi-trash3 text-danger"></i>,
+                                    tone: "danger",
+                                    onClick: () => handleDelete(item.id),
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        />
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* Modal Thêm/Sửa Hồ sơ Bệnh án */}
       <Modal
-        title={editingRecord ? "Chỉnh sửa Bệnh án" : "Thêm Hồ sơ Bệnh án mới"}
+        title={
+          editingRecord
+            ? lang === "vi"
+              ? "Chỉnh sửa Bệnh án"
+              : "Edit Medical Record"
+            : lang === "vi"
+            ? "Thêm Hồ sơ Bệnh án mới"
+            : "Add Medical Record"
+        }
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        size="lg"
       >
-        <form onSubmit={handleSubmit} className="form-grid">
-          <div className="form-group">
-            <label>{t("appointments.tablePatient")}</label>
-            <select name="patientId" value={form.patientId} onChange={handleChange} disabled={!!linkedPatient} required>
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>{p.fullName} ({p.patientCode || `#${p.id}`})</option>
-              ))}
-            </select>
-          </div>
+        <Form onSubmit={handleSubmit}>
+          <Row className="g-3">
+            <Col xs={12} md={6}>
+              <Form.Group className="mb-3" controlId="recPatient">
+                <Form.Label className="fw-semibold">{t("appointments.tablePatient")}</Form.Label>
+                <Form.Select
+                  name="patientId"
+                  value={form.patientId}
+                  onChange={handleChange}
+                  disabled={!!linkedPatient}
+                  required
+                >
+                  {patients.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.fullName} ({p.patientCode || `#${p.id}`})
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
 
-          <div className="form-group">
-            <label>{t("appointments.tableDoctor")}</label>
-            <select name="doctorId" value={form.doctorId} onChange={handleChange} disabled={!!linkedDoctor} required>
-              {doctors.map((d) => (
-                <option key={d.id} value={d.id}>{d.fullName}</option>
-              ))}
-            </select>
-          </div>
+            <Col xs={12} md={6}>
+              <Form.Group className="mb-3" controlId="recDoctor">
+                <Form.Label className="fw-semibold">{t("appointments.tableDoctor")}</Form.Label>
+                <Form.Select
+                  name="doctorId"
+                  value={form.doctorId}
+                  onChange={handleChange}
+                  disabled={!!linkedDoctor}
+                  required
+                >
+                  {doctors.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.fullName}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
 
-          <Input label={t("patientDetail.date")} name="date" type="date" value={form.date} onChange={handleChange} required />
-          <Input label={t("patientDetail.glucose")} name="glucose" type="number" value={form.glucose} onChange={handleChange} placeholder="mg/dL" />
-          <Input label={t("patientDetail.hba1c")} name="hba1c" type="number" step="0.1" value={form.hba1c} onChange={handleChange} placeholder="%" />
-          <Input label={t("patientDetail.bmi")} name="bmi" type="number" step="0.1" value={form.bmi} onChange={handleChange} placeholder="BMI" />
-          <Input label={t("patientDetail.bloodPressure")} name="bloodPressure" value={form.bloodPressure} onChange={handleChange} placeholder="120/80" />
-          <Input label={t("patientDetail.diagnosis")} name="diagnosis" value={form.diagnosis} onChange={handleChange} placeholder="Chẩn đoán..." required />
+            <Col xs={12} md={6}>
+              <Input
+                label={t("patientDetail.date")}
+                name="date"
+                type="date"
+                value={form.date}
+                onChange={handleChange}
+                required
+              />
+            </Col>
 
-          <div className="modal-actions" style={{ gridColumn: "1 / -1", marginTop: "1rem" }}>
-            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Hủy</Button>
-            <Button type="submit">Lưu bệnh án</Button>
+            <Col xs={12} md={6}>
+              <Input
+                label={t("patientDetail.glucose")}
+                name="glucose"
+                type="number"
+                value={form.glucose}
+                onChange={handleChange}
+                placeholder="mg/dL (e.g. 105)"
+              />
+            </Col>
+
+            <Col xs={12} md={4}>
+              <Input
+                label={t("patientDetail.hba1c")}
+                name="hba1c"
+                type="number"
+                step="0.1"
+                value={form.hba1c}
+                onChange={handleChange}
+                placeholder="% (e.g. 5.7)"
+              />
+            </Col>
+
+            <Col xs={12} md={4}>
+              <Input
+                label={t("patientDetail.bmi")}
+                name="bmi"
+                type="number"
+                step="0.1"
+                value={form.bmi}
+                onChange={handleChange}
+                placeholder="BMI (e.g. 22.4)"
+              />
+            </Col>
+
+            <Col xs={12} md={4}>
+              <Input
+                label={t("patientDetail.bloodPressure")}
+                name="bloodPressure"
+                value={form.bloodPressure}
+                onChange={handleChange}
+                placeholder="e.g. 120/80"
+              />
+            </Col>
+
+            <Col xs={12}>
+              <Input
+                label={t("patientDetail.diagnosis")}
+                name="diagnosis"
+                value={form.diagnosis}
+                onChange={handleChange}
+                placeholder={lang === "vi" ? "Chẩn đoán lâm sàng..." : "Clinical diagnosis..."}
+                required
+              />
+            </Col>
+          </Row>
+
+          <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+              {t("patients.btnCancel")}
+            </Button>
+            <Button variant="primary" type="submit">
+              {lang === "vi" ? "Lưu bệnh án" : "Save Record"}
+            </Button>
           </div>
-        </form>
+        </Form>
       </Modal>
-    </div>
+    </Container>
   );
 }
 

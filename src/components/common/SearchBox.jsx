@@ -1,14 +1,22 @@
-// Component ô tìm kiếm dùng ở nhiều trang.
-function SearchBox({ value, onChange, placeholder = "Search..." }) {
+import React from "react";
+import { Form, InputGroup } from "react-bootstrap";
+
+/**
+ * Component ô tìm kiếm sử dụng InputGroup của React-Bootstrap
+ */
+function SearchBox({ value, onChange, placeholder = "Search...", className = "" }) {
   return (
-    <div className="search-box">
-      <span>🔎</span>
-      <input
+    <InputGroup className={className}>
+      <InputGroup.Text className="bg-white border-end-0 text-muted">
+        <i className="bi bi-search"></i>
+      </InputGroup.Text>
+      <Form.Control
+        className="border-start-0 ps-0"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
       />
-    </div>
+    </InputGroup>
   );
 }
 

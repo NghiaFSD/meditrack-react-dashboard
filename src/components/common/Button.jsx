@@ -1,14 +1,33 @@
-// Component Button tái sử dụng để giao diện đồng nhất.
-function Button({ children, type = "button", variant = "primary", onClick, disabled = false }) {
+import React from "react";
+import { Button as BsButton } from "react-bootstrap";
+
+/**
+ * Component Button sử dụng React-Bootstrap để giao diện đồng nhất
+ */
+function Button({
+  children,
+  type = "button",
+  variant = "primary",
+  size,
+  onClick,
+  disabled = false,
+  className = "",
+  style,
+  ...rest
+}) {
   return (
-    <button
+    <BsButton
       type={type}
-      className={`btn btn-${variant}`}
+      variant={variant}
+      size={size}
       onClick={onClick}
       disabled={disabled}
+      className={className}
+      style={style}
+      {...rest}
     >
       {children}
-    </button>
+    </BsButton>
   );
 }
 

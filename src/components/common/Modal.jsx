@@ -1,17 +1,20 @@
-// Modal đơn giản dùng để Add/Edit data.
-function Modal({ title, children, isOpen, onClose }) {
-  if (!isOpen) return null;
+import React from "react";
+import { Modal as BsModal } from "react-bootstrap";
 
+/**
+ * Component Modal sử dụng React-Bootstrap Modal
+ */
+function Modal({ title, children, isOpen, onClose, size = "lg", centered = true, footer }) {
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(event) => event.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{title}</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-        {children}
-      </div>
-    </div>
+    <BsModal show={isOpen} onHide={onClose} size={size} centered={centered} backdrop="static">
+      {title && (
+        <BsModal.Header closeButton>
+          <BsModal.Title as="h5" className="fw-bold">{title}</BsModal.Title>
+        </BsModal.Header>
+      )}
+      <BsModal.Body>{children}</BsModal.Body>
+      {footer && <BsModal.Footer>{footer}</BsModal.Footer>}
+    </BsModal>
   );
 }
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Container, Row, Col, Card, Table, Form } from "react-bootstrap";
 import Swal from "sweetalert2";
 import Button from "../components/common/Button";
 import EmptyState from "../components/common/EmptyState";
@@ -29,7 +30,7 @@ const emptyAppointment = {
 };
 
 /**
- * Trang quản lý Lịch hẹn khám (CRUD + Menu 3 chấm thao tác)
+ * Trang quản lý Lịch hẹn khám (CRUD + Menu 3 chấm thao tác) sử dụng React-Bootstrap
  */
 function Appointments() {
   const { appointments, loading, fetchAppointments } = useAppointments();
@@ -60,14 +61,18 @@ function Appointments() {
   const canCreate = [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT].includes(currentRole);
   const canManage = [ROLES.ADMIN, ROLES.DOCTOR].includes(currentRole);
 
-  const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
-  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Unknown";
+  const getPatientName = (id) =>
+    patients.find((p) => Number(p.id) === Number(id))?.fullName || "Unknown";
+  const getDoctorName = (id) =>
+    doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Unknown";
 
   // Lọc lịch hẹn theo Role và Từ khóa
   const filteredAppointments = useMemo(() => {
     const scoped = appointments.filter((item) => {
-      if (currentRole === ROLES.PATIENT && linkedPatient) return Number(item.patientId) === Number(linkedPatient.id);
-      if (currentRole === ROLES.DOCTOR && linkedDoctor) return Number(item.doctorId) === Number(linkedDoctor.id);
+      if (currentRole === ROLES.PATIENT && linkedPatient)
+        return Number(item.patientId) === Number(linkedPatient.id);
+      if (currentRole === ROLES.DOCTOR && linkedDoctor)
+        return Number(item.doctorId) === Number(linkedDoctor.id);
       return true;
     });
 
@@ -80,14 +85,23 @@ function Appointments() {
       const matchStatus = statusFilter === "All" || item.status === statusFilter;
       return matchSearch && matchStatus;
     });
-  }, [appointments, patients, doctors, search, statusFilter, currentRole, linkedPatient, linkedDoctor]);
+  }, [
+    appointments,
+    patients,
+    doctors,
+    search,
+    statusFilter,
+    currentRole,
+    linkedPatient,
+    linkedDoctor,
+  ]);
 
   const handleOpenAdd = () => {
     setEditingAppointment(null);
     setForm({
       ...emptyAppointment,
-      patientId: linkedPatient ? String(linkedPatient.id) : (patients[0]?.id || ""),
-      doctorId: linkedDoctor ? String(linkedDoctor.id) : (doctors[0]?.id || ""),
+      patientId: linkedPatient ? String(linkedPatient.id) : patients[0]?.id || "",
+      doctorId: linkedDoctor ? String(linkedDoctor.id) : doctors[0]?.id || "",
     });
     setIsModalOpen(true);
   };
@@ -106,56 +120,91 @@ function Appointments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.patientId || !form.doctorId || !form.date || !form.time) {
-      Swal.fire("Lỗi", "Vui lòng nhập đầy đủ thông tin lịch hẹn.", "warning");
+      Swal.fire(
+        lang === "vi" ? "Thiếu thông tin" : "Missing fields",
+        lang === "vi" ? "Vui lòng nhập đầy đủ thông tin lịch hẹn." : "Please fill in all required appointment fields.",
+        "warning"
+      );
       return;
     }
 
     try {
       if (editingAppointment) {
         await appointmentApi.update(editingAppointment.id, form);
-        Swal.fire("Thành công", "Cập nhật lịch hẹn thành công!", "success");
+        Swal.fire(
+          lang === "vi" ? "Thành công" : "Success",
+          lang === "vi" ? "Cập nhật lịch hẹn thành công!" : "Appointment updated successfully!",
+          "success"
+        );
       } else {
         await appointmentApi.create(form);
-        Swal.fire("Thành công", "Tạo lịch hẹn mới thành công!", "success");
+        Swal.fire(
+          lang === "vi" ? "Thành công" : "Success",
+          lang === "vi" ? "Tạo lịch hẹn mới thành công!" : "Appointment created successfully!",
+          "success"
+        );
       }
       setIsModalOpen(false);
       fetchAppointments();
     } catch (err) {
-      Swal.fire("Lỗi", "Không thể lưu lịch hẹn.", "error");
+      Swal.fire(
+        lang === "vi" ? "Lỗi" : "Error",
+        lang === "vi" ? "Không thể lưu lịch hẹn." : "Cannot save appointment.",
+        "error"
+      );
     }
   };
 
   const handleUpdateStatus = async (item, newStatus) => {
-    const confirmText = newStatus === "Cancelled" ? "Hủy lịch hẹn?" : `Chuyển trạng thái sang ${newStatus}?`;
+    const confirmText =
+      newStatus === "Cancelled"
+        ? lang === "vi"
+          ? "Hủy lịch hẹn?"
+          : "Cancel this appointment?"
+        : lang === "vi"
+        ? `Chuyển trạng thái sang ${newStatus}?`
+        : `Change status to ${newStatus}?`;
+
     const res = await Swal.fire({
       title: confirmText,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Đồng ý",
-      cancelButtonText: "Hủy",
+      confirmButtonText: lang === "vi" ? "Đồng ý" : "Confirm",
+      cancelButtonText: lang === "vi" ? "Hủy" : "Cancel",
     });
 
     if (res.isConfirmed) {
       await appointmentApi.update(item.id, { ...item, status: newStatus });
-      Swal.fire("Thành công", "Trạng thái đã được cập nhật.", "success");
+      Swal.fire(
+        lang === "vi" ? "Thành công" : "Success",
+        lang === "vi" ? "Trạng thái đã được cập nhật." : "Status updated successfully.",
+        "success"
+      );
       fetchAppointments();
     }
   };
 
   const handleDelete = async (id) => {
     const res = await Swal.fire({
-      title: "Xóa lịch hẹn?",
-      text: "Hành động này không thể hoàn tác.",
+      title: lang === "vi" ? "Xóa lịch hẹn?" : "Delete appointment?",
+      text:
+        lang === "vi"
+          ? "Hành động này không thể hoàn tác."
+          : "This action cannot be undone.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Xóa",
-      cancelButtonText: "Hủy",
-      confirmButtonColor: "#e11d48",
+      confirmButtonText: lang === "vi" ? "Xóa" : "Delete",
+      cancelButtonText: lang === "vi" ? "Hủy" : "Cancel",
+      confirmButtonColor: "#dc3545",
     });
 
     if (res.isConfirmed) {
       await appointmentApi.remove(id);
-      Swal.fire("Đã xóa", "Lịch hẹn đã được xóa.", "success");
+      Swal.fire(
+        lang === "vi" ? "Đã xóa" : "Deleted",
+        lang === "vi" ? "Lịch hẹn đã được xóa." : "Appointment deleted.",
+        "success"
+      );
       fetchAppointments();
     }
   };
@@ -167,8 +216,7 @@ function Appointments() {
     if (canManage && item.status === "Pending") {
       actions.push({
         label: lang === "vi" ? "Duyệt lịch" : "Approve",
-        icon: "✅",
-        tone: "success",
+        icon: <i className="bi bi-check-circle text-success"></i>,
         onClick: () => handleUpdateStatus(item, "Approved"),
       });
     }
@@ -176,8 +224,7 @@ function Appointments() {
     if (canManage && item.status === "Approved") {
       actions.push({
         label: lang === "vi" ? "Hoàn thành" : "Complete",
-        icon: "🎯",
-        tone: "primary",
+        icon: <i className="bi bi-check2-all text-primary"></i>,
         onClick: () => handleUpdateStatus(item, "Completed"),
       });
     }
@@ -185,7 +232,7 @@ function Appointments() {
     if (item.status !== "Cancelled" && item.status !== "Completed") {
       actions.push({
         label: lang === "vi" ? "Hủy lịch" : "Cancel",
-        icon: "❌",
+        icon: <i className="bi bi-x-circle text-danger"></i>,
         tone: "danger",
         onClick: () => handleUpdateStatus(item, "Cancelled"),
       });
@@ -194,13 +241,12 @@ function Appointments() {
     if (currentRole === ROLES.ADMIN) {
       actions.push({
         label: lang === "vi" ? "Chỉnh sửa" : "Edit",
-        icon: "✏️",
-        tone: "primary",
+        icon: <i className="bi bi-pencil-square text-primary"></i>,
         onClick: () => handleOpenEdit(item),
       });
       actions.push({
         label: lang === "vi" ? "Xóa" : "Delete",
-        icon: "🗑️",
+        icon: <i className="bi bi-trash3 text-danger"></i>,
         tone: "danger",
         onClick: () => handleDelete(item.id),
       });
@@ -212,98 +258,207 @@ function Appointments() {
   if (loading) return <Loading text={t("common.loading")} />;
 
   return (
-    <div>
-      <div className="page-title">
+    <Container fluid className="px-0">
+      {/* Tiêu đề trang & Nút đặt lịch */}
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
-          <h1>{t("nav.appointments")}</h1>
-          <p>{lang === "vi" ? "Quản lý lịch hẹn khám và theo dõi trạng thái tiếp nhận." : "Manage and track clinical appointments."}</p>
+          <h2 className="fw-bold text-dark mb-1">{t("nav.appointments")}</h2>
+          <p className="text-muted mb-0">
+            {lang === "vi"
+              ? "Quản lý lịch hẹn khám và theo dõi trạng thái tiếp nhận."
+              : "Manage and track clinical appointments."}
+          </p>
         </div>
-        {canCreate && <Button onClick={handleOpenAdd}>+ {lang === "vi" ? "Đặt lịch hẹn" : "Book Appointment"}</Button>}
-      </div>
-
-      <div className="toolbar">
-        <SearchBox value={search} onChange={setSearch} placeholder={lang === "vi" ? "Tìm theo bệnh nhân, bác sĩ, lý do..." : "Search appointments..."} />
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="All">{lang === "vi" ? "Tất cả trạng thái" : "All Status"}</option>
-          <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
-      </div>
-
-      <div className="table-card">
-        {filteredAppointments.length === 0 ? (
-          <EmptyState title="Không có lịch hẹn" message="Không tìm thấy lịch hẹn nào phù hợp." />
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>{t("patientDetail.date")}</th>
-                <th>{t("patientDetail.time")}</th>
-                <th>{t("appointments.tablePatient")}</th>
-                <th>{t("appointments.tableDoctor")}</th>
-                <th>{t("patientDetail.reason")}</th>
-                <th>{t("patientDetail.status")}</th>
-                <th style={{ textAlign: "center", width: "70px" }}>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAppointments.map((item) => (
-                <tr key={item.id}>
-                  <td>#{item.id}</td>
-                  <td>{item.date}</td>
-                  <td>{item.time}</td>
-                  <td><strong>{getPatientName(item.patientId)}</strong></td>
-                  <td>{getDoctorName(item.doctorId)}</td>
-                  <td>{translateReason(item.reason, lang)}</td>
-                  <td><StatusBadge status={item.status} /></td>
-                  <td style={{ textAlign: "center" }}>
-                    <ActionMenu items={getAppointmentActions(item)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {canCreate && (
+          <Button variant="primary" onClick={handleOpenAdd} className="d-flex align-items-center gap-2 shadow-sm">
+            <i className="bi bi-calendar-plus-fill"></i>
+            <span>{lang === "vi" ? "Đặt lịch hẹn" : "Book Appointment"}</span>
+          </Button>
         )}
       </div>
 
+      {/* Thanh công cụ: Tìm kiếm + Lọc trạng thái */}
+      <Card className="border-0 shadow-sm rounded-3 mb-4">
+        <Card.Body className="p-3">
+          <Row className="g-3">
+            <Col xs={12} md={8}>
+              <SearchBox
+                value={search}
+                onChange={setSearch}
+                placeholder={
+                  lang === "vi" ? "Tìm theo bệnh nhân, bác sĩ, lý do..." : "Search appointments..."
+                }
+              />
+            </Col>
+            <Col xs={12} md={4}>
+              <Form.Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-light"
+              >
+                <option value="All">{lang === "vi" ? "Tất cả trạng thái" : "All Status"}</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </Form.Select>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      {/* Bảng danh sách Lịch hẹn */}
+      <Card className="border-0 shadow-sm rounded-3">
+        <Card.Body className="p-0">
+          {filteredAppointments.length === 0 ? (
+            <div className="p-4">
+              <EmptyState
+                title={lang === "vi" ? "Không có lịch hẹn" : "No Appointments"}
+                message={
+                  lang === "vi"
+                    ? "Không tìm thấy lịch hẹn nào phù hợp."
+                    : "No matching appointments found."
+                }
+                icon="bi-calendar-x"
+              />
+            </div>
+          ) : (
+            <Table responsive hover className="align-middle mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th className="ps-3">ID</th>
+                  <th>{t("patientDetail.date")}</th>
+                  <th>{t("patientDetail.time")}</th>
+                  <th>{t("appointments.tablePatient")}</th>
+                  <th>{t("appointments.tableDoctor")}</th>
+                  <th>{t("patientDetail.reason")}</th>
+                  <th>{t("patientDetail.status")}</th>
+                  <th className="text-center pe-3">{t("patients.tableAction")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAppointments.map((item) => (
+                  <tr key={item.id}>
+                    <td className="ps-3 text-muted">#{item.id}</td>
+                    <td className="fw-medium">{item.date}</td>
+                    <td>{item.time}</td>
+                    <td className="fw-semibold text-primary">{getPatientName(item.patientId)}</td>
+                    <td>{getDoctorName(item.doctorId)}</td>
+                    <td>{translateReason(item.reason, lang)}</td>
+                    <td>
+                      <StatusBadge status={item.status} />
+                    </td>
+                    <td className="text-center pe-3">
+                      <ActionMenu items={getAppointmentActions(item)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* Modal Đặt/Sửa Lịch hẹn */}
       <Modal
-        title={editingAppointment ? "Chỉnh sửa Lịch hẹn" : "Đặt Lịch hẹn mới"}
+        title={
+          editingAppointment
+            ? lang === "vi"
+              ? "Chỉnh sửa Lịch hẹn"
+              : "Edit Appointment"
+            : lang === "vi"
+            ? "Đặt Lịch hẹn mới"
+            : "Book New Appointment"
+        }
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        size="lg"
       >
-        <form onSubmit={handleSubmit} className="form-grid">
-          <div className="form-group">
-            <label>{t("appointments.tablePatient")}</label>
-            <select name="patientId" value={form.patientId} onChange={handleChange} disabled={!!linkedPatient} required>
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>{p.fullName} ({p.patientCode || `#${p.id}`})</option>
-              ))}
-            </select>
-          </div>
+        <Form onSubmit={handleSubmit}>
+          <Row className="g-3">
+            <Col xs={12} md={6}>
+              <Form.Group className="mb-3" controlId="apptPatient">
+                <Form.Label className="fw-semibold">{t("appointments.tablePatient")}</Form.Label>
+                <Form.Select
+                  name="patientId"
+                  value={form.patientId}
+                  onChange={handleChange}
+                  disabled={!!linkedPatient}
+                  required
+                >
+                  {patients.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.fullName} ({p.patientCode || `#${p.id}`})
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
 
-          <div className="form-group">
-            <label>{t("appointments.tableDoctor")}</label>
-            <select name="doctorId" value={form.doctorId} onChange={handleChange} disabled={!!linkedDoctor} required>
-              {doctors.map((d) => (
-                <option key={d.id} value={d.id}>{d.fullName} ({d.specialty || "Bác sĩ"})</option>
-              ))}
-            </select>
-          </div>
+            <Col xs={12} md={6}>
+              <Form.Group className="mb-3" controlId="apptDoctor">
+                <Form.Label className="fw-semibold">{t("appointments.tableDoctor")}</Form.Label>
+                <Form.Select
+                  name="doctorId"
+                  value={form.doctorId}
+                  onChange={handleChange}
+                  disabled={!!linkedDoctor}
+                  required
+                >
+                  {doctors.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.fullName} ({d.specialty || "Bác sĩ"})
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
 
-          <Input label={t("patientDetail.date")} name="date" type="date" value={form.date} onChange={handleChange} required />
-          <Input label={t("patientDetail.time")} name="time" type="time" value={form.time} onChange={handleChange} required />
-          <Input label={t("patientDetail.reason")} name="reason" value={form.reason} onChange={handleChange} placeholder="Lý do khám..." required />
+            <Col xs={12} md={6}>
+              <Input
+                label={t("patientDetail.date")}
+                name="date"
+                type="date"
+                value={form.date}
+                onChange={handleChange}
+                required
+              />
+            </Col>
 
-          <div className="modal-actions" style={{ gridColumn: "1 / -1", marginTop: "1rem" }}>
-            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Hủy</Button>
-            <Button type="submit">Lưu lịch hẹn</Button>
+            <Col xs={12} md={6}>
+              <Input
+                label={t("patientDetail.time")}
+                name="time"
+                type="time"
+                value={form.time}
+                onChange={handleChange}
+                required
+              />
+            </Col>
+
+            <Col xs={12}>
+              <Input
+                label={t("patientDetail.reason")}
+                name="reason"
+                value={form.reason}
+                onChange={handleChange}
+                placeholder={lang === "vi" ? "Lý do khám bệnh..." : "Reason for visit..."}
+                required
+              />
+            </Col>
+          </Row>
+
+          <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+              {t("patients.btnCancel")}
+            </Button>
+            <Button variant="primary" type="submit">
+              {lang === "vi" ? "Lưu lịch hẹn" : "Save Appointment"}
+            </Button>
           </div>
-        </form>
+        </Form>
       </Modal>
-    </div>
+    </Container>
   );
 }
 

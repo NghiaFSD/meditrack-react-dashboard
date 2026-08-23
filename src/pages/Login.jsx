@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Container, Row, Col, Card, Form, Button, ButtonGroup } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { authApi } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
@@ -8,7 +9,7 @@ import { ROUTES } from "../config/routes";
 import { APP_CONFIG } from "../config/appConfig";
 
 /**
- * Trang đăng nhập demo với đa ngôn ngữ i18n và AuthContext
+ * Trang đăng nhập demo với React-Bootstrap, đa ngôn ngữ i18n và AuthContext
  */
 function Login() {
   const navigate = useNavigate();
@@ -58,7 +59,9 @@ function Login() {
     } catch (err) {
       Swal.fire(
         lang === "vi" ? "Lỗi kết nối" : "Error",
-        lang === "vi" ? "Không thể kết nối đến máy chủ API. Vui lòng chạy npm start." : "Cannot connect to API server. Please run npm start.",
+        lang === "vi"
+          ? "Không thể kết nối đến máy chủ API. Vui lòng chạy npm start."
+          : "Cannot connect to API server. Please run npm start.",
         "error"
       );
     } finally {
@@ -72,67 +75,117 @@ function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div style={{ position: "absolute", top: "1rem", right: "1.5rem" }}>
-        <button
+    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light position-relative p-3">
+      {/* Nút chuyển đổi ngôn ngữ góc trên phải */}
+      <div className="position-absolute top-0 end-0 p-3">
+        <Button
+          variant="white"
           onClick={toggleLanguage}
-          className="lang-toggle-btn"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.4rem",
-            padding: "0.5rem 1rem",
-            borderRadius: "20px",
-            border: "1px solid #cbd5e1",
-            background: "white",
-            fontWeight: "600",
-            fontSize: "0.9rem",
-            cursor: "pointer",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
-          }}
+          className="shadow-sm border rounded-pill d-flex align-items-center gap-2 px-3 py-2 fw-semibold"
         >
-          <span>🌐</span>
+          <i className="bi bi-translate text-primary"></i>
           <span>{lang === "vi" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}</span>
-        </button>
+        </Button>
       </div>
 
-      <div className="login-card">
-        <div className="login-brand">
-          <div className="brand-logo large">M</div>
-          <h1>{APP_CONFIG.appName}</h1>
-          <p>{t("login.subtitle")}</p>
-        </div>
+      <Container>
+        <Row className="justify-content-center">
+          <Col xs={12} sm={10} md={8} lg={5}>
+            <Card className="border-0 shadow-lg rounded-4 overflow-hidden">
+              <Card.Header className="bg-primary text-white text-center py-4 border-0">
+                <div
+                  className="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2 shadow"
+                  style={{ width: "56px", height: "56px", fontSize: "1.8rem" }}
+                >
+                  <i className="bi bi-heart-pulse-fill"></i>
+                </div>
+                <h3 className="fw-bold mb-1">{APP_CONFIG.appName}</h3>
+                <p className="mb-0 text-white-50 small">{t("login.subtitle")}</p>
+              </Card.Header>
 
-        <form onSubmit={handleLogin} className="login-form">
-          <label>{t("login.lblEmail")}</label>
-          <input
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="admin@gmail.com"
-          />
+              <Card.Body className="p-4 p-md-5">
+                <Form onSubmit={handleLogin}>
+                  <Form.Group className="mb-3" controlId="loginEmail">
+                    <Form.Label className="fw-semibold small">{t("login.lblEmail")}</Form.Label>
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      placeholder="admin@gmail.com"
+                      required
+                      className="py-2"
+                    />
+                  </Form.Group>
 
-          <label>{t("login.lblPassword")}</label>
-          <input
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="MediTrack#2026!"
-          />
+                  <Form.Group className="mb-4" controlId="loginPassword">
+                    <Form.Label className="fw-semibold small">{t("login.lblPassword")}</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      value={form.password}
+                      onChange={handleChange}
+                      placeholder="MediTrack#2026!"
+                      required
+                      className="py-2"
+                    />
+                  </Form.Group>
 
-          <button className="btn btn-primary full" disabled={loading}>
-            {loading ? (lang === "vi" ? "Đang đăng nhập..." : "Logging in...") : t("login.btnSignIn")}
-          </button>
-        </form>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={loading}
+                    className="w-100 py-2 fw-bold rounded-3 shadow-sm"
+                  >
+                    {loading ? (
+                      <span className="d-flex align-items-center justify-content-center gap-2">
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span>{lang === "vi" ? "Đang đăng nhập..." : "Logging in..."}</span>
+                      </span>
+                    ) : (
+                      t("login.btnSignIn")
+                    )}
+                  </Button>
+                </Form>
 
-        <div className="demo-box">
-          <p>{t("login.demoAccounts")}</p>
-          <button onClick={() => useDemoAccount("admin@gmail.com")}>{t("login.roleAdmin")}</button>
-          <button onClick={() => useDemoAccount("doctor@gmail.com")}>{t("login.roleDoctor")}</button>
-          <button onClick={() => useDemoAccount("patient@gmail.com")}>{t("login.rolePatient")}</button>
-        </div>
-      </div>
+                {/* Hộp chọn nhanh tài khoản demo */}
+                <div className="mt-4 pt-3 border-top text-center">
+                  <p className="text-muted small fw-medium mb-2">{t("login.demoAccounts")}</p>
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      className="rounded-pill px-3"
+                      onClick={() => useDemoAccount("admin@gmail.com")}
+                    >
+                      <i className="bi bi-shield-lock me-1"></i>
+                      {t("login.roleAdmin")}
+                    </Button>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      className="rounded-pill px-3"
+                      onClick={() => useDemoAccount("doctor@gmail.com")}
+                    >
+                      <i className="bi bi-person-badge me-1"></i>
+                      {t("login.roleDoctor")}
+                    </Button>
+                    <Button
+                      variant="outline-success"
+                      size="sm"
+                      className="rounded-pill px-3"
+                      onClick={() => useDemoAccount("patient@gmail.com")}
+                    >
+                      <i className="bi bi-person me-1"></i>
+                      {t("login.rolePatient")}
+                    </Button>
+                  </div>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 }

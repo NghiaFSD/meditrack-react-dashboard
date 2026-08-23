@@ -13,9 +13,12 @@
   "dependencies": {
     "@vitejs/plugin-react": "latest",
     "axios": "latest",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "concurrently": "latest",
     "json-server": "latest",
     "react": "latest",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "latest",
     "react-router-dom": "latest",
     "recharts": "latest",
