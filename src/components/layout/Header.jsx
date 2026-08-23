@@ -2,10 +2,9 @@ import React from "react";
 import { Navbar, Container, Nav, Badge, Button } from "react-bootstrap";
 import { getRoleLabel } from "../../utils/auth";
 import { useAuth } from "../../context/AuthContext";
-import DemoToolbar from "../common/DemoToolbar";
 
 /**
- * Header hiển thị thông tin người dùng đang đăng nhập & Demo Toolbar bằng React-Bootstrap
+ * Header hiển thị thông tin người dùng đang đăng nhập bằng React-Bootstrap
  */
 function Header() {
   const { user } = useAuth();
@@ -44,9 +43,6 @@ function Header() {
         </div>
 
         <Nav className="d-flex flex-row align-items-center gap-2">
-          {/* Thanh công cụ Demo & Switch Role 1-Click */}
-          <DemoToolbar />
-
           {/* Thông báo */}
           <Button variant="light" size="sm" className="rounded-circle p-2 text-muted border-0 position-relative">
             <i className="bi bi-bell fs-5"></i>

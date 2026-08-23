@@ -5,30 +5,6 @@ const AuthContext = createContext();
 
 const STORAGE_KEY = "currentUser";
 
-const DEMO_USERS = {
-  [ROLES.ADMIN]: {
-    id: "1",
-    fullName: "Admin User",
-    email: "admin@gmail.com",
-    role: "ADMIN",
-    avatar: "AU",
-  },
-  [ROLES.DOCTOR]: {
-    id: "2",
-    fullName: "Dr. Nguyen Minh",
-    email: "doctor@gmail.com",
-    role: "DOCTOR",
-    avatar: "NM",
-  },
-  [ROLES.PATIENT]: {
-    id: "3",
-    fullName: "Le Trong Nghia",
-    email: "patient@gmail.com",
-    role: "PATIENT",
-    avatar: "LH",
-  },
-};
-
 /**
  * AuthProvider - Quản lý trạng thái xác thực và phân quyền người dùng tập trung bằng useContext
  */
@@ -50,12 +26,6 @@ export function AuthProvider({ children }) {
     clearCurrentUser();
   };
 
-  // Chuyển đổi vai trò demo nhanh 1-click
-  const switchDemoRole = (targetRole) => {
-    const targetUser = DEMO_USERS[targetRole] || DEMO_USERS[ROLES.ADMIN];
-    login(targetUser);
-  };
-
   // Kiểm tra xem user có quyền hợp lệ hay không
   const checkRole = (allowedRoles = []) => {
     if (!allowedRoles || allowedRoles.length === 0) return true;
@@ -74,7 +44,6 @@ export function AuthProvider({ children }) {
         isPatient: user?.role === ROLES.PATIENT,
         login,
         logout,
-        switchDemoRole,
         hasRole: checkRole,
       }}
     >
