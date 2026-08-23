@@ -30,6 +30,8 @@ function QuickViewModal({
     switch (type) {
       case "patients":
         return ROUTES.PATIENTS;
+      case "doctors":
+        return ROUTES.DOCTORS;
       case "appointments":
         return ROUTES.APPOINTMENTS;
       case "records":
@@ -56,12 +58,14 @@ function QuickViewModal({
                   ? "bi-calendar-check-fill text-success"
                   : type === "schedule"
                   ? "bi-calendar-week-fill text-warning"
+                  : type === "dutySchedule"
+                  ? "bi-calendar2-week-fill text-primary"
                   : "bi-clipboard2-pulse-fill text-danger"
               }`}
             ></i>
             <span>{title}</span>
             <Badge bg="primary" className="rounded-pill ms-2" style={{ fontSize: "0.75rem" }}>
-              {data.length} {type === "schedule" ? "ngày" : "kết quả"}
+              {data.length} {type === "schedule" || type === "dutySchedule" ? "ngày" : "kết quả"}
             </Badge>
           </Modal.Title>
           {subtitle && <small className="text-muted">{subtitle}</small>}
@@ -257,7 +261,80 @@ function QuickViewModal({
               </>
             )}
 
-            {/* 5. BẢNG LỊCH TRỰC TUẦN (DOCTOR DUTY SCHEDULE) */}
+            {/* 5. BẢNG LỊCH TRỰC TOÀN VIỆN (ADMIN — tất cả bác sĩ) */}
+            {type === "dutySchedule" && (
+              <>
+                <thead className="table-light">
+                  <tr>
+                    <th className="ps-3">Bác sĩ</th>
+                    <th>Thứ</th>
+                    <th>Ngày</th>
+                    <th>Ca trực</th>
+                    <th>Khung giờ</th>
+                    <th>Phòng khám</th>
+                    <th>Lịch hẹn</th>
+                    <th className="pe-3">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((item, idx) => (
+                    <tr key={idx} className={item.isToday ? "table-primary bg-opacity-25" : ""}>
+                      <td className="ps-3 fw-semibold text-primary">{item.doctorName || "—"}</td>
+                      <td className="fw-bold text-dark">
+                        {item.dayName}{" "}
+                        {item.isToday && (
+                          <Badge bg="danger" className="ms-1 rounded-pill">Hôm nay</Badge>
+                        )}
+                      </td>
+                      <td className="fw-medium">{item.date}</td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            item.shiftType === "Ca sáng"
+                              ? "bg-warning bg-opacity-25 text-dark border border-warning"
+                              : item.shiftType === "Ca chiều"
+                              ? "bg-info bg-opacity-25 text-dark border border-info"
+                              : "bg-secondary bg-opacity-25 text-secondary"
+                          } px-2 py-1 fw-semibold`}
+                        >
+                          {item.shiftType === "Ca sáng"
+                            ? "☀️ Ca sáng"
+                            : item.shiftType === "Ca chiều"
+                            ? "🌙 Ca chiều"
+                            : "🏖️ Nghỉ trực"}
+                        </span>
+                      </td>
+                      <td className="small fw-medium text-dark">{item.shiftHours}</td>
+                      <td className="fw-semibold text-primary">{item.room}</td>
+                      <td>
+                        {item.appointmentsCount > 0 ? (
+                          <Badge bg="primary" className="rounded-pill px-2 py-1">
+                            {item.appointmentsCount} bệnh nhân
+                          </Badge>
+                        ) : (
+                          <span className="text-muted small">0 ca hẹn</span>
+                        )}
+                      </td>
+                      <td className="pe-3">
+                        {item.isPassed ? (
+                          <Badge bg="secondary" className="px-2 py-1">Đã qua</Badge>
+                        ) : item.isToday ? (
+                          <Badge bg="success" className="px-2 py-1">
+                            <i className="bi bi-broadcast me-1"></i>Đang trực
+                          </Badge>
+                        ) : item.isWorking ? (
+                          <Badge bg="primary" className="px-2 py-1">Sắp tới</Badge>
+                        ) : (
+                          <Badge bg="light" text="dark" className="border px-2 py-1">Nghỉ ca</Badge>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </>
+            )}
+
+            {/* 6. BẢNG LỊCH TRỰC TUẦN (DOCTOR DUTY SCHEDULE — 1 bác sĩ) */}
             {type === "schedule" && (
               <>
                 <thead className="table-light">

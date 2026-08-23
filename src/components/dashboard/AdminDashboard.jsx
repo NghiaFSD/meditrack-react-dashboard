@@ -7,6 +7,7 @@ import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
 import { translateReason } from "../../utils/translations";
+import { getDoctorWeeklySchedule } from "../../utils/dutySchedule";
 
 const RISK_COLORS = {
   High: "#dc3545",
@@ -100,12 +101,19 @@ function AdminDashboard({
           <p className="text-muted mb-0">Giám sát nguồn lực, bác sĩ, tiếp nhận bệnh nhân toàn viện</p>
         </div>
 
-        {/* Thanh tác vụ nhanh của Admin */}
+        {/* Thanh tác vụ nhanh của Admin — mở pop-up xem nhanh */}
         <div className="d-flex flex-wrap gap-2">
           <Button
             variant="danger"
             className="d-flex align-items-center gap-2 shadow-sm"
-            onClick={() => navigate(ROUTES.DOCTORS)}
+            onClick={() =>
+              openQuickView(
+                "doctors",
+                "Danh sách Bác sĩ Phòng khám",
+                "Quản lý thông tin chuyên khoa, phòng khám và ca trực của bác sĩ",
+                doctors
+              )
+            }
           >
             <i className="bi bi-person-badge-fill"></i>
             <span>Quản lý Bác sĩ</span>
@@ -113,7 +121,14 @@ function AdminDashboard({
           <Button
             variant="primary"
             className="d-flex align-items-center gap-2 shadow-sm"
-            onClick={() => navigate(ROUTES.PATIENTS)}
+            onClick={() =>
+              openQuickView(
+                "patients",
+                "Danh sách Bệnh nhân Toàn hệ thống",
+                "Xem nhanh và tiếp nhận hồ sơ bệnh nhân trong phòng khám",
+                patients
+              )
+            }
           >
             <i className="bi bi-person-plus-fill"></i>
             <span>Thêm Bệnh nhân</span>
@@ -121,8 +136,21 @@ function AdminDashboard({
           <Button
             variant="outline-primary"
             className="d-flex align-items-center gap-2 bg-white shadow-sm"
-            onClick={() => navigate(ROUTES.DOCTORS)}
-            title="Phân ca trực và xếp lịch làm việc cho đội ngũ Bác sĩ"
+            title="Xem và phân ca trực cho đội ngũ Bác sĩ"
+            onClick={() => {
+              const allSchedules = doctors.flatMap((doc) =>
+                getDoctorWeeklySchedule(doc, appointments).map((s) => ({
+                  ...s,
+                  doctorName: doc.fullName,
+                }))
+              );
+              openQuickView(
+                "dutySchedule",
+                "Lịch Trực Toàn Viện Tuần Này",
+                "Phân bổ ca trực theo từng bác sĩ trong tuần",
+                allSchedules
+              );
+            }}
           >
             <i className="bi bi-calendar2-week-fill text-primary"></i>
             <span>Tạo Lịch trực</span>
@@ -267,74 +295,10 @@ function AdminDashboard({
         </Col>
       </Row>
 
-      {/* Hàng đợi tiếp nhận toàn viện & Bệnh nhân mới */}
+      {/* Bệnh nhân mới tiếp nhận — Lịch hẹn do Bác sĩ tự quản lý */}
       <Row className="g-4">
-        {/* Hàng đợi Chờ duyệt toàn viện */}
-        <Col xs={12} lg={7}>
-          <Card className="border-0 shadow-sm rounded-3 h-100">
-            <Card.Header className="bg-white border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
-              <div>
-                <Card.Title as="h5" className="fw-bold mb-1 text-dark">
-                  <i className="bi bi-clock-history text-warning me-2"></i>
-                  Hàng đợi Tiếp nhận Lịch khám Toàn viện
-                </Card.Title>
-                <Card.Subtitle className="text-muted small">
-                  Tổng hợp các lịch hẹn đang chờ phân bổ và duyệt
-                </Card.Subtitle>
-              </div>
-              <Badge bg="warning" text="dark" className="px-2 py-1 rounded-pill">
-                {pendingAppointments.length} Chờ duyệt
-              </Badge>
-            </Card.Header>
-            <Card.Body className="p-0">
-              <Table responsive hover className="align-middle mb-0">
-                <thead className="table-light">
-                  <tr>
-                    <th className="ps-3">Ngày khám</th>
-                    <th>Bệnh nhân</th>
-                    <th>Bác sĩ</th>
-                    <th>Lý do khám</th>
-                    <th className="text-center pe-3">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pendingAppointments.slice(0, 5).map((item) => (
-                    <tr key={item.id}>
-                      <td className="ps-3 fw-medium">
-                        {item.date} <small className="text-muted">({item.time})</small>
-                      </td>
-                      <td className="fw-semibold text-primary">{getPatientName(item.patientId)}</td>
-                      <td>{getDoctorName(item.doctorId)}</td>
-                      <td>{translateReason(item.reason)}</td>
-                      <td className="text-center pe-3">
-                        <Button
-                          size="sm"
-                          variant="success"
-                          className="py-0 px-2 fw-medium rounded-pill"
-                          onClick={() => onUpdateAppointmentStatus(item, "Approved")}
-                        >
-                          <i className="bi bi-check me-1"></i>
-                          Duyệt lịch
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                  {pendingAppointments.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="text-center py-4 text-muted">
-                        <i className="bi bi-check-circle fs-3 text-success d-block mb-1"></i>
-                        Tất cả lịch khám đã được xử lý xong!
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-
         {/* Bệnh nhân mới tiếp nhận */}
-        <Col xs={12} lg={5}>
+        <Col xs={12}>
           <Card className="border-0 shadow-sm rounded-3 h-100">
             <Card.Header className="bg-white border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
               <div>
@@ -343,7 +307,7 @@ function AdminDashboard({
                   Bệnh nhân mới tiếp nhận
                 </Card.Title>
                 <Card.Subtitle className="text-muted small">
-                  Danh sách hồ sơ bệnh nhân đăng ký mới
+                  Danh sách hồ sơ bệnh nhân đăng ký mới — Lịch hẹn do từng Bác sĩ tự quản lý
                 </Card.Subtitle>
               </div>
               <Link to={ROUTES.PATIENTS} className="small fw-semibold text-primary">
@@ -356,6 +320,9 @@ function AdminDashboard({
                   <tr>
                     <th className="ps-3">Mã BN</th>
                     <th>Họ và tên</th>
+                    <th>Giới tính</th>
+                    <th>Tuổi</th>
+                    <th>Bảo hiểm</th>
                     <th>Mức nguy cơ</th>
                     <th className="pe-3">Trạng thái</th>
                   </tr>
@@ -367,6 +334,11 @@ function AdminDashboard({
                         {p.patientCode || `PT-${String(p.id).padStart(3, "0")}`}
                       </td>
                       <td className="fw-medium">{p.fullName}</td>
+                      <td>{p.gender === "Male" ? "Nam" : "Nữ"}</td>
+                      <td>{p.age}</td>
+                      <td>
+                        <StatusBadge status={p.insuranceType || "Standard"} />
+                      </td>
                       <td>
                         <StatusBadge status={p.riskLevel || "Low"} />
                       </td>
