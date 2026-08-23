@@ -2,9 +2,10 @@ import React from "react";
 import { Navbar, Container, Nav, Badge, Button } from "react-bootstrap";
 import { getRoleLabel } from "../../utils/auth";
 import { useAuth } from "../../context/AuthContext";
+import DemoToolbar from "../common/DemoToolbar";
 
 /**
- * Header hiển thị thông tin người dùng đang đăng nhập bằng React-Bootstrap
+ * Header hiển thị thông tin người dùng đang đăng nhập & Demo Toolbar bằng React-Bootstrap
  */
 function Header() {
   const { user } = useAuth();
@@ -32,7 +33,7 @@ function Header() {
 
   return (
     <Navbar bg="white" expand="lg" className="border-bottom shadow-sm py-2 px-3 mb-4 sticky-top">
-      <Container fluid className="px-0">
+      <Container fluid className="px-0 d-flex flex-wrap align-items-center justify-content-between gap-2">
         <div>
           <h4 className="fw-bold mb-0 text-dark">
             {`Chào mừng trở lại, ${currentUser.fullName || "Khách"}`}
@@ -42,7 +43,10 @@ function Header() {
           </small>
         </div>
 
-        <Nav className="ms-auto d-flex flex-row align-items-center gap-2">
+        <Nav className="d-flex flex-row align-items-center gap-2">
+          {/* Thanh công cụ Demo & Switch Role 1-Click */}
+          <DemoToolbar />
+
           {/* Thông báo */}
           <Button variant="light" size="sm" className="rounded-circle p-2 text-muted border-0 position-relative">
             <i className="bi bi-bell fs-5"></i>
@@ -54,7 +58,7 @@ function Header() {
           {/* Thông tin User */}
           <div className="d-flex align-items-center gap-2 ps-2 border-start">
             <div
-              className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
+              className={`bg-${getRoleBadgeVariant(currentUser.role)} text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm`}
               style={{ width: "38px", height: "38px", fontSize: "0.9rem" }}
             >
               {currentUser.avatar || currentUser.fullName?.charAt(0) || "U"}

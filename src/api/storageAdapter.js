@@ -20,6 +20,19 @@ function initStorage() {
 // Khởi chạy ngay khi nạp module
 initStorage();
 
+/**
+ * Hàm khôi phục lại toàn bộ dữ liệu mẫu ban đầu (Dùng cho Demo / Reset)
+ */
+export function resetStorage() {
+  if (typeof window === "undefined") return;
+
+  const collections = ["users", "patients", "doctors", "appointments", "medicalRecords"];
+  for (const col of collections) {
+    const key = STORAGE_PREFIX + col;
+    localStorage.setItem(key, JSON.stringify(initialData[col] || []));
+  }
+}
+
 function getCollectionKey(endpoint) {
   const clean = endpoint.replace(/^\//, "").split("/")[0].split("?")[0];
   if (clean === "records" || clean === "medicalRecords") return STORAGE_PREFIX + "medicalRecords";
