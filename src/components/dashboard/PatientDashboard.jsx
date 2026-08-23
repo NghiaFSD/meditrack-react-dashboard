@@ -1,15 +1,16 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Row, Col, Card, Table, Badge, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../common/StatusBadge";
 import HealthChart from "./HealthChart";
+import QuickViewModal from "./QuickViewModal";
 import { ROUTES } from "../../config/routes";
 import { useLanguage } from "../../context/LanguageContext";
 import { getGlucoseStatus, getHbA1cStatus } from "../../utils/healthStatus";
 import { translateDiagnosis, translateReason } from "../../utils/translations";
 
 /**
- * Giao diện Cổng thông tin Sức khỏe Cá nhân cho Bệnh nhân (Patient Health Portal)
+ * Giao diện Cổng thông tin Sức khỏe Cá nhân cho Bệnh nhân (Patient Health Portal) có hỗ trợ Click xem nhanh
  */
 function PatientDashboard({
   patient,
@@ -20,6 +21,29 @@ function PatientDashboard({
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
+
+  // State quản lý QuickViewModal
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: "",
+    subtitle: "",
+    type: "records",
+    data: [],
+  });
+
+  const openQuickView = (type, title, subtitle, data) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      subtitle,
+      type,
+      data,
+    });
+  };
+
+  const closeQuickView = () => {
+    setModalConfig((prev) => ({ ...prev, isOpen: false }));
+  };
 
   const patientId = Number(patient?.id || 1);
 
@@ -93,15 +117,31 @@ function PatientDashboard({
         </Card.Body>
       </Card>
 
-      {/* 4 Thẻ chỉ số đo đạc sinh học mới nhất */}
-      <h5 className="fw-bold text-dark mb-3">
-        <i className="bi bi-speedometer2 text-success me-2"></i>
-        {t("dashboard.patVitalTitle")}
-      </h5>
+      {/* 4 Thẻ chỉ số đo đạc sinh học mới nhất - CÓ HỖ TRỢ CLICK XEM NHANH */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h5 className="fw-bold text-dark mb-0">
+          <i className="bi bi-speedometer2 text-success me-2"></i>
+          {t("dashboard.patVitalTitle")}
+        </h5>
+        <small className="text-muted fst-italic">
+          {lang === "vi" ? "💡 Nhấn vào ô để xem toàn bộ lịch sử đo" : "💡 Click card to view history"}
+        </small>
+      </div>
+
       <Row className="g-3 mb-4">
         {/* Đường huyết */}
         <Col xs={12} sm={6} lg={3}>
-          <Card className="border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+          <Card
+            className="border-0 shadow-sm rounded-3 h-100 p-3 bg-white stat-card-clickable cursor-pointer"
+            onClick={() =>
+              openQuickView(
+                "records",
+                lang === "vi" ? "Lịch sử Đo Đường huyết (Glucose)" : "Fasting Glucose History",
+                lang === "vi" ? "Theo dõi diễn tiến chỉ số đường huyết qua các lần khám" : "Longitudinal glucose measurements over time",
+                myRecords
+              )
+            }
+          >
             <div className="d-flex justify-content-between align-items-center mb-1">
               <small className="text-muted text-uppercase fw-semibold">{t("patientDetail.glucose")}</small>
               {latestRecord && (
@@ -122,7 +162,17 @@ function PatientDashboard({
 
         {/* HbA1c */}
         <Col xs={12} sm={6} lg={3}>
-          <Card className="border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+          <Card
+            className="border-0 shadow-sm rounded-3 h-100 p-3 bg-white stat-card-clickable cursor-pointer"
+            onClick={() =>
+              openQuickView(
+                "records",
+                lang === "vi" ? "Lịch sử Chỉ số HbA1c" : "HbA1c Glycemic History",
+                lang === "vi" ? "Theo dõi mức độ kiểm soát đường huyết trung bình 3 tháng" : "3-month average glycemic control tracking",
+                myRecords
+              )
+            }
+          >
             <div className="d-flex justify-content-between align-items-center mb-1">
               <small className="text-muted text-uppercase fw-semibold">{t("patientDetail.hba1c")}</small>
               {latestRecord && (
@@ -143,7 +193,17 @@ function PatientDashboard({
 
         {/* Huyết áp */}
         <Col xs={12} sm={6} lg={3}>
-          <Card className="border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+          <Card
+            className="border-0 shadow-sm rounded-3 h-100 p-3 bg-white stat-card-clickable cursor-pointer"
+            onClick={() =>
+              openQuickView(
+                "records",
+                lang === "vi" ? "Lịch sử Đo Huyết áp" : "Blood Pressure Log",
+                lang === "vi" ? "Chỉ số huyết áp tâm thu và tâm trương qua các lần thăm khám" : "Systolic and diastolic blood pressure logs",
+                myRecords
+              )
+            }
+          >
             <div className="d-flex justify-content-between align-items-center mb-1">
               <small className="text-muted text-uppercase fw-semibold">{t("patientDetail.bloodPressure")}</small>
               <Badge bg="info" className="text-dark">mmHg</Badge>
@@ -159,7 +219,17 @@ function PatientDashboard({
 
         {/* BMI */}
         <Col xs={12} sm={6} lg={3}>
-          <Card className="border-0 shadow-sm rounded-3 h-100 p-3 bg-white">
+          <Card
+            className="border-0 shadow-sm rounded-3 h-100 p-3 bg-white stat-card-clickable cursor-pointer"
+            onClick={() =>
+              openQuickView(
+                "records",
+                lang === "vi" ? "Lịch sử Chỉ số Thể trạng BMI" : "BMI Progression Log",
+                lang === "vi" ? "Theo dõi cân nặng và thể trạng qua các giai đoạn điều trị" : "Body Mass Index monitoring logs",
+                myRecords
+              )
+            }
+          >
             <div className="d-flex justify-content-between align-items-center mb-1">
               <small className="text-muted text-uppercase fw-semibold">{t("patientDetail.bmi")}</small>
               <Badge bg="success">{lang === "vi" ? "Chuẩn" : "Normal"}</Badge>
@@ -275,6 +345,18 @@ function PatientDashboard({
 
       {/* Biểu đồ theo dõi tiến triển điều trị đường huyết qua các tháng */}
       <HealthChart data={myRecords} />
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        isOpen={modalConfig.isOpen}
+        onClose={closeQuickView}
+        title={modalConfig.title}
+        subtitle={modalConfig.subtitle}
+        type={modalConfig.type}
+        data={modalConfig.data}
+        patients={[{ id: patientId, fullName: patient?.fullName }]}
+        doctors={doctors}
+      />
     </div>
   );
 }

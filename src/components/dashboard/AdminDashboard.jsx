@@ -1,8 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Row, Col, Card, Table, Badge, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
 import StatCard from "./StatCard";
+import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
 import { useLanguage } from "../../context/LanguageContext";
@@ -15,7 +16,7 @@ const RISK_COLORS = {
 };
 
 /**
- * Giao diện Dashboard chuyên biệt cho Quản trị viên (Admin Operations Center)
+ * Giao diện Dashboard chuyên biệt cho Quản trị viên (Admin Operations Center) có hỗ trợ Click xem nhanh
  */
 function AdminDashboard({
   patients = [],
@@ -27,6 +28,29 @@ function AdminDashboard({
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
+
+  // State quản lý QuickViewModal
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: "",
+    subtitle: "",
+    type: "patients",
+    data: [],
+  });
+
+  const openQuickView = (type, title, subtitle, data) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      subtitle,
+      type,
+      data,
+    });
+  };
+
+  const closeQuickView = () => {
+    setModalConfig((prev) => ({ ...prev, isOpen: false }));
+  };
 
   const todayAppointments = appointments.filter((a) => a.date === today);
   const pendingAppointments = appointments.filter((a) => a.status === "Pending");
@@ -111,7 +135,7 @@ function AdminDashboard({
         </div>
       </div>
 
-      {/* 4 Thẻ KPI điều hành toàn viện */}
+      {/* 4 Thẻ KPI điều hành toàn viện - CÓ HỖ TRỢ CLICK XEM NHANH */}
       <Row className="g-3 mb-4">
         <Col xs={12} sm={6} lg={3}>
           <StatCard
@@ -119,6 +143,14 @@ function AdminDashboard({
             value={patients.length}
             icon={<i className="bi bi-people-fill"></i>}
             note={t("dashboard.noteActivePatients")}
+            onClick={() =>
+              openQuickView(
+                "patients",
+                lang === "vi" ? "Danh sách Bệnh nhân Toàn hệ thống" : "All Registered Patients",
+                lang === "vi" ? "Xem nhanh danh sách tất cả hồ sơ bệnh nhân trong phòng khám" : "Quick overview of all patient profiles",
+                patients
+              )
+            }
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -127,6 +159,14 @@ function AdminDashboard({
             value={doctors.length}
             icon={<i className="bi bi-person-badge-fill"></i>}
             note={t("dashboard.noteAvailableDoctors")}
+            onClick={() =>
+              openQuickView(
+                "doctors",
+                lang === "vi" ? "Danh sách Bác sĩ Phòng khám" : "Medical Staff & Doctors",
+                lang === "vi" ? "Thông tin chuyên khoa, phòng khám và ca trực của bác sĩ" : "Specialty, room and shift details",
+                doctors
+              )
+            }
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -135,6 +175,14 @@ function AdminDashboard({
             value={todayAppointments.length}
             icon={<i className="bi bi-calendar-check-fill"></i>}
             note={t("dashboard.noteScheduleToday")}
+            onClick={() =>
+              openQuickView(
+                "appointments",
+                lang === "vi" ? "Danh sách Lịch khám Hôm nay" : "Today's Scheduled Appointments",
+                lang === "vi" ? `Các ca khám đã lên lịch trong ngày ${today}` : `Appointments scheduled for ${today}`,
+                todayAppointments
+              )
+            }
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -143,6 +191,14 @@ function AdminDashboard({
             value={records.length}
             icon={<i className="bi bi-file-earmark-medical-fill"></i>}
             note={t("dashboard.noteRecordsStored")}
+            onClick={() =>
+              openQuickView(
+                "records",
+                lang === "vi" ? "Hồ sơ Bệnh án Toàn viện" : "Hospital Medical Records",
+                lang === "vi" ? "Tổng hợp kết quả khám và chỉ số sinh học của tất cả bệnh nhân" : "Comprehensive diagnostic records",
+                records
+              )
+            }
           />
         </Col>
       </Row>
@@ -330,6 +386,19 @@ function AdminDashboard({
           </Card>
         </Col>
       </Row>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        isOpen={modalConfig.isOpen}
+        onClose={closeQuickView}
+        title={modalConfig.title}
+        subtitle={modalConfig.subtitle}
+        type={modalConfig.type}
+        data={modalConfig.data}
+        patients={patients}
+        doctors={doctors}
+        onApproveAppointment={onUpdateAppointmentStatus}
+      />
     </div>
   );
 }

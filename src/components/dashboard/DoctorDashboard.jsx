@@ -1,15 +1,16 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Row, Col, Card, Table, Badge, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import StatCard from "./StatCard";
 import HealthChart from "./HealthChart";
+import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
 import { useLanguage } from "../../context/LanguageContext";
-import { translateReason, translateDiagnosis } from "../../utils/translations";
+import { translateReason } from "../../utils/translations";
 
 /**
- * Giao diện Bàn làm việc Bác sĩ Lâm sàng (Doctor Clinical Workstation)
+ * Giao diện Bàn làm việc Bác sĩ Lâm sàng (Doctor Clinical Workstation) có hỗ trợ Click xem nhanh
  */
 function DoctorDashboard({
   doctor,
@@ -21,6 +22,29 @@ function DoctorDashboard({
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
+
+  // State quản lý QuickViewModal
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: "",
+    subtitle: "",
+    type: "patients",
+    data: [],
+  });
+
+  const openQuickView = (type, title, subtitle, data) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      subtitle,
+      type,
+      data,
+    });
+  };
+
+  const closeQuickView = () => {
+    setModalConfig((prev) => ({ ...prev, isOpen: false }));
+  };
 
   const docId = Number(doctor?.id || 1);
 
@@ -133,7 +157,7 @@ function DoctorDashboard({
         </Card.Body>
       </Card>
 
-      {/* 4 Thẻ KPI Bác sĩ phụ trách */}
+      {/* 4 Thẻ KPI Bác sĩ phụ trách - CÓ HỖ TRỢ CLICK XEM NHANH */}
       <Row className="g-3 mb-4">
         <Col xs={12} sm={6} lg={3}>
           <StatCard
@@ -141,6 +165,14 @@ function DoctorDashboard({
             value={myPatients.length}
             icon={<i className="bi bi-people-fill"></i>}
             note={lang === "vi" ? "Đang theo dõi điều trị" : "Active clinical cases"}
+            onClick={() =>
+              openQuickView(
+                "patients",
+                lang === "vi" ? "Bệnh nhân do Bác sĩ phụ trách" : "My Assigned Patients",
+                lang === "vi" ? `Danh sách các bệnh nhân đang điều trị cùng ${doctor?.fullName || "Bác sĩ"}` : "Patients currently assigned to your care",
+                myPatients
+              )
+            }
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -149,6 +181,14 @@ function DoctorDashboard({
             value={myTodayAppointments.length}
             icon={<i className="bi bi-calendar-event-fill"></i>}
             note={lang === "vi" ? "Lịch khám hôm nay" : "Scheduled today"}
+            onClick={() =>
+              openQuickView(
+                "appointments",
+                lang === "vi" ? "Lịch khám của Bác sĩ Hôm nay" : "My Today Consultations",
+                lang === "vi" ? `Các ca khám được xếp lịch trong ngày ${today}` : `Scheduled consultations for ${today}`,
+                myTodayAppointments
+              )
+            }
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -157,6 +197,14 @@ function DoctorDashboard({
             value={myPendingApprovals.length}
             icon={<i className="bi bi-clock-history"></i>}
             note={lang === "vi" ? "Cần duyệt gấp" : "Awaiting your approval"}
+            onClick={() =>
+              openQuickView(
+                "appointments",
+                lang === "vi" ? "Yêu cầu Lịch hẹn Chờ duyệt" : "Pending Approval Requests",
+                lang === "vi" ? "Các lịch hẹn bệnh nhân vừa đăng ký cần bác sĩ xác nhận duyệt" : "Appointments awaiting your clinical approval",
+                myPendingApprovals
+              )
+            }
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -165,6 +213,14 @@ function DoctorDashboard({
             value={myRecords.length}
             icon={<i className="bi bi-clipboard-pulse"></i>}
             note={lang === "vi" ? "Bệnh án đã lập" : "Recorded consultations"}
+            onClick={() =>
+              openQuickView(
+                "records",
+                lang === "vi" ? "Bệnh án do Bác sĩ đã chẩn đoán" : "My Clinical Diagnoses",
+                lang === "vi" ? "Lịch sử các hồ sơ bệnh án và lời dặn điều trị đã ghi nhận" : "History of diagnostic records submitted by you",
+                myRecords
+              )
+            }
           />
         </Col>
       </Row>
@@ -327,6 +383,19 @@ function DoctorDashboard({
 
       {/* Biểu đồ xu hướng điều trị của bệnh nhân phụ trách */}
       <HealthChart data={myRecords} />
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        isOpen={modalConfig.isOpen}
+        onClose={closeQuickView}
+        title={modalConfig.title}
+        subtitle={modalConfig.subtitle}
+        type={modalConfig.type}
+        data={modalConfig.data}
+        patients={patients}
+        doctors={[{ id: docId, fullName: doctor?.fullName }]}
+        onApproveAppointment={onUpdateAppointmentStatus}
+      />
     </div>
   );
 }
