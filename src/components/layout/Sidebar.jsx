@@ -3,9 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Nav, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { getMenuItemsForRole } from "../../data/menuItems";
-import { getRoleLabel } from "../../utils/auth";
 import { useAuth } from "../../context/AuthContext";
-import { useLanguage } from "../../context/LanguageContext";
 import { ROUTES } from "../../config/routes";
 import { APP_CONFIG } from "../../config/appConfig";
 
@@ -16,6 +14,13 @@ const ICON_MAP = {
   "/records": "bi-file-earmark-medical-fill",
 };
 
+const MENU_LABELS = {
+  [ROUTES.DASHBOARD]: "Bảng điều khiển",
+  [ROUTES.PATIENTS]: "Bệnh nhân",
+  [ROUTES.APPOINTMENTS]: "Lịch hẹn khám",
+  [ROUTES.RECORDS]: "Hồ sơ bệnh án",
+};
+
 /**
  * Sidebar chứa menu điều hướng chính với React-Bootstrap và Bootstrap Icons (Thuần Tiếng Việt)
  */
@@ -23,15 +28,6 @@ function Sidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const menuItems = getMenuItemsForRole(user?.role);
-  const { t } = useLanguage();
-
-  const getMenuTranslationKey = (path) => {
-    if (path === ROUTES.DASHBOARD) return "nav.dashboard";
-    if (path === ROUTES.PATIENTS) return "nav.patients";
-    if (path === ROUTES.APPOINTMENTS) return "nav.appointments";
-    if (path === ROUTES.RECORDS) return "nav.medicalRecords";
-    return "";
-  };
 
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -72,6 +68,7 @@ function Sidebar() {
       <Nav className="nav-pills flex-column mb-auto gap-1">
         {menuItems.map((item) => {
           const iconClass = ICON_MAP[item.path] || "bi-grid-fill";
+          const label = MENU_LABELS[item.path] || item.label;
           return (
             <Nav.Item key={item.path}>
               <NavLink
@@ -85,7 +82,7 @@ function Sidebar() {
                 }
               >
                 <i className={`bi ${iconClass} fs-5`}></i>
-                <span>{t(getMenuTranslationKey(item.path), item.label)}</span>
+                <span>{label}</span>
               </NavLink>
             </Nav.Item>
           );
@@ -100,7 +97,7 @@ function Sidebar() {
           onClick={handleLogout}
         >
           <i className="bi bi-box-arrow-right fs-5"></i>
-          <span>{t("nav.logout")}</span>
+          <span>Đăng xuất</span>
         </Button>
       </div>
     </aside>

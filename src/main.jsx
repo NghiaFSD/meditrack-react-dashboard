@@ -5,18 +5,15 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
-import { LanguageProvider } from "./context/LanguageContext.jsx";
 import "./index.css";
 
 // Entry point của React app.
-// Bọc BrowserRouter, AuthProvider và LanguageProvider để toàn bộ app dùng được Routing & Context.
+// Bọc BrowserRouter và AuthProvider để toàn bộ ứng dụng sử dụng Routing & Xác thực.
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <LanguageProvider>
-          <App />
-        </LanguageProvider>
+        <App />
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

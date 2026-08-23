@@ -7,7 +7,6 @@ import Input from "../components/common/Input";
 import Loading from "../components/common/Loading";
 import { patientApi } from "../api/patientApi";
 import { isValidEmail, isValidPhone } from "../utils/validation";
-import { useLanguage } from "../context/LanguageContext";
 import { ROUTES } from "../config/routes";
 
 const initialForm = {
@@ -25,12 +24,11 @@ const initialForm = {
 };
 
 /**
- * Trang chỉnh sửa bệnh nhân (Route: /patients/:id/edit) sử dụng React-Bootstrap
+ * Trang chỉnh sửa bệnh nhân (Route: /patients/:id/edit) sử dụng React-Bootstrap (Thuần Tiếng Việt)
  */
 function PatientEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { lang, t } = useLanguage();
 
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(true);
@@ -57,7 +55,7 @@ function PatientEdit() {
           });
         }
       } catch (err) {
-        Swal.fire("Error", "Cannot load patient data.", "error");
+        Swal.fire("Lỗi", "Không thể tải thông tin bệnh nhân.", "error");
         navigate(ROUTES.PATIENTS);
       } finally {
         setLoading(false);
@@ -73,10 +71,10 @@ function PatientEdit() {
   };
 
   const validateForm = async () => {
-    if (!form.fullName.trim()) return t("patients.valFullNameReq");
-    if (!isValidEmail(form.email)) return t("patients.valEmailInvalid");
-    if (!isValidPhone(form.phone)) return t("patients.valPhoneInvalid");
-    if (Number(form.age) <= 0) return t("patients.valAgeInvalid");
+    if (!form.fullName.trim()) return "Họ và tên không được để trống.";
+    if (!isValidEmail(form.email)) return "Email không đúng định dạng.";
+    if (!isValidPhone(form.phone)) return "Số điện thoại phải từ 9 - 11 chữ số.";
+    if (Number(form.age) <= 0) return "Tuổi phải lớn hơn 0.";
 
     try {
       const allPatients = await patientApi.getAll();
@@ -92,7 +90,7 @@ function PatientEdit() {
       });
 
       if (duplicatePatient) {
-        return t("patients.valDuplicate");
+        return "Email hoặc Số điện thoại đã được đăng ký cho bệnh nhân khác.";
       }
     } catch (err) {
       // ignore fetch all error during validation
@@ -106,7 +104,7 @@ function PatientEdit() {
 
     const validationMessage = await validateForm();
     if (validationMessage) {
-      Swal.fire(t("patients.valInvalidData"), validationMessage, "warning");
+      Swal.fire("Dữ liệu không hợp lệ", validationMessage, "warning");
       return;
     }
 
@@ -119,19 +117,19 @@ function PatientEdit() {
       setSubmitting(true);
       await patientApi.update(id, payload);
       await Swal.fire(
-        t("patientEdit.updateSuccessTitle"),
-        t("patientEdit.updateSuccessText"),
+        "Thành công",
+        "Cập nhật thông tin bệnh nhân thành công!",
         "success"
       );
       navigate(ROUTES.PATIENT_DETAIL(id));
     } catch (err) {
-      Swal.fire(t("patientEdit.updateErrorTitle"), t("patientEdit.updateErrorText"), "error");
+      Swal.fire("Lỗi", "Không thể cập nhật thông tin bệnh nhân.", "error");
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) return <Loading text={t("common.loading")} />;
+  if (loading) return <Loading text="Đang tải dữ liệu..." />;
 
   return (
     <Container fluid className="px-0">
@@ -148,137 +146,127 @@ function PatientEdit() {
         <Link to={ROUTES.PATIENT_DETAIL(id)}>
           <Button variant="outline-secondary" className="d-flex align-items-center gap-1">
             <i className="bi bi-arrow-left"></i>
-            <span>{t("patientEdit.btnCancelBack")}</span>
+            <span>← Quay lại chi tiết</span>
           </Button>
         </Link>
       </div>
 
-      {/* Form chỉnh sửa thông tin */}
-      <Row className="justify-content-center">
-        <Col xs={12} lg={10}>
-          <Card className="border-0 shadow-sm rounded-3">
-            <Card.Body className="p-4">
-              <Form onSubmit={handleSubmit}>
-                <Row className="g-3">
-                  <Col xs={12} md={6}>
-                    <Input
-                      label={t("patientDetail.code")}
-                      name="patientCode"
-                      value={form.patientCode}
-                      onChange={handleChange}
-                      disabled
-                    />
-                  </Col>
-                  <Col xs={12} md={6}>
-                    <Input
-                      label={t("patients.lblFullName")}
-                      name="fullName"
-                      value={form.fullName}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Col>
+      {/* Form chỉnh sửa */}
+      <Card className="border-0 shadow-sm rounded-3">
+        <Card.Body className="p-4">
+          <Form onSubmit={handleSubmit}>
+            <Row className="g-3">
+              <Col xs={12} md={6}>
+                <Input
+                  label="Họ và tên"
+                  name="fullName"
+                  value={form.fullName}
+                  onChange={handleChange}
+                  required
+                />
+              </Col>
 
-                  <Col xs={12} md={4}>
-                    <Form.Group className="mb-3" controlId="editGender">
-                      <Form.Label className="fw-semibold">{t("patients.lblGender")}</Form.Label>
-                      <Form.Select name="gender" value={form.gender} onChange={handleChange}>
-                        <option value="Male">{t("patients.male")}</option>
-                        <option value="Female">{t("patients.female")}</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col xs={12} md={4}>
-                    <Input
-                      label={t("patients.lblAge")}
-                      name="age"
-                      type="number"
-                      value={form.age}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Col>
-                  <Col xs={12} md={4}>
-                    <Input
-                      label={t("patients.lblPhone")}
-                      name="phone"
-                      value={form.phone}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Col>
+              <Col xs={12} md={6}>
+                <Form.Group className="mb-3" controlId="editGender">
+                  <Form.Label className="fw-semibold">Giới tính</Form.Label>
+                  <Form.Select name="gender" value={form.gender} onChange={handleChange}>
+                    <option value="Male">Nam</option>
+                    <option value="Female">Nữ</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
 
-                  <Col xs={12} md={6}>
-                    <Input
-                      label={t("patients.lblEmail")}
-                      name="email"
-                      type="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Col>
-                  <Col xs={12} md={6}>
-                    <Input
-                      label={t("patients.lblAddress")}
-                      name="address"
-                      value={form.address}
-                      onChange={handleChange}
-                    />
-                  </Col>
+              <Col xs={12} md={4}>
+                <Input
+                  label="Tuổi"
+                  name="age"
+                  type="number"
+                  value={form.age}
+                  onChange={handleChange}
+                  required
+                />
+              </Col>
 
-                  <Col xs={12} md={4}>
-                    <Form.Group className="mb-3" controlId="editInsurance">
-                      <Form.Label className="fw-semibold">{t("patients.lblInsurance")}</Form.Label>
-                      <Form.Select
-                        name="insuranceType"
-                        value={form.insuranceType}
-                        onChange={handleChange}
-                      >
-                        <option value="Basic">{t("common.insuranceBasic")}</option>
-                        <option value="Standard">{t("common.insuranceStandard")}</option>
-                        <option value="Premium">{t("common.insurancePremium")}</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col xs={12} md={4}>
-                    <Form.Group className="mb-3" controlId="editRisk">
-                      <Form.Label className="fw-semibold">{t("patients.lblRisk")}</Form.Label>
-                      <Form.Select name="riskLevel" value={form.riskLevel} onChange={handleChange}>
-                        <option value="Low">{t("common.riskLow")}</option>
-                        <option value="Medium">{t("common.riskMedium")}</option>
-                        <option value="High">{t("common.riskHigh")}</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col xs={12} md={4}>
-                    <Form.Group className="mb-3" controlId="editStatus">
-                      <Form.Label className="fw-semibold">{t("patients.lblStatus")}</Form.Label>
-                      <Form.Select name="status" value={form.status} onChange={handleChange}>
-                        <option value="Active">{t("common.statusActive")}</option>
-                        <option value="Inactive">{t("common.statusInactive")}</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                </Row>
+              <Col xs={12} md={4}>
+                <Input
+                  label="Số điện thoại"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </Col>
 
-                <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => navigate(ROUTES.PATIENT_DETAIL(id))}
+              <Col xs={12} md={4}>
+                <Input
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                />
+              </Col>
+
+              <Col xs={12} md={6}>
+                <Input
+                  label="Địa chỉ"
+                  name="address"
+                  value={form.address}
+                  onChange={handleChange}
+                />
+              </Col>
+
+              <Col xs={12} md={6}>
+                <Form.Group className="mb-3" controlId="editInsurance">
+                  <Form.Label className="fw-semibold">Loại bảo hiểm</Form.Label>
+                  <Form.Select
+                    name="insuranceType"
+                    value={form.insuranceType}
+                    onChange={handleChange}
                   >
-                    {t("patientEdit.btnCancel")}
-                  </Button>
-                  <Button variant="primary" type="submit" disabled={submitting}>
-                    {submitting ? t("patientEdit.btnSaving") : t("patientEdit.btnUpdate")}
-                  </Button>
-                </div>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+                    <option value="Basic">Cơ bản</option>
+                    <option value="Standard">Tiêu chuẩn</option>
+                    <option value="Premium">Cao cấp</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+
+              <Col xs={12} md={6}>
+                <Form.Group className="mb-3" controlId="editRisk">
+                  <Form.Label className="fw-semibold">Mức độ nguy cơ</Form.Label>
+                  <Form.Select name="riskLevel" value={form.riskLevel} onChange={handleChange}>
+                    <option value="Low">Thấp</option>
+                    <option value="Medium">Trung bình</option>
+                    <option value="High">Cao</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+
+              <Col xs={12} md={6}>
+                <Form.Group className="mb-3" controlId="editStatus">
+                  <Form.Label className="fw-semibold">Trạng thái</Form.Label>
+                  <Form.Select name="status" value={form.status} onChange={handleChange}>
+                    <option value="Active">Đang hoạt động</option>
+                    <option value="Inactive">Ngưng hoạt động</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+              <Link to={ROUTES.PATIENT_DETAIL(id)}>
+                <Button variant="secondary" type="button">
+                  Hủy
+                </Button>
+              </Link>
+              <Button variant="primary" type="submit" disabled={submitting}>
+                {submitting ? "Đang lưu..." : "Lưu thay đổi"}
+              </Button>
+            </div>
+          </Form>
+        </Card.Body>
+      </Card>
     </Container>
   );
 }

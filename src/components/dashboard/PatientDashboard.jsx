@@ -5,7 +5,6 @@ import StatusBadge from "../common/StatusBadge";
 import HealthChart from "./HealthChart";
 import QuickViewModal from "./QuickViewModal";
 import { ROUTES } from "../../config/routes";
-import { useLanguage } from "../../context/LanguageContext";
 import { getGlucoseStatus, getHbA1cStatus } from "../../utils/healthStatus";
 import { translateDiagnosis, translateReason } from "../../utils/translations";
 
@@ -18,7 +17,6 @@ function PatientDashboard({
   appointments = [],
   records = [],
 }) {
-  const { t } = useLanguage();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -93,7 +91,7 @@ function PatientDashboard({
                     </Badge>
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-shield-check me-1"></i>
-                      {t("dashboard.patInsuranceCard")}: {patient?.insuranceType || "Cao cấp"}
+                      Thẻ bảo hiểm: {patient?.insuranceType || "Cao cấp"}
                     </Badge>
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-activity me-1"></i>
@@ -110,7 +108,7 @@ function PatientDashboard({
                 onClick={() => navigate(ROUTES.APPOINTMENTS)}
               >
                 <i className="bi bi-calendar-plus-fill"></i>
-                <span>{t("dashboard.patBookNew")}</span>
+                <span>Đặt lịch khám mới</span>
               </Button>
             </Col>
           </Row>
@@ -121,7 +119,7 @@ function PatientDashboard({
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold text-dark mb-0">
           <i className="bi bi-speedometer2 text-success me-2"></i>
-          {t("dashboard.patVitalTitle")}
+          Chỉ số Đo Đạc Sinh Học Mới Nhất
         </h5>
         <small className="text-muted fst-italic">
           💡 Nhấn vào ô để xem toàn bộ lịch sử đo
@@ -143,7 +141,7 @@ function PatientDashboard({
             }
           >
             <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-muted text-uppercase fw-semibold">{t("patientDetail.glucose")}</small>
+              <small className="text-muted text-uppercase fw-semibold">Đường huyết</small>
               {latestRecord && (
                 <StatusBadge
                   status={getGlucoseStatus(latestRecord.glucose).label}
@@ -174,7 +172,7 @@ function PatientDashboard({
             }
           >
             <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-muted text-uppercase fw-semibold">{t("patientDetail.hba1c")}</small>
+              <small className="text-muted text-uppercase fw-semibold">HbA1c</small>
               {latestRecord && (
                 <StatusBadge
                   status={getHbA1cStatus(latestRecord.hba1c).label}
@@ -205,7 +203,7 @@ function PatientDashboard({
             }
           >
             <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-muted text-uppercase fw-semibold">{t("patientDetail.bloodPressure")}</small>
+              <small className="text-muted text-uppercase fw-semibold">Huyết áp</small>
               <Badge bg="info" className="text-dark">mmHg</Badge>
             </div>
             <h3 className="fw-bold text-dark mb-1">
@@ -231,7 +229,7 @@ function PatientDashboard({
             }
           >
             <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-muted text-uppercase fw-semibold">{t("patientDetail.bmi")}</small>
+              <small className="text-muted text-uppercase fw-semibold">Chỉ số BMI</small>
               <Badge bg="success">Chuẩn</Badge>
             </div>
             <h3 className="fw-bold text-dark mb-1">
@@ -252,7 +250,7 @@ function PatientDashboard({
             <Card.Header className="bg-white border-0 pt-3 pb-0">
               <Card.Title as="h5" className="fw-bold mb-1 text-dark">
                 <i className="bi bi-bell-fill text-warning me-2"></i>
-                {t("dashboard.patNextApptCard")}
+                Lịch khám sắp tới
               </Card.Title>
             </Card.Header>
             <Card.Body className="d-flex flex-column justify-content-between">
@@ -266,11 +264,11 @@ function PatientDashboard({
                     </div>
                     <div className="small text-muted mb-1">
                       <i className="bi bi-person-fill me-1"></i>
-                      {t("appointments.tableDoctor")}: <strong>{getDoctor(nextAppointment.doctorId)?.fullName || "Dr. Nguyen Minh"}</strong>
+                      Bác sĩ phụ trách: <strong>{getDoctor(nextAppointment.doctorId)?.fullName || "Dr. Nguyen Minh"}</strong>
                     </div>
                     <div className="small text-muted mb-2">
                       <i className="bi bi-chat-left-text me-1"></i>
-                      {t("patientDetail.reason")}: {translateReason(nextAppointment.reason)}
+                      Lý do khám: {translateReason(nextAppointment.reason)}
                     </div>
                     <div>
                       <StatusBadge status={nextAppointment.status} />
@@ -280,7 +278,7 @@ function PatientDashboard({
               ) : (
                 <div className="text-center py-4 text-muted">
                   <i className="bi bi-calendar-check fs-2 d-block mb-2 text-success"></i>
-                  <p className="mb-0">{t("dashboard.patNoNextAppt")}</p>
+                  <p className="mb-0">Bạn chưa có lịch hẹn khám sắp tới.</p>
                 </div>
               )}
 
@@ -290,7 +288,7 @@ function PatientDashboard({
                 onClick={() => navigate(ROUTES.APPOINTMENTS)}
               >
                 <i className="bi bi-plus-circle"></i>
-                <span>{t("dashboard.patBookNew")}</span>
+                <span>Đặt lịch khám mới</span>
               </Button>
             </Card.Body>
           </Card>
@@ -303,10 +301,10 @@ function PatientDashboard({
               <div>
                 <Card.Title as="h5" className="fw-bold mb-1 text-dark">
                   <i className="bi bi-chat-quote-fill text-primary me-2"></i>
-                  {t("dashboard.patDoctorNotesTitle")}
+                  Chẩn đoán & Lời dặn của Bác sĩ
                 </Card.Title>
                 <Card.Subtitle className="text-muted small">
-                  {t("dashboard.patDoctorNotesSub")}
+                  Lịch sử chẩn đoán qua các đợt thăm khám
                 </Card.Subtitle>
               </div>
             </Card.Header>
@@ -314,8 +312,8 @@ function PatientDashboard({
               <Table responsive hover className="align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-3">{t("patientDetail.date")}</th>
-                    <th>{t("patientDetail.diagnosis")}</th>
+                    <th className="ps-3">Ngày khám</th>
+                    <th>Chẩn đoán</th>
                     <th>Lời dặn & Hướng dẫn</th>
                     <th className="pe-3">Tái khám</th>
                   </tr>
@@ -332,7 +330,7 @@ function PatientDashboard({
                   {myRecords.length === 0 && (
                     <tr>
                       <td colSpan={4} className="text-center py-4 text-muted">
-                        {t("patientDetail.noRecordMsg")}
+                        Chưa có dữ liệu hồ sơ bệnh án nào.
                       </td>
                     </tr>
                   )}

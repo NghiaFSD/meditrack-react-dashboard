@@ -11,7 +11,6 @@ import DoctorDashboard from "../components/dashboard/DoctorDashboard";
 import PatientDashboard from "../components/dashboard/PatientDashboard";
 import { ROLES, findLinkedDoctor, findLinkedPatient } from "../utils/auth";
 import { useAuth } from "../context/AuthContext";
-import { useLanguage } from "../context/LanguageContext";
 
 /**
  * Trang Dashboard thông minh phân tách 3 giao diện nghiệp vụ chuyên sâu (Thuần Tiếng Việt):
@@ -20,7 +19,6 @@ import { useLanguage } from "../context/LanguageContext";
  * 3. Patient: Cổng theo dõi sức khỏe cá nhân & Nhắc lịch
  */
 function Dashboard() {
-  const { t } = useLanguage();
   const { user } = useAuth();
   const currentRole = user?.role;
 
@@ -83,7 +81,7 @@ function Dashboard() {
     }
   };
 
-  if (loading) return <Loading text={t("common.loading")} />;
+  if (loading) return <Loading text="Đang tải dữ liệu..." />;
 
   return (
     <Container fluid className="px-0">

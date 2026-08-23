@@ -9,22 +9,19 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { useLanguage } from "../../context/LanguageContext";
 
 /**
- * Biểu đồ đường hiển thị chỉ số Glucose sử dụng React-Bootstrap Card & Recharts
+ * Biểu đồ đường hiển thị chỉ số Glucose sử dụng React-Bootstrap Card & Recharts (Thuần Tiếng Việt)
  */
 function HealthChart({ data }) {
-  const { t } = useLanguage();
-
   return (
     <Card className="border-0 shadow-sm rounded-3 mb-4">
       <Card.Header className="bg-white border-0 pt-3 pb-0">
         <Card.Title as="h5" className="fw-bold mb-1">
-          {t("dashboard.chartGlucoseTitle")}
+          Chỉ số Đường huyết (Glucose)
         </Card.Title>
         <Card.Subtitle className="text-muted small">
-          {t("dashboard.chartGlucoseSub")}
+          Theo dõi diễn tiến chỉ số đường huyết qua các lần khám
         </Card.Subtitle>
       </Card.Header>
       <Card.Body>
@@ -45,6 +42,7 @@ function HealthChart({ data }) {
               <Line
                 type="monotone"
                 dataKey="glucose"
+                name="Đường huyết (mg/dL)"
                 stroke="#0d6efd"
                 strokeWidth={3}
                 dot={{ r: 4, fill: "#0d6efd" }}

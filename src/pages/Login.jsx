@@ -4,7 +4,6 @@ import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { authApi } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
-import { useLanguage } from "../context/LanguageContext";
 import { ROUTES } from "../config/routes";
 import { APP_CONFIG } from "../config/appConfig";
 
@@ -14,7 +13,6 @@ import { APP_CONFIG } from "../config/appConfig";
 function Login() {
   const navigate = useNavigate();
   const { user, login } = useAuth();
-  const { t } = useLanguage();
   const [form, setForm] = useState({ email: "admin@gmail.com", password: "MediTrack#2026!" });
   const [loading, setLoading] = useState(false);
 
@@ -41,7 +39,7 @@ function Login() {
       if (!matchedUser) {
         Swal.fire(
           "Đăng nhập thất bại",
-          t("login.invalidCreds"),
+          "Email hoặc mật khẩu không chính xác!",
           "error"
         );
         return;
@@ -86,13 +84,13 @@ function Login() {
                   <i className="bi bi-heart-pulse-fill"></i>
                 </div>
                 <h3 className="fw-bold mb-1">{APP_CONFIG.appName}</h3>
-                <p className="mb-0 text-white-50 small">{t("login.subtitle")}</p>
+                <p className="mb-0 text-white-50 small">Hệ thống quản lý hồ sơ bệnh án và lịch khám bệnh</p>
               </Card.Header>
 
               <Card.Body className="p-4 p-md-5">
                 <Form onSubmit={handleLogin}>
                   <Form.Group className="mb-3" controlId="loginEmail">
-                    <Form.Label className="fw-semibold small">{t("login.lblEmail")}</Form.Label>
+                    <Form.Label className="fw-semibold small">Email</Form.Label>
                     <Form.Control
                       type="email"
                       name="email"
@@ -105,7 +103,7 @@ function Login() {
                   </Form.Group>
 
                   <Form.Group className="mb-4" controlId="loginPassword">
-                    <Form.Label className="fw-semibold small">{t("login.lblPassword")}</Form.Label>
+                    <Form.Label className="fw-semibold small">Mật khẩu</Form.Label>
                     <Form.Control
                       type="password"
                       name="password"
@@ -129,14 +127,14 @@ function Login() {
                         <span>Đang đăng nhập...</span>
                       </span>
                     ) : (
-                      t("login.btnSignIn")
+                      "Đăng nhập"
                     )}
                   </Button>
                 </Form>
 
                 {/* Hộp chọn nhanh tài khoản demo */}
                 <div className="mt-4 pt-3 border-top text-center">
-                  <p className="text-muted small fw-medium mb-2">{t("login.demoAccounts")}</p>
+                  <p className="text-muted small fw-medium mb-2">Tài khoản dùng thử:</p>
                   <div className="d-flex flex-wrap gap-2 justify-content-center">
                     <Button
                       variant="outline-danger"
@@ -145,7 +143,7 @@ function Login() {
                       onClick={() => useDemoAccount("admin@gmail.com")}
                     >
                       <i className="bi bi-shield-lock me-1"></i>
-                      {t("login.roleAdmin")}
+                      Admin
                     </Button>
                     <Button
                       variant="outline-primary"
@@ -154,7 +152,7 @@ function Login() {
                       onClick={() => useDemoAccount("doctor@gmail.com")}
                     >
                       <i className="bi bi-person-badge me-1"></i>
-                      {t("login.roleDoctor")}
+                      Bác sĩ
                     </Button>
                     <Button
                       variant="outline-success"
@@ -163,7 +161,7 @@ function Login() {
                       onClick={() => useDemoAccount("patient@gmail.com")}
                     >
                       <i className="bi bi-person me-1"></i>
-                      {t("login.rolePatient")}
+                      Bệnh nhân
                     </Button>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Container, Row, Col, Card, Table, ListGroup, Button as BsButton } from "react-bootstrap";
+import { Container, Row, Col, Card, Table, ListGroup } from "react-bootstrap";
 import Button from "../components/common/Button";
 import Loading from "../components/common/Loading";
 import EmptyState from "../components/common/EmptyState";
@@ -12,16 +12,14 @@ import { recordApi } from "../api/recordApi";
 import { doctorApi } from "../api/doctorApi";
 import { getGlucoseStatus, getHbA1cStatus } from "../utils/healthStatus";
 import { ROLES, getCurrentUser } from "../utils/auth";
-import { useLanguage } from "../context/LanguageContext";
 import { ROUTES } from "../config/routes";
 import { translateDiagnosis, translateReason } from "../utils/translations";
 
 /**
- * Trang chi tiết bệnh nhân (Route: /patients/:id) sử dụng React-Bootstrap
+ * Trang chi tiết bệnh nhân (Route: /patients/:id) sử dụng React-Bootstrap (Thuần Tiếng Việt)
  */
 function PatientDetail() {
   const { id } = useParams();
-  const { lang, t } = useLanguage();
   const currentUser = getCurrentUser();
   const canManage = currentUser?.role === ROLES.ADMIN || currentUser?.role === ROLES.DOCTOR;
   const [patient, setPatient] = useState(null);
@@ -62,11 +60,11 @@ function PatientDetail() {
 
   const getDoctorName = (doctorId) => {
     return (
-      doctors.find((doctor) => Number(doctor.id) === Number(doctorId))?.fullName || "Unknown doctor"
+      doctors.find((doctor) => Number(doctor.id) === Number(doctorId))?.fullName || "Chưa xác định"
     );
   };
 
-  if (loading) return <Loading text={t("common.loading")} />;
+  if (loading) return <Loading text="Đang tải dữ liệu..." />;
   if (!patient)
     return (
       <EmptyState
@@ -82,21 +80,21 @@ function PatientDetail() {
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
           <h2 className="fw-bold text-dark mb-1">{patient.fullName}</h2>
-          <p className="text-muted mb-0">{t("patientDetail.subtitle")}</p>
+          <p className="text-muted mb-0">Thông tin chi tiết hồ sơ bệnh án và lịch sử khám bệnh.</p>
         </div>
         <div className="d-flex gap-2">
           {canManage && (
             <Link to={ROUTES.PATIENT_EDIT(patient.id)}>
               <Button variant="primary" className="d-flex align-items-center gap-1 shadow-sm">
                 <i className="bi bi-pencil-square"></i>
-                <span>{t("patientDetail.btnEdit")}</span>
+                <span>Chỉnh sửa</span>
               </Button>
             </Link>
           )}
           <Link to={ROUTES.PATIENTS}>
             <Button variant="outline-secondary" className="d-flex align-items-center gap-1">
               <i className="bi bi-arrow-left"></i>
-              <span>{t("patientDetail.btnBack")}</span>
+              <span>← Quay lại</span>
             </Button>
           </Link>
         </div>
@@ -124,39 +122,39 @@ function PatientDetail() {
 
               <ListGroup variant="flush" className="text-start small">
                 <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
-                  <span className="text-muted">{t("patientDetail.code")}:</span>
+                  <span className="text-muted">Mã BN:</span>
                   <span className="fw-semibold text-primary">
                     {patient.patientCode || `PT-${String(patient.id).padStart(3, "0")}`}
                   </span>
                 </ListGroup.Item>
                 <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
-                  <span className="text-muted">{t("patientDetail.gender")}:</span>
+                  <span className="text-muted">Giới tính:</span>
                   <span className="fw-semibold">
-                    {patient.gender === "Male" ? t("patients.male") : t("patients.female")}
+                    {patient.gender === "Male" ? "Nam" : "Nữ"}
                   </span>
                 </ListGroup.Item>
                 <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
-                  <span className="text-muted">{t("patientDetail.age")}:</span>
+                  <span className="text-muted">Tuổi:</span>
                   <span className="fw-semibold">{patient.age}</span>
                 </ListGroup.Item>
                 <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
-                  <span className="text-muted">{t("patientDetail.phone")}:</span>
+                  <span className="text-muted">Điện thoại:</span>
                   <span className="fw-semibold">{patient.phone}</span>
                 </ListGroup.Item>
                 <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
-                  <span className="text-muted">{t("patientDetail.address")}:</span>
+                  <span className="text-muted">Địa chỉ:</span>
                   <span className="fw-semibold">{patient.address}</span>
                 </ListGroup.Item>
                 <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
-                  <span className="text-muted">{t("patientDetail.insurance")}:</span>
+                  <span className="text-muted">Bảo hiểm:</span>
                   <StatusBadge status={patient.insuranceType || "Standard"} />
                 </ListGroup.Item>
                 <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
-                  <span className="text-muted">{t("patientDetail.riskLevel")}:</span>
+                  <span className="text-muted">Nguy cơ:</span>
                   <StatusBadge status={patient.riskLevel || "Low"} />
                 </ListGroup.Item>
                 <ListGroup.Item className="d-flex justify-content-between px-0 py-2 border-light">
-                  <span className="text-muted">{t("patientDetail.lastVisit")}:</span>
+                  <span className="text-muted">Khám gần nhất:</span>
                   <span className="fw-semibold">{patient.lastVisit || "-"}</span>
                 </ListGroup.Item>
               </ListGroup>
@@ -169,10 +167,10 @@ function PatientDetail() {
           <Card className="border-0 shadow-sm rounded-3 h-100">
             <Card.Header className="bg-white border-0 pt-3 pb-2">
               <Card.Title as="h5" className="fw-bold mb-1">
-                {t("patientDetail.latestHealthStatus")}
+                Chỉ số sức khỏe gần nhất
               </Card.Title>
               <Card.Subtitle className="text-muted small">
-                {t("patientDetail.latestHealthSub")}
+                Dữ liệu đo đạc sinh học mới nhất
               </Card.Subtitle>
             </Card.Header>
             <Card.Body className="p-3">
@@ -180,7 +178,7 @@ function PatientDetail() {
                 <Row className="g-3">
                   <Col xs={12} sm={6}>
                     <div className="p-3 bg-light rounded-3 border">
-                      <small className="text-muted d-block mb-1">{t("patientDetail.glucose")}</small>
+                      <small className="text-muted d-block mb-1">Đường huyết</small>
                       <div className="d-flex align-items-baseline justify-content-between">
                         <h3 className="fw-bold mb-0 text-primary">{latestRecord.glucose} mg/dL</h3>
                         <StatusBadge
@@ -192,7 +190,7 @@ function PatientDetail() {
                   </Col>
                   <Col xs={12} sm={6}>
                     <div className="p-3 bg-light rounded-3 border">
-                      <small className="text-muted d-block mb-1">{t("patientDetail.hba1c")}</small>
+                      <small className="text-muted d-block mb-1">HbA1c</small>
                       <div className="d-flex align-items-baseline justify-content-between">
                         <h3 className="fw-bold mb-0 text-success">{latestRecord.hba1c}%</h3>
                         <StatusBadge
@@ -204,21 +202,21 @@ function PatientDetail() {
                   </Col>
                   <Col xs={12} sm={6}>
                     <div className="p-3 bg-light rounded-3 border">
-                      <small className="text-muted d-block mb-1">{t("patientDetail.bmi")}</small>
+                      <small className="text-muted d-block mb-1">Chỉ số BMI</small>
                       <h3 className="fw-bold mb-0 text-dark">{latestRecord.bmi}</h3>
                     </div>
                   </Col>
                   <Col xs={12} sm={6}>
                     <div className="p-3 bg-light rounded-3 border">
-                      <small className="text-muted d-block mb-1">{t("patientDetail.bloodPressure")}</small>
+                      <small className="text-muted d-block mb-1">Huyết áp</small>
                       <h3 className="fw-bold mb-0 text-dark">{latestRecord.bloodPressure}</h3>
                     </div>
                   </Col>
                 </Row>
               ) : (
                 <EmptyState
-                  title={t("patientDetail.noRecordTitle")}
-                  message={t("patientDetail.noRecordMsg")}
+                  title="Chưa có bệnh án"
+                  message="Bệnh nhân chưa có dữ liệu hồ sơ bệnh án nào."
                   icon="bi-file-earmark-x"
                 />
               )}
@@ -236,21 +234,21 @@ function PatientDetail() {
           <Card className="border-0 shadow-sm rounded-3 h-100">
             <Card.Header className="bg-white border-0 pt-3 pb-2">
               <Card.Title as="h5" className="fw-bold mb-1">
-                {t("patientDetail.appointmentsTitle")}
+                Lịch hẹn khám
               </Card.Title>
               <Card.Subtitle className="text-muted small">
-                {t("patientDetail.appointmentsSub")}
+                Danh sách các cuộc hẹn của bệnh nhân
               </Card.Subtitle>
             </Card.Header>
             <Card.Body className="p-0">
               <Table responsive hover className="align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-3">{t("patientDetail.date")}</th>
-                    <th>{t("patientDetail.time")}</th>
-                    <th>{t("patientDetail.doctor")}</th>
-                    <th>{t("patientDetail.reason")}</th>
-                    <th className="pe-3">{t("patientDetail.status")}</th>
+                    <th className="ps-3">Ngày khám</th>
+                    <th>Giờ</th>
+                    <th>Bác sĩ phụ trách</th>
+                    <th>Lý do khám</th>
+                    <th className="pe-3">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -259,7 +257,7 @@ function PatientDetail() {
                       <td className="ps-3 fw-medium">{item.date}</td>
                       <td>{item.time}</td>
                       <td>{getDoctorName(item.doctorId)}</td>
-                      <td>{translateReason(item.reason, lang)}</td>
+                      <td>{translateReason(item.reason)}</td>
                       <td className="pe-3">
                         <StatusBadge status={item.status} />
                       </td>
@@ -268,7 +266,7 @@ function PatientDetail() {
                   {appointments.length === 0 && (
                     <tr>
                       <td colSpan={5} className="text-center py-4 text-muted">
-                        {t("dashboard.descRecentAppointments")}
+                        Chưa có lịch hẹn nào.
                       </td>
                     </tr>
                   )}
@@ -283,23 +281,23 @@ function PatientDetail() {
       <Card className="border-0 shadow-sm rounded-3">
         <Card.Header className="bg-white border-0 pt-3 pb-2">
           <Card.Title as="h5" className="fw-bold mb-1">
-            {t("patientDetail.recordsTitle")}
+            Lịch sử bệnh án
           </Card.Title>
           <Card.Subtitle className="text-muted small">
-            {t("patientDetail.recordsSub")}
+            Chi tiết các lần thăm khám và chẩn đoán
           </Card.Subtitle>
         </Card.Header>
         <Card.Body className="p-0">
           <Table responsive hover className="align-middle mb-0">
             <thead className="table-light">
               <tr>
-                <th className="ps-3">{t("patientDetail.date")}</th>
-                <th>{t("patientDetail.doctor")}</th>
-                <th>{t("patientDetail.glucose")}</th>
-                <th>{t("patientDetail.hba1c")}</th>
-                <th>{t("patientDetail.bmi")}</th>
-                <th>{t("patientDetail.bloodPressure")}</th>
-                <th className="pe-3">{t("patientDetail.diagnosis")}</th>
+                <th className="ps-3">Ngày khám</th>
+                <th>Bác sĩ phụ trách</th>
+                <th>Đường huyết</th>
+                <th>HbA1c</th>
+                <th>BMI</th>
+                <th>Huyết áp</th>
+                <th className="pe-3">Chẩn đoán</th>
               </tr>
             </thead>
             <tbody>
@@ -311,13 +309,13 @@ function PatientDetail() {
                   <td>{record.hba1c}%</td>
                   <td>{record.bmi}</td>
                   <td>{record.bloodPressure}</td>
-                  <td className="pe-3">{translateDiagnosis(record.diagnosis, lang)}</td>
+                  <td className="pe-3">{translateDiagnosis(record.diagnosis)}</td>
                 </tr>
               ))}
               {records.length === 0 && (
                 <tr>
                   <td colSpan={7} className="text-center py-4 text-muted">
-                    {t("patientDetail.noRecordMsg")}
+                    Bệnh nhân chưa có dữ liệu hồ sơ bệnh án nào.
                   </td>
                 </tr>
               )}

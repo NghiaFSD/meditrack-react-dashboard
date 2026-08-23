@@ -13,7 +13,6 @@ import ActionMenu from "../components/common/ActionMenu";
 import EmptyState from "../components/common/EmptyState";
 import { ROLES, findLinkedDoctor, findLinkedPatient } from "../utils/auth";
 import { useAuth } from "../context/AuthContext";
-import { useLanguage } from "../context/LanguageContext";
 import { translateReason } from "../utils/translations";
 
 const INITIAL_FORM = {
@@ -29,7 +28,6 @@ const INITIAL_FORM = {
  * Trang Quản lý Lịch hẹn khám (Thuần Tiếng Việt)
  */
 function Appointments() {
-  const { t } = useLanguage();
   const { user } = useAuth();
   const currentRole = user?.role;
 
@@ -247,14 +245,14 @@ function Appointments() {
     return actions;
   };
 
-  if (loading) return <Loading text={t("common.loading")} />;
+  if (loading) return <Loading text="Đang tải dữ liệu..." />;
 
   return (
     <Container fluid className="px-0">
       {/* Tiêu đề trang & Nút đặt lịch */}
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
-          <h2 className="fw-bold text-dark mb-1">{t("nav.appointments")}</h2>
+          <h2 className="fw-bold text-dark mb-1">Lịch hẹn khám</h2>
           <p className="text-muted mb-0">
             Quản lý lịch hẹn khám và theo dõi trạng thái tiếp nhận.
           </p>
@@ -311,13 +309,13 @@ function Appointments() {
               <thead className="table-light">
                 <tr>
                   <th className="ps-3">ID</th>
-                  <th>{t("patientDetail.date")}</th>
-                  <th>{t("patientDetail.time")}</th>
-                  <th>{t("appointments.tablePatient")}</th>
-                  <th>{t("appointments.tableDoctor")}</th>
-                  <th>{t("patientDetail.reason")}</th>
-                  <th>{t("patientDetail.status")}</th>
-                  <th className="text-center pe-3">{t("patients.tableAction")}</th>
+                  <th>Ngày khám</th>
+                  <th>Giờ</th>
+                  <th>Bệnh nhân</th>
+                  <th>Bác sĩ</th>
+                  <th>Lý do khám</th>
+                  <th>Trạng thái</th>
+                  <th className="text-center pe-3">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -354,7 +352,7 @@ function Appointments() {
           <Row className="g-3">
             <Col xs={12} md={6}>
               <Form.Group className="mb-3" controlId="apptPatient">
-                <Form.Label className="fw-semibold">{t("appointments.tablePatient")}</Form.Label>
+                <Form.Label className="fw-semibold">Bệnh nhân</Form.Label>
                 <Form.Select
                   name="patientId"
                   value={form.patientId}
@@ -373,7 +371,7 @@ function Appointments() {
 
             <Col xs={12} md={6}>
               <Form.Group className="mb-3" controlId="apptDoctor">
-                <Form.Label className="fw-semibold">{t("appointments.tableDoctor")}</Form.Label>
+                <Form.Label className="fw-semibold">Bác sĩ</Form.Label>
                 <Form.Select
                   name="doctorId"
                   value={form.doctorId}
@@ -392,7 +390,7 @@ function Appointments() {
 
             <Col xs={12} md={6}>
               <Input
-                label={t("patientDetail.date")}
+                label="Ngày khám"
                 name="date"
                 type="date"
                 value={form.date}
@@ -403,7 +401,7 @@ function Appointments() {
 
             <Col xs={12} md={6}>
               <Input
-                label={t("patientDetail.time")}
+                label="Giờ khám"
                 name="time"
                 type="time"
                 value={form.time}
@@ -414,7 +412,7 @@ function Appointments() {
 
             <Col xs={12}>
               <Input
-                label={t("patientDetail.reason")}
+                label="Lý do khám"
                 name="reason"
                 value={form.reason}
                 onChange={handleChange}
@@ -426,7 +424,7 @@ function Appointments() {
 
           <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              {t("patients.btnCancel")}
+              Hủy
             </Button>
             <Button variant="primary" type="submit">
               Lưu lịch hẹn

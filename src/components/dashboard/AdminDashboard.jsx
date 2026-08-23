@@ -6,7 +6,6 @@ import StatCard from "./StatCard";
 import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
-import { useLanguage } from "../../context/LanguageContext";
 import { translateReason } from "../../utils/translations";
 
 const RISK_COLORS = {
@@ -25,7 +24,6 @@ function AdminDashboard({
   records = [],
   onUpdateAppointmentStatus,
 }) {
-  const { t } = useLanguage();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -94,12 +92,12 @@ function AdminDashboard({
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
           <div className="d-flex align-items-center gap-2 mb-1">
-            <h2 className="fw-bold text-dark mb-0">{t("dashboard.admOperationsTitle")}</h2>
+            <h2 className="fw-bold text-dark mb-0">Trung tâm Điều hành Phòng khám</h2>
             <Badge bg="danger" className="px-2 py-1 fs-6 rounded-pill">
               <i className="bi bi-shield-lock me-1"></i>ADMIN
             </Badge>
           </div>
-          <p className="text-muted mb-0">{t("dashboard.admOperationsSub")}</p>
+          <p className="text-muted mb-0">Giám sát nguồn lực, bác sĩ, tiếp nhận bệnh nhân toàn viện</p>
         </div>
 
         {/* Thanh tác vụ nhanh của Admin */}
@@ -110,7 +108,7 @@ function AdminDashboard({
             onClick={() => navigate(ROUTES.PATIENTS)}
           >
             <i className="bi bi-person-plus-fill"></i>
-            <span>{t("dashboard.admQuickAddPatient")}</span>
+            <span>Thêm Bệnh nhân</span>
           </Button>
           <Button
             variant="outline-primary"
@@ -118,7 +116,7 @@ function AdminDashboard({
             onClick={() => navigate(ROUTES.APPOINTMENTS)}
           >
             <i className="bi bi-calendar-plus"></i>
-            <span>{t("dashboard.admQuickAddAppt")}</span>
+            <span>Tạo Lịch hẹn</span>
           </Button>
           <Button
             variant="outline-secondary"
@@ -126,7 +124,7 @@ function AdminDashboard({
             onClick={() => navigate(ROUTES.RECORDS)}
           >
             <i className="bi bi-file-earmark-medical"></i>
-            <span>{t("dashboard.admQuickAddRecord")}</span>
+            <span>Thêm Bệnh án</span>
           </Button>
         </div>
       </div>
@@ -135,10 +133,10 @@ function AdminDashboard({
       <Row className="g-3 mb-4">
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title={t("dashboard.statTotalPatients")}
+            title="Tổng bệnh nhân"
             value={patients.length}
             icon={<i className="bi bi-people-fill"></i>}
-            note={t("dashboard.noteActivePatients")}
+            note="Hồ sơ đang hoạt động"
             onClick={() =>
               openQuickView(
                 "patients",
@@ -151,10 +149,10 @@ function AdminDashboard({
         </Col>
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title={t("dashboard.statTotalDoctors")}
+            title="Tổng bác sĩ"
             value={doctors.length}
             icon={<i className="bi bi-person-badge-fill"></i>}
-            note={t("dashboard.noteAvailableDoctors")}
+            note="Bác sĩ sẵn sàng trực"
             onClick={() =>
               openQuickView(
                 "doctors",
@@ -167,10 +165,10 @@ function AdminDashboard({
         </Col>
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title={t("dashboard.statTodayAppointments")}
+            title="Lịch hẹn hôm nay"
             value={todayAppointments.length}
             icon={<i className="bi bi-calendar-check-fill"></i>}
-            note={t("dashboard.noteScheduleToday")}
+            note="Lịch khám đã lên"
             onClick={() =>
               openQuickView(
                 "appointments",
@@ -183,10 +181,10 @@ function AdminDashboard({
         </Col>
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title={t("dashboard.statMedicalRecords")}
+            title="Hồ sơ bệnh án"
             value={records.length}
             icon={<i className="bi bi-file-earmark-medical-fill"></i>}
-            note={t("dashboard.noteRecordsStored")}
+            note="Bệnh án lưu trữ"
             onClick={() =>
               openQuickView(
                 "records",
@@ -205,10 +203,10 @@ function AdminDashboard({
           <Card className="border-0 shadow-sm rounded-3 h-100">
             <Card.Header className="bg-white border-0 pt-3 pb-0">
               <Card.Title as="h5" className="fw-bold mb-1">
-                {t("dashboard.sectionApptStatus")}
+                Trạng thái Lịch hẹn
               </Card.Title>
               <Card.Subtitle className="text-muted small">
-                {t("dashboard.descApptStatus")}
+                Phân bố trạng thái lịch hẹn toàn viện
               </Card.Subtitle>
             </Card.Header>
             <Card.Body>
@@ -277,10 +275,10 @@ function AdminDashboard({
               <div>
                 <Card.Title as="h5" className="fw-bold mb-1 text-dark">
                   <i className="bi bi-clock-history text-warning me-2"></i>
-                  {t("dashboard.admGlobalQueueTitle")}
+                  Hàng đợi Tiếp nhận Lịch khám Toàn viện
                 </Card.Title>
                 <Card.Subtitle className="text-muted small">
-                  {t("dashboard.admGlobalQueueSub")}
+                  Tổng hợp các lịch hẹn đang chờ phân bổ và duyệt
                 </Card.Subtitle>
               </div>
               <Badge bg="warning" text="dark" className="px-2 py-1 rounded-pill">
@@ -291,11 +289,11 @@ function AdminDashboard({
               <Table responsive hover className="align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-3">{t("patientDetail.date")}</th>
-                    <th>{t("appointments.tablePatient")}</th>
-                    <th>{t("appointments.tableDoctor")}</th>
-                    <th>{t("patientDetail.reason")}</th>
-                    <th className="text-center pe-3">{t("patients.tableAction")}</th>
+                    <th className="ps-3">Ngày khám</th>
+                    <th>Bệnh nhân</th>
+                    <th>Bác sĩ</th>
+                    <th>Lý do khám</th>
+                    <th className="text-center pe-3">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -315,7 +313,7 @@ function AdminDashboard({
                           onClick={() => onUpdateAppointmentStatus(item, "Approved")}
                         >
                           <i className="bi bi-check me-1"></i>
-                          {t("dashboard.btnApprove")}
+                          Duyệt lịch
                         </Button>
                       </td>
                     </tr>
@@ -341,7 +339,7 @@ function AdminDashboard({
               <div>
                 <Card.Title as="h5" className="fw-bold mb-1 text-dark">
                   <i className="bi bi-person-plus text-primary me-2"></i>
-                  {t("dashboard.admRecentPatients")}
+                  Bệnh nhân mới tiếp nhận
                 </Card.Title>
                 <Card.Subtitle className="text-muted small">
                   Danh sách hồ sơ bệnh nhân đăng ký mới
@@ -355,10 +353,10 @@ function AdminDashboard({
               <Table responsive hover className="align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-3">{t("patients.tableCode")}</th>
-                    <th>{t("patients.tableName")}</th>
-                    <th>{t("patients.tableRisk")}</th>
-                    <th className="pe-3">{t("patients.tableStatus")}</th>
+                    <th className="ps-3">Mã BN</th>
+                    <th>Họ và tên</th>
+                    <th>Mức nguy cơ</th>
+                    <th className="pe-3">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody>

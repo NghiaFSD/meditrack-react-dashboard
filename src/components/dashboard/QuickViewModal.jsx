@@ -3,11 +3,10 @@ import { Modal, Table, Badge, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
-import { useLanguage } from "../../context/LanguageContext";
 import { translateDiagnosis, translateReason } from "../../utils/translations";
 
 /**
- * Modal dùng chung để Xem nhanh (Quick View Pop-up) khi click vào các ô StatCard trên Dashboard
+ * Modal dùng chung để Xem nhanh (Quick View Pop-up) khi click vào các ô StatCard trên Dashboard (Thuần Tiếng Việt)
  */
 function QuickViewModal({
   isOpen,
@@ -20,7 +19,6 @@ function QuickViewModal({
   doctors = [],
   onApproveAppointment,
 }) {
-  const { t } = useLanguage();
   const navigate = useNavigate();
 
   if (!isOpen) return null;
@@ -81,14 +79,14 @@ function QuickViewModal({
               <>
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-3">{t("patients.tableCode")}</th>
-                    <th>{t("patients.tableName")}</th>
-                    <th>{t("patients.tableGender")}</th>
-                    <th>{t("patients.tableAge")}</th>
-                    <th>{t("patients.tableRisk")}</th>
-                    <th>{t("patients.tableInsurance")}</th>
-                    <th>{t("patients.tablePhone")}</th>
-                    <th className="text-center pe-3">{t("patients.tableAction")}</th>
+                    <th className="ps-3">Mã BN</th>
+                    <th>Họ và tên</th>
+                    <th>Giới tính</th>
+                    <th>Tuổi</th>
+                    <th>Mức nguy cơ</th>
+                    <th>Bảo hiểm</th>
+                    <th>Số điện thoại</th>
+                    <th className="text-center pe-3">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -98,7 +96,7 @@ function QuickViewModal({
                         {p.patientCode || `PT-${String(p.id).padStart(3, "0")}`}
                       </td>
                       <td className="fw-medium text-dark">{p.fullName}</td>
-                      <td>{p.gender === "Male" ? t("patients.male") : t("patients.female")}</td>
+                      <td>{p.gender === "Male" ? "Nam" : "Nữ"}</td>
                       <td>{p.age}</td>
                       <td>
                         <StatusBadge status={p.riskLevel || "Low"} />
@@ -134,11 +132,11 @@ function QuickViewModal({
                   <tr>
                     <th className="ps-3">ID</th>
                     <th>Bác sĩ</th>
-                    <th>{t("dashboard.docSpecialty")}</th>
-                    <th>{t("dashboard.docRoom")}</th>
-                    <th>{t("dashboard.docShift")}</th>
-                    <th>{t("patients.tablePhone")}</th>
-                    <th className="pe-3">{t("patients.tableEmail")}</th>
+                    <th>Chuyên khoa</th>
+                    <th>Phòng khám</th>
+                    <th>Ca trực</th>
+                    <th>Số điện thoại</th>
+                    <th className="pe-3">Email</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -167,13 +165,13 @@ function QuickViewModal({
                 <thead className="table-light">
                   <tr>
                     <th className="ps-3">ID</th>
-                    <th>{t("patientDetail.date")}</th>
-                    <th>{t("patientDetail.time")}</th>
-                    <th>{t("appointments.tablePatient")}</th>
-                    <th>{t("appointments.tableDoctor")}</th>
-                    <th>{t("patientDetail.reason")}</th>
-                    <th>{t("patientDetail.status")}</th>
-                    {onApproveAppointment && <th className="text-center pe-3">{t("patients.tableAction")}</th>}
+                    <th>Ngày khám</th>
+                    <th>Giờ</th>
+                    <th>Bệnh nhân</th>
+                    <th>Bác sĩ</th>
+                    <th>Lý do khám</th>
+                    <th>Trạng thái</th>
+                    {onApproveAppointment && <th className="text-center pe-3">Thao tác</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -198,7 +196,7 @@ function QuickViewModal({
                               onClick={() => onApproveAppointment(a, "Approved")}
                             >
                               <i className="bi bi-check me-1"></i>
-                              {t("dashboard.btnApprove")}
+                              Duyệt lịch
                             </Button>
                           ) : a.status === "Approved" ? (
                             <Button
@@ -208,7 +206,7 @@ function QuickViewModal({
                               onClick={() => onApproveAppointment(a, "Completed")}
                             >
                               <i className="bi bi-check2-all me-1"></i>
-                              {t("dashboard.btnComplete")}
+                              Khám xong
                             </Button>
                           ) : (
                             <span className="text-muted small">✓ Đã duyệt</span>
@@ -227,13 +225,13 @@ function QuickViewModal({
                 <thead className="table-light">
                   <tr>
                     <th className="ps-3">ID</th>
-                    <th>{t("patientDetail.date")}</th>
-                    <th>{t("appointments.tablePatient")}</th>
-                    <th>{t("appointments.tableDoctor")}</th>
-                    <th>{t("patientDetail.glucose")}</th>
-                    <th>{t("patientDetail.hba1c")}</th>
-                    <th>{t("patientDetail.bloodPressure")}</th>
-                    <th>{t("patientDetail.diagnosis")}</th>
+                    <th>Ngày khám</th>
+                    <th>Bệnh nhân</th>
+                    <th>Bác sĩ</th>
+                    <th>Đường huyết</th>
+                    <th>HbA1c</th>
+                    <th>Huyết áp</th>
+                    <th>Chẩn đoán</th>
                     <th className="pe-3">Tái khám</th>
                   </tr>
                 </thead>

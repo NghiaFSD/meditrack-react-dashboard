@@ -12,7 +12,6 @@ import ActionMenu from "../components/common/ActionMenu";
 import EmptyState from "../components/common/EmptyState";
 import { ROLES, findLinkedDoctor, findLinkedPatient } from "../utils/auth";
 import { useAuth } from "../context/AuthContext";
-import { useLanguage } from "../context/LanguageContext";
 import { translateDiagnosis } from "../utils/translations";
 
 const INITIAL_FORM = {
@@ -31,7 +30,6 @@ const INITIAL_FORM = {
  * Trang Quản lý Hồ sơ Bệnh án Y tế (Thuần Tiếng Việt)
  */
 function MedicalRecords() {
-  const { t } = useLanguage();
   const { user } = useAuth();
   const currentRole = user?.role;
 
@@ -164,14 +162,14 @@ function MedicalRecords() {
     }
   };
 
-  if (loading) return <Loading text={t("common.loading")} />;
+  if (loading) return <Loading text="Đang tải dữ liệu..." />;
 
   return (
     <Container fluid className="px-0">
       {/* Tiêu đề trang & Nút thêm bệnh án */}
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
-          <h2 className="fw-bold text-dark mb-1">{t("nav.medicalRecords")}</h2>
+          <h2 className="fw-bold text-dark mb-1">Hồ sơ bệnh án</h2>
           <p className="text-muted mb-0">
             Theo dõi lịch sử khám bệnh, chỉ số sinh học và chẩn đoán lâm sàng.
           </p>
@@ -211,15 +209,15 @@ function MedicalRecords() {
               <thead className="table-light">
                 <tr>
                   <th className="ps-3">ID</th>
-                  <th>{t("patientDetail.date")}</th>
-                  <th>{t("appointments.tablePatient")}</th>
-                  <th>{t("appointments.tableDoctor")}</th>
-                  <th>{t("patientDetail.glucose")}</th>
-                  <th>{t("patientDetail.hba1c")}</th>
-                  <th>{t("patientDetail.bmi")}</th>
-                  <th>{t("patientDetail.bloodPressure")}</th>
-                  <th>{t("patientDetail.diagnosis")}</th>
-                  {canManage && <th className="text-center pe-3">{t("patients.tableAction")}</th>}
+                  <th>Ngày khám</th>
+                  <th>Bệnh nhân</th>
+                  <th>Bác sĩ</th>
+                  <th>Đường huyết</th>
+                  <th>HbA1c</th>
+                  <th>BMI</th>
+                  <th>Huyết áp</th>
+                  <th>Chẩn đoán</th>
+                  {canManage && <th className="text-center pe-3">Thao tác</th>}
                 </tr>
               </thead>
               <tbody>
@@ -276,7 +274,7 @@ function MedicalRecords() {
           <Row className="g-3">
             <Col xs={12} md={6}>
               <Form.Group className="mb-3" controlId="recPatient">
-                <Form.Label className="fw-semibold">{t("appointments.tablePatient")}</Form.Label>
+                <Form.Label className="fw-semibold">Bệnh nhân</Form.Label>
                 <Form.Select
                   name="patientId"
                   value={form.patientId}
@@ -295,7 +293,7 @@ function MedicalRecords() {
 
             <Col xs={12} md={6}>
               <Form.Group className="mb-3" controlId="recDoctor">
-                <Form.Label className="fw-semibold">{t("appointments.tableDoctor")}</Form.Label>
+                <Form.Label className="fw-semibold">Bác sĩ</Form.Label>
                 <Form.Select
                   name="doctorId"
                   value={form.doctorId}
@@ -314,7 +312,7 @@ function MedicalRecords() {
 
             <Col xs={12} md={6}>
               <Input
-                label={t("patientDetail.date")}
+                label="Ngày khám"
                 name="date"
                 type="date"
                 value={form.date}
@@ -325,7 +323,7 @@ function MedicalRecords() {
 
             <Col xs={12} md={6}>
               <Input
-                label={t("patientDetail.glucose")}
+                label="Đường huyết"
                 name="glucose"
                 type="number"
                 value={form.glucose}
@@ -336,7 +334,7 @@ function MedicalRecords() {
 
             <Col xs={12} md={4}>
               <Input
-                label={t("patientDetail.hba1c")}
+                label="HbA1c"
                 name="hba1c"
                 type="number"
                 step="0.1"
@@ -348,7 +346,7 @@ function MedicalRecords() {
 
             <Col xs={12} md={4}>
               <Input
-                label={t("patientDetail.bmi")}
+                label="Chỉ số BMI"
                 name="bmi"
                 type="number"
                 step="0.1"
@@ -360,7 +358,7 @@ function MedicalRecords() {
 
             <Col xs={12} md={4}>
               <Input
-                label={t("patientDetail.bloodPressure")}
+                label="Huyết áp"
                 name="bloodPressure"
                 value={form.bloodPressure}
                 onChange={handleChange}
@@ -370,7 +368,7 @@ function MedicalRecords() {
 
             <Col xs={12}>
               <Input
-                label={t("patientDetail.diagnosis")}
+                label="Chẩn đoán"
                 name="diagnosis"
                 value={form.diagnosis}
                 onChange={handleChange}
@@ -382,7 +380,7 @@ function MedicalRecords() {
 
           <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              {t("patients.btnCancel")}
+              Hủy
             </Button>
             <Button variant="primary" type="submit">
               Lưu bệnh án

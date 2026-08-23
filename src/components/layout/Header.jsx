@@ -2,7 +2,6 @@ import React from "react";
 import { Navbar, Container, Nav, Badge, Button } from "react-bootstrap";
 import { getRoleLabel } from "../../utils/auth";
 import { useAuth } from "../../context/AuthContext";
-import { useLanguage } from "../../context/LanguageContext";
 
 /**
  * Header hiển thị thông tin người dùng đang đăng nhập bằng React-Bootstrap
@@ -11,7 +10,6 @@ function Header() {
   const { user } = useAuth();
   const currentUser = user || {};
   const roleLabel = getRoleLabel(currentUser.role);
-  const { t } = useLanguage();
 
   const getRoleBadgeVariant = (role) => {
     switch (role) {
@@ -26,6 +24,12 @@ function Header() {
     }
   };
 
+  const getRoleDescription = (role) => {
+    if (role === "PATIENT") return "Xem lịch khám, hồ sơ bệnh án và sức khỏe của bạn.";
+    if (role === "DOCTOR") return "Theo dõi bệnh nhân phụ trách, lịch hẹn và bệnh án.";
+    return "Tổng hợp bệnh nhân, lịch hẹn và hồ sơ bệnh án toàn viện.";
+  };
+
   return (
     <Navbar bg="white" expand="lg" className="border-bottom shadow-sm py-2 px-3 mb-4 sticky-top">
       <Container fluid className="px-0">
@@ -34,11 +38,7 @@ function Header() {
             {`Chào mừng trở lại, ${currentUser.fullName || "Khách"}`}
           </h4>
           <small className="text-muted">
-            {currentUser.role === "PATIENT"
-              ? t("dashboard.descPatient")
-              : currentUser.role === "DOCTOR"
-              ? t("dashboard.descDoctor")
-              : t("dashboard.descAdmin")}
+            {getRoleDescription(currentUser.role)}
           </small>
         </div>
 
@@ -47,7 +47,7 @@ function Header() {
           <Button variant="light" size="sm" className="rounded-circle p-2 text-muted border-0 position-relative">
             <i className="bi bi-bell fs-5"></i>
             <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-              <span className="visually-hidden">New alerts</span>
+              <span className="visually-hidden">Thông báo mới</span>
             </span>
           </Button>
 

@@ -6,7 +6,6 @@ import HealthChart from "./HealthChart";
 import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
-import { useLanguage } from "../../context/LanguageContext";
 import { translateReason } from "../../utils/translations";
 
 /**
@@ -19,7 +18,6 @@ function DoctorDashboard({
   records = [],
   onUpdateAppointmentStatus,
 }) {
-  const { t } = useLanguage();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -129,15 +127,15 @@ function DoctorDashboard({
                   <div className="d-flex flex-wrap gap-2 mt-1">
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-hospital me-1"></i>
-                      {t("dashboard.docSpecialty")}: {doctor?.specialization || "Nội tiết"}
+                      Chuyên khoa: {doctor?.specialization || "Nội tiết"}
                     </Badge>
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-door-open me-1"></i>
-                      {t("dashboard.docRoom")}: {doctor?.room || "A-201"}
+                      Phòng khám: {doctor?.room || "A-201"}
                     </Badge>
                     <Badge bg="light" text="dark" className="fw-semibold">
                       <i className="bi bi-clock me-1"></i>
-                      {t("dashboard.docShift")}: {doctor?.shift === "Morning" ? "Ca sáng" : "Ca chiều"}
+                      Ca trực: {doctor?.shift === "Morning" ? "Ca sáng" : "Ca chiều"}
                     </Badge>
                   </div>
                 </div>
@@ -161,7 +159,7 @@ function DoctorDashboard({
       <Row className="g-3 mb-4">
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title={t("dashboard.docMyAssignedPatients")}
+            title="Bệnh nhân phụ trách"
             value={myPatients.length}
             icon={<i className="bi bi-people-fill"></i>}
             note="Đang theo dõi điều trị"
@@ -177,10 +175,10 @@ function DoctorDashboard({
         </Col>
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title={t("dashboard.docMyTodayAppointments")}
+            title="Lịch khám hôm nay"
             value={myTodayAppointments.length}
             icon={<i className="bi bi-calendar-event-fill"></i>}
-            note="Lịch khám hôm nay"
+            note="Lịch khám đã lên lịch"
             onClick={() =>
               openQuickView(
                 "appointments",
@@ -193,7 +191,7 @@ function DoctorDashboard({
         </Col>
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title={t("dashboard.docPendingMyApprovals")}
+            title="Yêu cầu chờ tôi duyệt"
             value={myPendingApprovals.length}
             icon={<i className="bi bi-clock-history"></i>}
             note="Cần duyệt gấp"
@@ -209,7 +207,7 @@ function DoctorDashboard({
         </Col>
         <Col xs={12} sm={6} lg={3}>
           <StatCard
-            title={t("dashboard.docDiagnosedRecords")}
+            title="Bệnh án đã chẩn đoán"
             value={myRecords.length}
             icon={<i className="bi bi-clipboard-pulse"></i>}
             note="Bệnh án đã lập"
@@ -233,10 +231,10 @@ function DoctorDashboard({
               <div>
                 <Card.Title as="h5" className="fw-bold mb-1 text-dark">
                   <i className="bi bi-list-check text-primary me-2"></i>
-                  {t("dashboard.docTodayQueueTitle")}
+                  Hàng đợi Khám & Duyệt lịch hôm nay
                 </Card.Title>
                 <Card.Subtitle className="text-muted small">
-                  {t("dashboard.docTodayQueueSub")}
+                  Các ca khám cần tiếp nhận và xử lý trong ngày
                 </Card.Subtitle>
               </div>
               <Badge bg="primary" className="px-2 py-1 rounded-pill">
@@ -247,11 +245,11 @@ function DoctorDashboard({
               <Table responsive hover className="align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-3">{t("patientDetail.time")}</th>
-                    <th>{t("appointments.tablePatient")}</th>
-                    <th>{t("patientDetail.reason")}</th>
-                    <th>{t("patientDetail.status")}</th>
-                    <th className="text-center pe-3">{t("patients.tableAction")}</th>
+                    <th className="ps-3">Giờ khám</th>
+                    <th>Bệnh nhân</th>
+                    <th>Lý do khám</th>
+                    <th>Trạng thái</th>
+                    <th className="text-center pe-3">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -280,7 +278,7 @@ function DoctorDashboard({
                               title="Duyệt lịch khám"
                             >
                               <i className="bi bi-check me-1"></i>
-                              {t("dashboard.btnApprove")}
+                              Duyệt lịch
                             </Button>
                           )}
                           {item.status === "Approved" && (
@@ -292,7 +290,7 @@ function DoctorDashboard({
                               title="Hoàn thành khám bệnh"
                             >
                               <i className="bi bi-check2-all me-1"></i>
-                              {t("dashboard.btnComplete")}
+                              Khám xong
                             </Button>
                           )}
                           {item.status === "Completed" && (
@@ -306,7 +304,7 @@ function DoctorDashboard({
                     <tr>
                       <td colSpan={5} className="text-center py-4 text-muted">
                         <i className="bi bi-check-circle fs-3 text-success d-block mb-1"></i>
-                        {t("dashboard.docNoQueue")}
+                        Không có cuộc hẹn nào trong hàng đợi hôm nay.
                       </td>
                     </tr>
                   )}
@@ -323,10 +321,10 @@ function DoctorDashboard({
               <div>
                 <Card.Title as="h5" className="fw-bold mb-1 text-danger">
                   <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                  {t("dashboard.docHighRiskTitle")}
+                  Cảnh báo Bệnh nhân Nguy cơ cao
                 </Card.Title>
                 <Card.Subtitle className="text-muted small">
-                  {t("dashboard.docHighRiskSub")}
+                  Chỉ số Glucose &gt; 140 mg/dL hoặc Huyết áp bất thường cần theo dõi sát
                 </Card.Subtitle>
               </div>
               <Badge bg="danger" className="px-2 py-1 rounded-pill">
@@ -337,10 +335,10 @@ function DoctorDashboard({
               <Table responsive hover className="align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-3">{t("patients.tableName")}</th>
-                    <th>{t("patientDetail.glucose")}</th>
-                    <th>{t("patientDetail.bloodPressure")}</th>
-                    <th className="pe-3">{t("patients.tableAction")}</th>
+                    <th className="ps-3">Họ và tên</th>
+                    <th>Đường huyết</th>
+                    <th>Huyết áp</th>
+                    <th className="pe-3">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -370,7 +368,7 @@ function DoctorDashboard({
                     <tr>
                       <td colSpan={4} className="text-center py-4 text-muted">
                         <i className="bi bi-shield-check fs-3 text-success d-block mb-1"></i>
-                        {t("dashboard.docNoHighRisk")}
+                        Hiện không có bệnh nhân nào có cảnh báo rủi ro cao.
                       </td>
                     </tr>
                   )}
