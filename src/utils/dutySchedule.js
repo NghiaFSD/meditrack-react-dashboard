@@ -123,3 +123,65 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
 
   return schedule;
 }
+
+/**
+ * Parse chuỗi khung giờ "07:30 - 11:30" thành 2 đối tượng Date theo ngày cụ thể
+ */
+function parseShiftTimes(shiftHours, dateStr) {
+  if (!shiftHours || shiftHours === "Nghỉ trực" || shiftHours === "Nghỉ cuối tuần") return null;
+  const parts = shiftHours.split(" - ");
+  if (parts.length !== 2) return null;
+  const [startStr, endStr] = parts.map((s) => s.trim());
+  const start = new Date(`${dateStr}T${startStr}:00`);
+  const end = new Date(`${dateStr}T${endStr}:00`);
+  if (isNaN(start) || isNaN(end)) return null;
+  return { start, end };
+}
+
+/**
+ * Xác định trạng thái ca trực theo thời gian thực (now = Date object hiện tại)
+ * Trả về: { key, label, variant, icon }
+ *
+ * Logic:
+ *  - Ngày đã qua (isPassed) → "Đã qua"
+ *  - Hôm nay (isToday):
+ *      + Trước giờ bắt đầu ca → "Sắp tới"
+ *      + Trong khung giờ ca  → "Đang trực"
+ *      + Sau giờ kết thúc ca → "Đã qua"
+ *  - Ngày tương lai (isWorking) → "Sắp tới"
+ *  - Không làm việc (isWorking=false) → "Nghỉ ca"
+ */
+export function getRealtimeShiftStatus(row, now = new Date()) {
+  const { isPassed, isToday, isWorking, shiftHours, date } = row;
+
+  if (!isWorking) {
+    return { key: "off", label: "Nghỉ ca", variant: "light", icon: "bi-pause-circle" };
+  }
+
+  if (isPassed) {
+    return { key: "passed", label: "Đã qua", variant: "secondary", icon: "bi-clock-history" };
+  }
+
+  if (isToday) {
+    const times = parseShiftTimes(shiftHours, date);
+    if (times) {
+      if (now < times.start) {
+        // Trước giờ bắt đầu ca
+        const diffMin = Math.round((times.start - now) / 60000);
+        const label = diffMin <= 60 ? `Sắp tới (${diffMin}p)` : "Sắp tới";
+        return { key: "upcoming", label, variant: "primary", icon: "bi-calendar-check" };
+      }
+      if (now >= times.start && now <= times.end) {
+        // Đang trong ca trực
+        return { key: "active", label: "Đang trực", variant: "success", icon: "bi-broadcast" };
+      }
+      // Đã hết ca hôm nay
+      return { key: "passed", label: "Đã qua", variant: "secondary", icon: "bi-clock-history" };
+    }
+    // Không parse được giờ → fallback "Đang trực" nếu là hôm nay
+    return { key: "active", label: "Đang trực", variant: "success", icon: "bi-broadcast" };
+  }
+
+  // Ngày tương lai, có làm việc
+  return { key: "upcoming", label: "Sắp tới", variant: "primary", icon: "bi-calendar-check" };
+}

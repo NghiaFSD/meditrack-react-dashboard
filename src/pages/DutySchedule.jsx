@@ -4,7 +4,7 @@ import { doctorApi } from "../api/doctorApi";
 import { appointmentApi } from "../api/appointmentApi";
 import Loading from "../components/common/Loading";
 import SearchBox from "../components/common/SearchBox";
-import { getDoctorWeeklySchedule } from "../utils/dutySchedule";
+import { getDoctorWeeklySchedule, getRealtimeShiftStatus } from "../utils/dutySchedule";
 
 /**
  * Trang Quản lý Lịch trực Bác sĩ — Dành riêng cho Admin
@@ -19,7 +19,14 @@ function DutySchedule() {
   const [shiftFilter, setShiftFilter] = useState("All");
   const [dayFilter, setDayFilter] = useState("All");
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Timer cập nhật mỗi phút — để trạng thái tự chuyển theo giờ thực
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const today = currentTime.toISOString().slice(0, 10);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,14 +59,17 @@ function DutySchedule() {
     });
   }, [doctors, appointments]);
 
-  // Thống kê tổng quan hôm nay
+  // Thống kê tổng quan hôm nay — tính theo giờ thực
   const todayStats = useMemo(() => {
     const todayRows = allScheduleRows.filter((r) => r.isToday);
     const morning = todayRows.filter((r) => r.shiftType === "Ca sáng").length;
     const afternoon = todayRows.filter((r) => r.shiftType === "Ca chiều").length;
-    const working = todayRows.filter((r) => r.isWorking).length;
+    // "Đang trực" = ca đang trong khung giờ theo thời gian thực
+    const working = todayRows.filter(
+      (r) => getRealtimeShiftStatus(r, currentTime).key === "active"
+    ).length;
     return { morning, afternoon, working, total: doctors.length };
-  }, [allScheduleRows, doctors.length]);
+  }, [allScheduleRows, doctors.length, currentTime]);
 
   // Lấy danh sách ngày duy nhất để lọc
   const uniqueDays = useMemo(() => {
@@ -256,15 +266,20 @@ function DutySchedule() {
                           )}
                         </td>
                         <td className="pe-4">
-                          {r.isPassed ? (
-                            <Badge bg="secondary" className="px-2 py-1"><i className="bi bi-clock-history me-1"></i>Đã qua</Badge>
-                          ) : r.isToday ? (
-                            <Badge bg="success" className="px-2 py-1"><i className="bi bi-broadcast me-1"></i>Đang trực</Badge>
-                          ) : r.isWorking ? (
-                            <Badge bg="primary" className="px-2 py-1"><i className="bi bi-calendar-check me-1"></i>Sắp tới</Badge>
-                          ) : (
-                            <Badge bg="light" text="dark" className="border px-2 py-1"><i className="bi bi-pause-circle me-1"></i>Nghỉ ca</Badge>
-                          )}
+                          {(() => {
+                            const s = getRealtimeShiftStatus(r, currentTime);
+                            const isOff = s.key === "off";
+                            return (
+                              <Badge
+                                bg={s.variant}
+                                text={isOff ? "dark" : undefined}
+                                className={`px-2 py-1${isOff ? " border" : ""}`}
+                              >
+                                <i className={`bi ${s.icon} me-1`}></i>
+                                {s.label}
+                              </Badge>
+                            );
+                          })()}
                         </td>
                       </tr>
                     ))}
