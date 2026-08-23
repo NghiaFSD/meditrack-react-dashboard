@@ -66,8 +66,8 @@ function Appointments() {
   const linkedPatient = useMemo(() => findLinkedPatient(patients, user), [patients, user]);
   const linkedDoctor = useMemo(() => findLinkedDoctor(doctors, user), [doctors, user]);
 
-  const canCreate = currentRole === ROLES.ADMIN || currentRole === ROLES.PATIENT;
-  const canManage = currentRole === ROLES.ADMIN || currentRole === ROLES.DOCTOR;
+  const canCreate = currentRole === ROLES.PATIENT;
+  const canManage = currentRole === ROLES.DOCTOR;
 
   // Lọc dữ liệu theo Role
   const roleFilteredAppointments = useMemo(() => {
@@ -83,7 +83,7 @@ function Appointments() {
   }, [appointments, currentRole, linkedPatient, linkedDoctor]);
 
   const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
-  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(d.id))?.fullName || "Chưa xác định";
+  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Chưa xác định";
 
   // Lọc theo tìm kiếm và trạng thái
   const filteredAppointments = useMemo(() => {

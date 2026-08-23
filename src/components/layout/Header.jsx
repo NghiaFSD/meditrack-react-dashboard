@@ -27,7 +27,7 @@ function Header() {
   const getRoleDescription = (role) => {
     if (role === "PATIENT") return "Xem lịch khám, hồ sơ bệnh án và sức khỏe của bạn.";
     if (role === "DOCTOR") return "Theo dõi bệnh nhân phụ trách, lịch hẹn và bệnh án.";
-    return "Tổng hợp bệnh nhân, lịch hẹn và hồ sơ bệnh án toàn viện.";
+    return "Quản lý bác sĩ, lịch trực và tiếp nhận bệnh nhân toàn viện.";
   };
 
   return (

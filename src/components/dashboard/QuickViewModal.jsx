@@ -24,7 +24,7 @@ function QuickViewModal({
   if (!isOpen) return null;
 
   const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
-  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(d.id))?.fullName || "Chưa xác định";
+  const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Chưa xác định";
 
   const getTargetPageUrl = () => {
     switch (type) {

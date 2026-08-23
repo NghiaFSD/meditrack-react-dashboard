@@ -18,6 +18,12 @@ export const menuItems = [
     allowedRoles: [ROLES.ADMIN],
   },
   {
+    path: ROUTES.DUTY_SCHEDULE,
+    label: "Lịch trực Bác sĩ",
+    icon: "bi-calendar-week-fill",
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
     path: ROUTES.PATIENTS,
     label: "Bệnh nhân",
     doctorLabel: "Bệnh nhân của tôi",

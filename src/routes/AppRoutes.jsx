@@ -6,6 +6,7 @@ import MainLayout from "../components/layout/MainLayout";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Doctors from "../pages/Doctors";
+import DutySchedule from "../pages/DutySchedule";
 import Patients from "../pages/Patients";
 import PatientDetail from "../pages/PatientDetail";
 import PatientEdit from "../pages/PatientEdit";
@@ -61,6 +62,16 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
               <Doctors />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Quản lý Lịch trực Bác sĩ (Dành riêng cho Admin) */}
+        <Route
+          path={ROUTES.DUTY_SCHEDULE.replace(/^\//, "")}
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+              <DutySchedule />
             </ProtectedRoute>
           }
         />

@@ -7,6 +7,7 @@ export const ROUTES = {
   ACCESS_DENIED: "/access-denied",
   DASHBOARD: "/dashboard",
   DOCTORS: "/doctors",
+  DUTY_SCHEDULE: "/duty-schedule",
   PATIENTS: "/patients",
   PATIENT_DETAIL: (id) => (id ? `/patients/${id}` : "/patients/:id"),
   PATIENT_EDIT: (id) => (id ? `/patients/${id}/edit` : "/patients/:id/edit"),
