@@ -337,22 +337,36 @@ function DoctorDashboard({
                   className={`w-100 border rounded-3 p-3 transition-all ${
                     day.isToday
                       ? "border-primary bg-primary bg-opacity-10 shadow-sm"
+                      : day.isPassed
+                      ? "bg-light bg-opacity-50 text-muted border-secondary-subtle opacity-75"
                       : day.status === "off"
                       ? "bg-light border-light text-muted"
                       : "bg-white"
                   }`}
-                  style={{ minHeight: "155px" }}
+                  style={{ minHeight: "160px" }}
                 >
                   <div className="d-flex justify-content-between align-items-center mb-1">
-                    <span className={`fw-bold small ${day.isToday ? "text-primary" : "text-dark"}`}>
+                    <span className={`fw-bold small ${day.isToday ? "text-primary" : day.isPassed ? "text-muted" : "text-dark"}`}>
                       {day.dayName}
                     </span>
                     <small className="text-muted">{day.displayDate}</small>
                   </div>
 
-                  {day.isToday && (
+                  {day.isToday ? (
                     <Badge bg="danger" className="mb-2 align-self-start rounded-pill" style={{ fontSize: "0.65rem" }}>
-                      Hôm nay
+                      <i className="bi bi-broadcast me-1"></i>Hôm nay
+                    </Badge>
+                  ) : day.isPassed ? (
+                    <Badge bg="secondary" className="mb-2 align-self-start rounded-pill" style={{ fontSize: "0.65rem" }}>
+                      <i className="bi bi-clock-history me-1"></i>Đã qua
+                    </Badge>
+                  ) : day.isWorking ? (
+                    <Badge bg="primary" className="mb-2 align-self-start rounded-pill bg-opacity-75" style={{ fontSize: "0.65rem" }}>
+                      <i className="bi bi-calendar-check me-1"></i>Sắp tới
+                    </Badge>
+                  ) : (
+                    <Badge bg="light" text="dark" className="border mb-2 align-self-start rounded-pill" style={{ fontSize: "0.65rem" }}>
+                      Nghỉ ca
                     </Badge>
                   )}
 

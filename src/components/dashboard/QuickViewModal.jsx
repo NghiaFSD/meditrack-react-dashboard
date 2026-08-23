@@ -314,10 +314,25 @@ function QuickViewModal({
                         )}
                       </td>
                       <td className="pe-3">
-                        {item.status === "active" ? (
-                          <Badge bg="success">Đang xếp trực</Badge>
+                        {item.isPassed ? (
+                          <Badge bg="secondary" className="px-2 py-1">
+                            <i className="bi bi-clock-history me-1"></i>
+                            Đã qua
+                          </Badge>
+                        ) : item.isToday ? (
+                          <Badge bg="success" className="px-2 py-1">
+                            <i className="bi bi-broadcast me-1"></i>
+                            Đang trực
+                          </Badge>
+                        ) : item.isWorking ? (
+                          <Badge bg="primary" className="px-2 py-1">
+                            <i className="bi bi-calendar-check me-1"></i>
+                            Sắp tới
+                          </Badge>
                         ) : (
-                          <Badge bg="secondary">Nghỉ ca</Badge>
+                          <Badge bg="light" text="dark" className="border px-2 py-1">
+                            Nghỉ ca
+                          </Badge>
                         )}
                       </td>
                     </tr>
