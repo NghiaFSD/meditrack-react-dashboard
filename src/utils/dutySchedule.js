@@ -2,6 +2,17 @@
  * Tiện ích tạo và quản lý Lịch trực tuần cho Bác sĩ (Doctor Weekly Duty Schedule)
  */
 
+/**
+ * Lấy chuỗi ngày theo múi giờ địa phương (local time) dạng "YYYY-MM-DD"
+ * Tránh lỗi lệch ngày khi dùng toISOString() (trả UTC, khác local ở 0h-7h giờ VN)
+ */
+export function getLocalDateStr(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 // Danh sách các thứ trong tuần
 const DAY_NAMES = [
   "Chủ Nhật",
@@ -19,13 +30,14 @@ const DAY_NAMES = [
  */
 export function getDoctorWeeklySchedule(doctor, appointments = []) {
   const curr = new Date();
-  const currentDayIndex = curr.getDay(); // 0 = CN, 1 = T2,...
+  const currentDayIndex = curr.getDay();
   const mondayOffset = currentDayIndex === 0 ? -6 : 1 - currentDayIndex;
 
   const monday = new Date(curr);
   monday.setDate(curr.getDate() + mondayOffset);
 
-  const todayStr = curr.toISOString().slice(0, 10);
+  // Dùng local date (getFullYear/Month/Date) thay vì toISOString() — tránh lệch ngày 0h-7h VN
+  const todayStr = getLocalDateStr(curr);
   const docShift = doctor?.shift || "Morning";
   const docRoom = doctor?.room || "A-201";
 
@@ -34,7 +46,8 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
   for (let i = 0; i < 7; i++) {
     const dayDate = new Date(monday);
     dayDate.setDate(monday.getDate() + i);
-    const dateStr = dayDate.toISOString().slice(0, 10);
+    // Dùng local date cho từng ngày trong tuần
+    const dateStr = getLocalDateStr(dayDate);
     const dayName = DAY_NAMES[dayDate.getDay()];
     const isToday = dateStr === todayStr;
     const isPassed = dateStr < todayStr;

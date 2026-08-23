@@ -7,6 +7,7 @@ import QuickViewModal from "./QuickViewModal";
 import { ROUTES } from "../../config/routes";
 import { getGlucoseStatus, getHbA1cStatus } from "../../utils/healthStatus";
 import { translateDiagnosis, translateReason } from "../../utils/translations";
+import { getLocalDateStr } from "../../utils/dutySchedule";
 
 /**
  * Giao diện Cổng thông tin Sức khỏe Cá nhân cho Bệnh nhân (Patient Health Portal - Thuần Tiếng Việt)
@@ -18,7 +19,7 @@ function PatientDashboard({
   records = [],
 }) {
   const navigate = useNavigate();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDateStr();
 
   // State quản lý QuickViewModal
   const [modalConfig, setModalConfig] = useState({

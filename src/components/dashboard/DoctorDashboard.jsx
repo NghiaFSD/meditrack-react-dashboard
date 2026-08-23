@@ -8,7 +8,7 @@ import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
 import { translateReason } from "../../utils/translations";
-import { getDoctorWeeklySchedule } from "../../utils/dutySchedule";
+import { getDoctorWeeklySchedule, getLocalDateStr } from "../../utils/dutySchedule";
 
 /**
  * Giao diện Bàn làm việc Bác sĩ Lâm sàng (Doctor Clinical Workstation - Thuần Tiếng Việt)
@@ -21,7 +21,7 @@ function DoctorDashboard({
   onUpdateAppointmentStatus,
 }) {
   const navigate = useNavigate();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDateStr();
 
   // State quản lý QuickViewModal
   const [modalConfig, setModalConfig] = useState({

@@ -4,7 +4,7 @@ import { doctorApi } from "../api/doctorApi";
 import { appointmentApi } from "../api/appointmentApi";
 import Loading from "../components/common/Loading";
 import SearchBox from "../components/common/SearchBox";
-import { getDoctorWeeklySchedule, getRealtimeShiftStatus } from "../utils/dutySchedule";
+import { getDoctorWeeklySchedule, getRealtimeShiftStatus, getLocalDateStr } from "../utils/dutySchedule";
 
 /**
  * Trang Quản lý Lịch trực Bác sĩ — Dành riêng cho Admin
@@ -26,7 +26,8 @@ function DutySchedule() {
     return () => clearInterval(timer);
   }, []);
 
-  const today = currentTime.toISOString().slice(0, 10);
+  // today luôn là ngày local — tránh lệch UTC khi dùng toISOString()
+  const today = getLocalDateStr(currentTime);
 
   useEffect(() => {
     const fetchData = async () => {

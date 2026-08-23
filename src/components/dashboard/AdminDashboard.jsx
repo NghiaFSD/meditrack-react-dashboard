@@ -7,6 +7,7 @@ import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
 import { getDoctorWeeklySchedule } from "../../utils/dutySchedule";
+import { getLocalDateStr } from "../../utils/dutySchedule";
 
 const RISK_COLORS = {
   High: "#dc3545",
@@ -25,7 +26,7 @@ function AdminDashboard({
   onUpdateAppointmentStatus,
 }) {
   const navigate = useNavigate();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDateStr();
 
   // State quản lý QuickViewModal
   const [modalConfig, setModalConfig] = useState({
