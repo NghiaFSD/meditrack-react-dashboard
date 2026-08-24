@@ -4,6 +4,9 @@ import react from "@vitejs/plugin-react";
 // Cấu hình Vite & Tối ưu hóa Code Splitting cho React app
 export default defineConfig({
   plugins: [react()],
+  server: {
+    port: 3000,
+  },
   build: {
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
