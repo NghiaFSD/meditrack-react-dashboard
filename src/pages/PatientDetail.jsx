@@ -21,7 +21,7 @@ import { translateDiagnosis, translateReason } from "../utils/translations";
 function PatientDetail() {
   const { id } = useParams();
   const currentUser = getCurrentUser();
-  const canManage = currentUser?.role === ROLES.ADMIN || currentUser?.role === ROLES.DOCTOR;
+  const canManage = currentUser?.role === ROLES.ADMIN; // Chỉ Admin mới chỉnh sửa bệnh nhân
   const [patient, setPatient] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [records, setRecords] = useState([]);

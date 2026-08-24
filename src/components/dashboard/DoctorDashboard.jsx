@@ -11,6 +11,45 @@ import { translateReason } from "../../utils/translations";
 import { getDoctorWeeklySchedule, getLocalDateStr } from "../../utils/dutySchedule";
 
 /**
+ * Sub-component: Chọn bệnh nhân để xem biểu đồ đường huyết
+ * Dùng trong DoctorDashboard — cho phép bác sĩ lọc glucose chart theo từng bệnh nhân
+ */
+function SelectedPatientGlucoseChart({ myPatients, myRecords, defaultPatientId }) {
+  const [selectedId, setSelectedId] = React.useState(String(defaultPatientId || ""));
+
+  const selectedPatient = myPatients.find((p) => String(p.id) === selectedId);
+  const filteredRecords = myRecords
+    .filter((r) => String(r.patientId) === selectedId)
+    .sort((a, b) => (a.date > b.date ? 1 : -1));
+
+  return (
+    <div className="mb-4">
+      <div className="d-flex align-items-center gap-3 mb-2 flex-wrap">
+        <h6 className="fw-bold text-dark mb-0">
+          <i className="bi bi-graph-up-arrow text-primary me-2"></i>
+          Biểu đồ Đường huyết
+        </h6>
+        <select
+          className="form-select form-select-sm w-auto"
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value)}
+        >
+          {myPatients.map((p) => (
+            <option key={p.id} value={String(p.id)}>
+              {p.fullName} ({p.patientCode || `#${p.id}`})
+            </option>
+          ))}
+        </select>
+      </div>
+      <HealthChart
+        data={filteredRecords}
+        patientName={selectedPatient?.fullName || null}
+      />
+    </div>
+  );
+}
+
+/**
  * Giao diện Bàn làm việc Bác sĩ Lâm sàng (Doctor Clinical Workstation - Thuần Tiếng Việt)
  */
 function DoctorDashboard({
@@ -559,8 +598,18 @@ function DoctorDashboard({
         </Col>
       </Row>
 
-      {/* Biểu đồ xu hướng điều trị của bệnh nhân phụ trách */}
-      <HealthChart data={myRecords} />
+      {/* Biểu đồ xu hướng đường huyết — chọn bệnh nhân cụ thể */}
+      {myPatients.length > 0 && (() => {
+        // Chọn mặc định bệnh nhân nguy cơ cao đầu tiên, hoặc bệnh nhân đầu tiên
+        const defaultPatient = highRiskPatients[0] || myPatients[0];
+        return (
+          <SelectedPatientGlucoseChart
+            myPatients={myPatients}
+            myRecords={myRecords}
+            defaultPatientId={defaultPatient?.id}
+          />
+        );
+      })()}
 
       {/* Quick View Modal */}
       <QuickViewModal

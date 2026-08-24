@@ -96,7 +96,7 @@ function AppRoutes() {
         <Route
           path={ROUTES.PATIENT_EDIT().replace(/^\//, "")}
           element={
-            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.DOCTOR]}>
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
               <PatientEdit />
             </ProtectedRoute>
           }

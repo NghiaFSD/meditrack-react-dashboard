@@ -12,17 +12,32 @@ import {
 
 /**
  * Biểu đồ đường hiển thị chỉ số Glucose sử dụng React-Bootstrap Card & Recharts (Thuần Tiếng Việt)
+ * patientName: tên bệnh nhân được hiển thị trên tiêu đề biểu đồ
  */
-function HealthChart({ data }) {
+function HealthChart({ data, patientName = null }) {
   return (
     <Card className="border-0 shadow-sm rounded-3 mb-4">
-      <Card.Header className="bg-white border-0 pt-3 pb-0">
-        <Card.Title as="h5" className="fw-bold mb-1">
-          Chỉ số Đường huyết (Glucose)
-        </Card.Title>
-        <Card.Subtitle className="text-muted small">
-          Theo dõi diễn tiến chỉ số đường huyết qua các lần khám
-        </Card.Subtitle>
+      <Card.Header className="bg-white border-0 pt-3 pb-0 d-flex align-items-start justify-content-between">
+        <div>
+          <Card.Title as="h5" className="fw-bold mb-1">
+            Chỉ số Đường huyết (Glucose)
+            {patientName && (
+              <span className="ms-2 badge bg-primary bg-opacity-10 text-primary fw-normal" style={{ fontSize: "0.7rem" }}>
+                {patientName}
+              </span>
+            )}
+          </Card.Title>
+          <Card.Subtitle className="text-muted small">
+            {patientName
+              ? `Diễn tiến chỉ số đường huyết của ${patientName} qua các lần khám`
+              : "Theo dõi diễn tiến chỉ số đường huyết qua các lần khám"}
+          </Card.Subtitle>
+        </div>
+        {!patientName && (
+          <span className="badge bg-warning text-dark small">
+            <i className="bi bi-exclamation-triangle me-1"></i>Chưa chọn bệnh nhân
+          </span>
+        )}
       </Card.Header>
       <Card.Body>
         <div style={{ width: "100%", height: "280px" }}>
@@ -57,3 +72,4 @@ function HealthChart({ data }) {
 }
 
 export default HealthChart;
+
