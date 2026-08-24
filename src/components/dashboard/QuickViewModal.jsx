@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
 import { translateDiagnosis, translateReason } from "../../utils/translations";
+import { getRealtimeShiftStatus } from "../../utils/dutySchedule";
 
 /**
  * Modal dùng chung để Xem nhanh (Quick View Pop-up) khi click vào các ô StatCard trên Dashboard (Thuần Tiếng Việt)
@@ -320,17 +321,20 @@ function QuickViewModal({
                         )}
                       </td>
                       <td className="pe-3">
-                        {item.isPassed ? (
-                          <Badge bg="secondary" className="px-2 py-1">Đã qua</Badge>
-                        ) : item.isToday ? (
-                          <Badge bg="success" className="px-2 py-1">
-                            <i className="bi bi-broadcast me-1"></i>Đang trực
-                          </Badge>
-                        ) : item.isWorking ? (
-                          <Badge bg="primary" className="px-2 py-1">Sắp tới</Badge>
-                        ) : (
-                          <Badge bg="light" text="dark" className="border px-2 py-1">Nghỉ ca</Badge>
-                        )}
+                        {(() => {
+                          const s = getRealtimeShiftStatus(item, new Date());
+                          const isOff = s.key === "off";
+                          return (
+                            <Badge
+                              bg={s.variant}
+                              text={isOff ? "dark" : undefined}
+                              className={`px-2 py-1${isOff ? " border" : ""}`}
+                            >
+                              <i className={`bi ${s.icon} me-1`}></i>
+                              {s.label}
+                            </Badge>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))}
@@ -472,26 +476,20 @@ function QuickViewModal({
                         )}
                       </td>
                       <td className="pe-3">
-                        {item.isPassed ? (
-                          <Badge bg="secondary" className="px-2 py-1">
-                            <i className="bi bi-clock-history me-1"></i>
-                            Đã qua
-                          </Badge>
-                        ) : item.isToday ? (
-                          <Badge bg="success" className="px-2 py-1">
-                            <i className="bi bi-broadcast me-1"></i>
-                            Đang trực
-                          </Badge>
-                        ) : item.isWorking ? (
-                          <Badge bg="primary" className="px-2 py-1">
-                            <i className="bi bi-calendar-check me-1"></i>
-                            Sắp tới
-                          </Badge>
-                        ) : (
-                          <Badge bg="light" text="dark" className="border px-2 py-1">
-                            Nghỉ ca
-                          </Badge>
-                        )}
+                        {(() => {
+                          const s = getRealtimeShiftStatus(item, new Date());
+                          const isOff = s.key === "off";
+                          return (
+                            <Badge
+                              bg={s.variant}
+                              text={isOff ? "dark" : undefined}
+                              className={`px-2 py-1${isOff ? " border" : ""}`}
+                            >
+                              <i className={`bi ${s.icon} me-1`}></i>
+                              {s.label}
+                            </Badge>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))}
