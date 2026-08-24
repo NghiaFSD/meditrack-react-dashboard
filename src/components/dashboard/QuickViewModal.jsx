@@ -239,14 +239,17 @@ function QuickViewModal({
                     <th>HbA1c</th>
                     <th>Huyết áp</th>
                     <th>Chẩn đoán</th>
-                    <th className="pe-3">Tái khám</th>
+                    <th className="pe-3">Hẹn tái khám</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.map((r) => (
                     <tr key={r.id}>
                       <td className="ps-3 text-muted">#{r.id}</td>
-                      <td className="fw-medium">{r.date}</td>
+                      <td className="fw-medium text-dark">
+                        <i className="bi bi-calendar3 text-muted me-1 small"></i>
+                        {r.date}
+                      </td>
                       <td className="fw-semibold text-primary">{getPatientName(r.patientId)}</td>
                       <td>{getDoctorName(r.doctorId)}</td>
                       <td>
@@ -255,7 +258,16 @@ function QuickViewModal({
                       <td>{r.hba1c ? `${r.hba1c}%` : "-"}</td>
                       <td>{r.bloodPressure || "-"}</td>
                       <td>{translateDiagnosis(r.diagnosis)}</td>
-                      <td className="pe-3 small text-muted">{r.followUpDate || "-"}</td>
+                      <td className="pe-3">
+                        {r.followUpDate ? (
+                          <span className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
+                            <i className="bi bi-calendar2-check me-1"></i>
+                            {r.followUpDate}
+                          </span>
+                        ) : (
+                          <span className="text-muted small">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
