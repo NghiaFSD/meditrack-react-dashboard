@@ -1,6 +1,6 @@
 # MediTrack – React Medical Record & Appointment Dashboard
 
-Hệ thống quản lý hồ sơ bệnh án và lịch khám bệnh đa phân quyền (Admin, Bác sĩ, Bệnh nhân) xây dựng bằng React, Vite, React Router và Axios (kết hợp REST API json-server).
+Hệ thống quản lý hồ sơ bệnh án và lịch khám bệnh đa phân quyền (Admin, Bác sĩ, Bệnh nhân) xây dựng bằng React, React Router và Axios kết hợp REST API JSON Server.
 
 ---
 
@@ -8,19 +8,18 @@ Hệ thống quản lý hồ sơ bệnh án và lịch khám bệnh đa phân qu
 
 - **Phân quyền người dùng (Role-based Access Control):** Admin, Bác sĩ (Doctor), Bệnh nhân (Patient).
 - **Dashboard thông minh:** Biểu đồ xu hướng chỉ số sức khỏe (Glucose, HbA1c, BMI, Huyết áp) với Recharts và thống kê theo thời gian thực.
-- **Quản lý Bệnh nhân (Patients):** Đầy đủ các thao tác CRUD, tìm kiếm và lọc theo giới tính.
-- **Quản lý Lịch hẹn (Appointments):** Duyệt lịch khám, hoàn thành, hủy lịch hẹn.
+- **Quản lý Bệnh nhân (Patients):** Đầy đủ các thao tác CRUD, tìm kiếm và lọc dữ liệu.
+- **Quản lý Lịch hẹn (Appointments):** Duyệt lịch khám, hoàn thành, hủy lịch hẹn, lọc theo trạng thái và bác sĩ qua URL query params.
 - **Quản lý Bệnh án (Medical Records):** Theo dõi tiền sử bệnh, chỉ số sinh học và cảnh báo sức khỏe bất thường.
-- **Đa ngôn ngữ (i18n):** Hỗ trợ chuyển đổi mượt mà giữa Tiếng Việt và Tiếng Anh.
 - **Cấu hình tập trung (Centralized Config):** Quản lý toàn bộ Routes và API URL tại thư mục `src/config/`.
 
 ---
 
 ## 🛠️ Công nghệ sử dụng (Tech Stack)
 
-- **Frontend:** React 19, Vite, React-Bootstrap, Bootstrap 5, Bootstrap Icons, React Router DOM, Recharts, SweetAlert2.
+- **Frontend:** React, React-Bootstrap, Bootstrap 5, Bootstrap Icons, React Router DOM, Recharts, SweetAlert2.
 - **API & State:** Axios, React Context API, Custom Hooks.
-- **Backend Mock:** json-server (`db.json`).
+- **Backend Mock:** JSON Server (`database.json`, Port 9000).
 
 ---
 
@@ -41,22 +40,13 @@ Hệ thống quản lý hồ sơ bệnh án và lịch khám bệnh đa phân qu
 npm install
 ```
 
-### 2. Khởi chạy toàn bộ (API + React App):
+### 2. Khởi chạy toàn bộ (Backend API + Frontend React):
 ```bash
 npm start
 ```
 
-*Hoặc chạy riêng từng terminal:*
-```bash
-# Terminal 1: Chạy Fake API Server (Port 9999)
-npm run server
-
-# Terminal 2: Chạy React Vite Dev Server (Port 5173)
-npm run dev
-```
-
-- **Địa chỉ React App:** [http://localhost:5173](http://localhost:5173)
-- **Địa chỉ API Server:** [http://localhost:9999](http://localhost:9999)
+- **Địa chỉ Frontend:** [http://localhost:3000](http://localhost:3000)
+- **Địa chỉ Backend API:** [http://localhost:9000](http://localhost:9000)
 
 ---
 
@@ -67,9 +57,8 @@ src/
 ├── api/             # Tầng gọi API qua Axios (axiosClient, patientApi,...)
 ├── components/      # UI components (common, dashboard, layout)
 ├── config/          # Cấu hình tập trung Routes & App Settings
-├── context/         # LanguageContext (đa ngôn ngữ Việt/Anh)
+├── context/         # AuthContext quản lý phiên đăng nhập
 ├── data/            # Menu items & cấu hình tĩnh
-├── hooks/           # Custom hooks tải dữ liệu (usePatients, useAppointments,...)
 ├── pages/           # Các trang chính (Dashboard, Patients, PatientDetail,...)
 ├── routes/          # AppRoutes & ProtectedRoute phân quyền
 ├── utils/           # Auth helpers, validation, formatters, translations

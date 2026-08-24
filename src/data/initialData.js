@@ -1,6 +1,5 @@
 /**
- * Dữ liệu mẫu khởi tạo đồng bộ với db.json
- * Giúp ứng dụng hoạt động đầy đủ dữ liệu khi triển khai online trên Vercel/GitHub Pages (Client-side Fallback)
+ * Dữ liệu mẫu khởi tạo ban đầu đồng bộ với database.json
  */
 export const initialData = {
   users: [
