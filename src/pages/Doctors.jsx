@@ -188,6 +188,38 @@ function Doctors() {
       return;
     }
 
+    // Kiểm tra trùng Email
+    const normEmail = form.email.trim().toLowerCase();
+    const emailConflict = doctors.find(
+      (d) =>
+        (d.email || "").trim().toLowerCase() === normEmail &&
+        (!editingDoctor || String(d.id) !== String(editingDoctor.id))
+    );
+    if (emailConflict) {
+      Swal.fire({
+        title: "Trùng lặp Email",
+        html: `Email <b>${form.email}</b> đã được sử dụng bởi bác sĩ <b>${emailConflict.fullName}</b>.`,
+        icon: "warning",
+      });
+      return;
+    }
+
+    // Kiểm tra trùng Số điện thoại
+    const normPhone = form.phone.trim();
+    const phoneConflict = doctors.find(
+      (d) =>
+        (d.phone || "").trim() === normPhone &&
+        (!editingDoctor || String(d.id) !== String(editingDoctor.id))
+    );
+    if (phoneConflict) {
+      Swal.fire({
+        title: "Trùng lặp Số điện thoại",
+        html: `Số điện thoại <b>${form.phone}</b> đã được sử dụng bởi bác sĩ <b>${phoneConflict.fullName}</b>.`,
+        icon: "warning",
+      });
+      return;
+    }
+
     try {
       if (editingDoctor) {
         await doctorApi.update(editingDoctor.id, form);

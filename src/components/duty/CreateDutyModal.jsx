@@ -3,7 +3,7 @@ import { Modal, Form, Row, Col, Button, Badge } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { doctorApi } from "../../api/doctorApi";
 import { translateSpecialty } from "../../utils/translations";
-import { saveCustomDutySchedule, getLocalDateStr, getCustomDutySchedules } from "../../utils/dutySchedule";
+import { saveCustomDutySchedule, getLocalDateStr, getCustomDutySchedules, getDoctorWeeklySchedule } from "../../utils/dutySchedule";
 
 const SHIFT_OPTIONS = [
   { value: "Ca sáng", label: "☀️ Ca sáng", hours: "07:30 - 11:30", variant: "warning" },
@@ -165,6 +165,41 @@ function CreateDutyModal({
 
       const selectedShiftObj = SHIFT_OPTIONS.find((s) => s.value === form.shiftType);
       const isOff = form.shiftType === "Nghỉ trực";
+
+      // Kiểm tra trùng lặp Phòng khám (nếu không phải ca Nghỉ trực)
+      if (!isOff) {
+        const otherDoctors = doctors.filter((d) => String(d.id) !== String(doctor.id));
+        let roomConflict = null;
+
+        for (const otherDoc of otherDoctors) {
+          const otherSchedule = getDoctorWeeklySchedule(otherDoc);
+          const daySchedule = otherSchedule.find((s) => s.date === form.date);
+          if (
+            daySchedule &&
+            daySchedule.isWorking &&
+            daySchedule.shiftType === form.shiftType &&
+            daySchedule.room === form.room
+          ) {
+            roomConflict = {
+              doctor: otherDoc,
+              room: daySchedule.room,
+              shiftType: daySchedule.shiftType,
+              date: form.date,
+            };
+            break;
+          }
+        }
+
+        if (roomConflict) {
+          Swal.fire({
+            title: "Trùng lặp Phòng khám!",
+            html: `<b>Phòng ${form.room}</b> trong <b>${form.shiftType}</b> ngày <b>${form.date}</b> đã được phân công cho bác sĩ <b>${roomConflict.doctor.fullName}</b>.<br><br>Vui lòng chọn phòng khám khác hoặc ca làm việc khác.`,
+            icon: "warning",
+          });
+          setSaving(false);
+          return;
+        }
+      }
 
       // Lưu phân ca trực theo ngày cụ thể vào localStorage
       saveCustomDutySchedule({
