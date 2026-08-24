@@ -362,27 +362,84 @@ function QuickViewModal({
                         <small className="text-muted">{item.date}</small>
                       </td>
                       <td>
-                        <div>
-                          <span
-                            className={`badge ${
-                              item.shiftType === "Ca sáng"
-                                ? "bg-warning bg-opacity-25 text-dark border border-warning"
+                        {item.shifts && item.shifts.length > 1 ? (
+                          <div className="d-flex flex-column gap-1">
+                            {item.shifts.map((s, sIdx) => (
+                              <div key={sIdx} className="d-flex align-items-center gap-1">
+                                <Badge
+                                  bg={
+                                    s.shiftType === "Ca sáng"
+                                      ? "warning"
+                                      : s.shiftType === "Ca chiều"
+                                      ? "info"
+                                      : "primary"
+                                  }
+                                  text={
+                                    s.shiftType === "Ca sáng" || s.shiftType === "Ca chiều"
+                                      ? "dark"
+                                      : "white"
+                                  }
+                                  className="px-2 py-1"
+                                >
+                                  {s.shiftType}
+                                </Badge>
+                                <span className="small text-muted" style={{ fontSize: "0.75rem" }}>
+                                  ({s.shiftHours})
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div>
+                            <span
+                              className={`badge ${
+                                item.shiftType === "Ca sáng"
+                                  ? "bg-warning bg-opacity-25 text-dark border border-warning"
+                                  : item.shiftType === "Ca chiều"
+                                  ? "bg-info bg-opacity-25 text-dark border border-info"
+                                  : item.shiftType?.includes("2 ca")
+                                  ? "bg-success bg-opacity-25 text-success border border-success"
+                                  : "bg-secondary bg-opacity-25 text-secondary"
+                              } px-2 py-1 fw-semibold`}
+                            >
+                              {item.shiftType === "Ca sáng"
+                                ? "☀️ Ca sáng"
                                 : item.shiftType === "Ca chiều"
-                                ? "bg-info bg-opacity-25 text-dark border border-info"
-                                : "bg-secondary bg-opacity-25 text-secondary"
-                            } px-2 py-1 fw-semibold`}
-                          >
-                            {item.shiftType === "Ca sáng"
-                              ? "☀️ Ca sáng"
-                              : item.shiftType === "Ca chiều"
-                              ? "🌙 Ca chiều"
-                              : "🏖️ Nghỉ trực"}
-                          </span>
-                          <div className="small fw-medium text-muted mt-1">{item.shiftHours}</div>
-                        </div>
+                                ? "🌙 Ca chiều"
+                                : item.shiftType?.includes("2 ca")
+                                ? "☀️🌙 2 Ca trực"
+                                : "🏖️ Nghỉ trực"}
+                            </span>
+                            <div className="small fw-medium text-muted mt-1">{item.shiftHours}</div>
+                          </div>
+                        )}
                       </td>
-                      <td className="fw-semibold text-primary">{item.room}</td>
-                      <td className="small text-muted">{item.nurse}</td>
+                      <td>
+                        {item.shifts && item.shifts.length > 1 ? (
+                          <div className="d-flex flex-column gap-1">
+                            {item.shifts.map((s, sIdx) => (
+                              <div key={sIdx} className="small fw-semibold text-primary">
+                                {s.shiftType.replace("Ca ", "")}: {s.room}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="fw-semibold text-primary">{item.room}</span>
+                        )}
+                      </td>
+                      <td>
+                        {item.shifts && item.shifts.length > 1 ? (
+                          <div className="d-flex flex-column gap-1">
+                            {item.shifts.map((s, sIdx) => (
+                              <div key={sIdx} className="small text-muted">
+                                {s.nurse}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="small text-muted">{item.nurse}</span>
+                        )}
+                      </td>
                       <td>
                         {item.appointments && item.appointments.length > 0 ? (
                           <div className="d-flex flex-column gap-2 py-1">

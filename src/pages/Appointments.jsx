@@ -160,35 +160,48 @@ function Appointments() {
     return selectedDoctorSchedule.find((s) => s.date === form.date) || null;
   }, [selectedDoctorSchedule, form.date]);
 
-  const isFullDay = useMemo(() => {
-    return (
-      shiftOnSelectedDate?.shiftType === "Cả ngày" ||
-      shiftOnSelectedDate?.shiftType?.includes("Sáng & Chiều") ||
-      shiftOnSelectedDate?.shiftType?.includes("2 ca")
-    );
+  const shiftsOnDate = useMemo(() => {
+    if (!shiftOnSelectedDate || !shiftOnSelectedDate.isWorking) return [];
+    if (shiftOnSelectedDate.shifts && shiftOnSelectedDate.shifts.length > 0) {
+      return shiftOnSelectedDate.shifts;
+    }
+    return [
+      {
+        shiftType: shiftOnSelectedDate.shiftType,
+        shiftHours: shiftOnSelectedDate.shiftHours,
+        room: shiftOnSelectedDate.room,
+        nurse: shiftOnSelectedDate.nurse,
+      },
+    ];
   }, [shiftOnSelectedDate]);
 
+  const hasMultipleShifts = shiftsOnDate.length > 1;
+
+  const currentActiveShift = useMemo(() => {
+    if (!shiftsOnDate.length) return null;
+    if (!hasMultipleShifts) return shiftsOnDate[0];
+    const found = shiftsOnDate.find((s) =>
+      selectedSubShift === "afternoon"
+        ? s.shiftType === "Ca chiều"
+        : s.shiftType === "Ca sáng"
+    );
+    return found || shiftsOnDate[0];
+  }, [shiftsOnDate, hasMultipleShifts, selectedSubShift]);
+
   const timeSlots = useMemo(() => {
-    if (!shiftOnSelectedDate || !shiftOnSelectedDate.isWorking) return [];
+    if (!currentActiveShift) return [];
 
-    if (isFullDay) {
-      if (selectedSubShift === "afternoon") {
-        return ["13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
-      }
+    if (currentActiveShift.shiftType === "Ca sáng") {
       return ["07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00"];
     }
-
-    if (shiftOnSelectedDate.shiftType === "Ca sáng") {
-      return ["07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00"];
-    }
-    if (shiftOnSelectedDate.shiftType === "Ca chiều") {
+    if (currentActiveShift.shiftType === "Ca chiều") {
       return ["13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
     }
-    if (shiftOnSelectedDate.shiftType === "Ca tối") {
+    if (currentActiveShift.shiftType === "Ca tối") {
       return ["17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30"];
     }
     return ["08:00", "08:30", "09:00", "09:30", "10:00", "14:00", "14:30", "15:00", "15:30", "16:00"];
-  }, [shiftOnSelectedDate, isFullDay, selectedSubShift]);
+  }, [currentActiveShift]);
 
   const bookedTimes = useMemo(() => {
     if (!form.date || !form.doctorId) return new Set();
@@ -863,16 +876,21 @@ function Appointments() {
 
             <Col xs={12} md={6}>
               <Form.Label className="fw-semibold">Thông tin ca trực ngày này</Form.Label>
-              {shiftOnSelectedDate?.isWorking ? (
+              {currentActiveShift ? (
                 <div className="p-2 rounded border bg-success bg-opacity-10 text-success small">
                   <div className="fw-bold d-flex align-items-center gap-1">
                     <i className="bi bi-clock-fill"></i>
                     <span>
-                      {isFullDay ? "☀️🌙 Trực Cả ngày (2 ca: Sáng & Chiều)" : `${shiftOnSelectedDate.shiftType} (${shiftOnSelectedDate.shiftHours})`}
+                      {currentActiveShift.shiftType} ({currentActiveShift.shiftHours})
                     </span>
+                    {hasMultipleShifts && (
+                      <Badge bg="success" className="ms-1" style={{ fontSize: "0.65rem" }}>
+                        Bác sĩ trực 2 ca
+                      </Badge>
+                    )}
                   </div>
                   <div className="text-dark opacity-75 mt-1" style={{ fontSize: "0.78rem" }}>
-                    Phòng khám: <strong>{shiftOnSelectedDate.room}</strong> • Điều dưỡng: {shiftOnSelectedDate.nurse}
+                    Phòng khám: <strong>{currentActiveShift.room}</strong> • Điều dưỡng: {currentActiveShift.nurse}
                   </div>
                 </div>
               ) : (
@@ -884,47 +902,54 @@ function Appointments() {
             </Col>
 
             {/* Khung giờ khám theo ca */}
-            {shiftOnSelectedDate?.isWorking && (
+            {currentActiveShift && (
               <Col xs={12}>
                 <Form.Group className="mb-2">
                   {/* Nếu trực 2 ca: Cho phép chọn muốn khám Ca sáng hay Ca chiều */}
-                  {isFullDay && (
-                    <div className="d-flex align-items-center gap-2 mb-2 p-2 bg-light rounded-3 border">
+                  {hasMultipleShifts && (
+                    <div className="d-flex align-items-center gap-2 mb-2 p-2 bg-light rounded-3 border flex-wrap">
                       <span className="small fw-bold text-dark me-1">
-                        <i className="bi bi-funnel text-primary me-1"></i>
+                        <i className="bi bi-funnel-fill text-primary me-1"></i>
                         Chọn ca bạn muốn khám:
                       </span>
-                      <Button
-                        size="sm"
-                        variant={selectedSubShift === "morning" ? "warning" : "outline-secondary"}
-                        className="rounded-pill px-3 py-1 fw-bold"
-                        style={{ fontSize: "0.8rem" }}
-                        onClick={() => {
-                          setSelectedSubShift("morning");
-                          setForm((prev) => ({ ...prev, time: "08:30" }));
-                        }}
-                      >
-                        ☀️ Ca sáng (07:30 - 11:30)
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={selectedSubShift === "afternoon" ? "info" : "outline-secondary"}
-                        className="rounded-pill px-3 py-1 fw-bold"
-                        style={{ fontSize: "0.8rem" }}
-                        onClick={() => {
-                          setSelectedSubShift("afternoon");
-                          setForm((prev) => ({ ...prev, time: "13:30" }));
-                        }}
-                      >
-                        🌙 Ca chiều (13:30 - 17:30)
-                      </Button>
+                      {shiftsOnDate.map((s, sIdx) => {
+                        const isMorning = s.shiftType === "Ca sáng";
+                        const isSelected = isMorning
+                          ? selectedSubShift === "morning"
+                          : selectedSubShift === "afternoon";
+                        return (
+                          <Button
+                            key={sIdx}
+                            size="sm"
+                            variant={
+                              isSelected
+                                ? isMorning
+                                  ? "warning"
+                                  : "info"
+                                : "outline-secondary"
+                            }
+                            className="rounded-pill px-3 py-1 fw-bold"
+                            style={{ fontSize: "0.82rem" }}
+                            onClick={() => {
+                              const sub = isMorning ? "morning" : "afternoon";
+                              setSelectedSubShift(sub);
+                              setForm((prev) => ({
+                                ...prev,
+                                time: isMorning ? "08:30" : "13:30",
+                              }));
+                            }}
+                          >
+                            {isMorning ? "☀️ Ca sáng (07:30 - 11:30)" : "🌙 Ca chiều (13:30 - 17:30)"}
+                          </Button>
+                        );
+                      })}
                     </div>
                   )}
 
                   <Form.Label className="fw-semibold d-flex align-items-center justify-content-between">
                     <span>
                       <i className="bi bi-clock text-primary me-1"></i>
-                      Chọn giờ khám trong {isFullDay ? (selectedSubShift === "afternoon" ? "Ca chiều" : "Ca sáng") : shiftOnSelectedDate.shiftType}:
+                      Chọn giờ khám trong {currentActiveShift.shiftType}:
                     </span>
                     <small className="text-muted">
                       Giờ đã chọn: <strong className="text-primary fs-6">{form.time}</strong>

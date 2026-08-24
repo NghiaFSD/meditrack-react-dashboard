@@ -36,8 +36,34 @@ export function saveCustomDutySchedule({ date, doctorId, shiftType, shiftHours, 
   try {
     const list = getCustomDutySchedules();
     const docIdStr = String(doctorId);
-    const existingIndex = list.findIndex(
-      (item) => item.date === date && String(item.doctorId) === docIdStr
+
+    if (shiftType === "Nghỉ trực" || shiftType === "Off") {
+      // Xóa tất cả các ca làm việc của bác sĩ trong ngày này và thay bằng Nghỉ trực
+      const filtered = list.filter(
+        (item) => !(item.date === date && String(item.doctorId) === docIdStr)
+      );
+      filtered.push({
+        date,
+        doctorId: docIdStr,
+        shiftType: "Nghỉ trực",
+        shiftHours: "Nghỉ ca",
+        room: "-",
+        nurse: "-",
+        updatedAt: new Date().toISOString(),
+      });
+      localStorage.setItem(CUSTOM_DUTY_STORAGE_KEY, JSON.stringify(filtered));
+      return;
+    }
+
+    // Nếu là ca làm việc:
+    // 1. Xóa bản ghi "Nghỉ trực" (nếu có)
+    let filtered = list.filter(
+      (item) => !(item.date === date && String(item.doctorId) === docIdStr && (item.shiftType === "Nghỉ trực" || item.shiftType === "Off"))
+    );
+
+    // 2. Kiểm tra xem đã có bản ghi cùng date + doctorId + shiftType chưa
+    const existingIndex = filtered.findIndex(
+      (item) => item.date === date && String(item.doctorId) === docIdStr && item.shiftType === shiftType
     );
 
     const record = {
@@ -51,12 +77,12 @@ export function saveCustomDutySchedule({ date, doctorId, shiftType, shiftHours, 
     };
 
     if (existingIndex >= 0) {
-      list[existingIndex] = record;
+      filtered[existingIndex] = record;
     } else {
-      list.push(record);
+      filtered.push(record);
     }
 
-    localStorage.setItem(CUSTOM_DUTY_STORAGE_KEY, JSON.stringify(list));
+    localStorage.setItem(CUSTOM_DUTY_STORAGE_KEY, JSON.stringify(filtered));
     return record;
   } catch (err) {
     console.error("Lỗi khi lưu lịch trực tùy chỉnh:", err);
@@ -98,7 +124,6 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
 
   const schedule = [];
 
-
   for (let i = 0; i < 7; i++) {
     const dayDate = new Date(monday);
     dayDate.setDate(monday.getDate() + i);
@@ -110,7 +135,7 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
     const isFuture = dateStr > todayStr;
 
     // 1. Kiểm tra nếu có ca phân bổ tùy chỉnh riêng cho ngày này
-    const custom = customList.find(
+    const dayCustoms = customList.filter(
       (c) => c.date === dateStr && String(c.doctorId) === docIdStr
     );
 
@@ -119,19 +144,39 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
     let isWorking = false;
     let room = "-";
     let nurse = "-";
+    let shifts = [];
 
-    if (custom) {
-      shiftType = custom.shiftType;
-      shiftHours = custom.shiftHours;
-      isWorking = custom.shiftType !== "Nghỉ trực" && custom.shiftType !== "Off";
-      room = isWorking ? (custom.room || docRoom) : "-";
-      nurse = isWorking ? (custom.nurse || "ĐD. Nguyễn Thị Hoa") : "-";
+    const workingCustoms = dayCustoms.filter(
+      (c) => c.shiftType !== "Nghỉ trực" && c.shiftType !== "Off"
+    );
+
+    if (workingCustoms.length > 0) {
+      isWorking = true;
+      shifts = workingCustoms.map((c) => ({
+        shiftType: c.shiftType,
+        shiftHours: c.shiftHours,
+        room: c.room || docRoom,
+        nurse: c.nurse || "ĐD. Nguyễn Thị Hoa",
+      }));
+
+      if (workingCustoms.length === 1) {
+        shiftType = workingCustoms[0].shiftType;
+        shiftHours = workingCustoms[0].shiftHours;
+        room = workingCustoms[0].room || docRoom;
+        nurse = workingCustoms[0].nurse || "ĐD. Nguyễn Thị Hoa";
+      } else {
+        shiftType = "2 ca (" + workingCustoms.map((c) => c.shiftType.replace("Ca ", "")).join(" & ") + ")";
+        shiftHours = workingCustoms.map((c) => `${c.shiftType}: ${c.shiftHours}`).join(" | ");
+        room = workingCustoms.map((c) => `${c.shiftType}: ${c.room || docRoom}`).join(", ");
+        nurse = workingCustoms.map((c) => `${c.shiftType}: ${c.nurse || "ĐD"}`).join(", ");
+      }
+    } else if (dayCustoms.length > 0) {
+      // Có custom nhưng là Nghỉ trực
+      shiftType = "Nghỉ trực";
+      shiftHours = "Nghỉ ca";
+      isWorking = false;
     } else {
       // Xếp ca trực mẫu thực tế:
-      // Thứ 2, 4, 6: Theo ca chính của Bác sĩ (Ca sáng / Ca chiều)
-      // Thứ 3, 5: Ca ngược lại hoặc Khám chuyên sâu
-      // Thứ 7: Ca sáng
-      // Chủ Nhật: Nghỉ trực (hoặc Trực cấp cứu)
       if (i === 0 || i === 2 || i === 4) {
         // Thứ 2, Thứ 4, Thứ 6
         shiftType = docShift === "Morning" ? "Ca sáng" : "Ca chiều";
@@ -155,6 +200,9 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
       }
       room = isWorking ? docRoom : "-";
       nurse = isWorking ? (i % 2 === 0 ? "ĐD. Nguyễn Thị Hoa" : "ĐD. Trần Thu Trang") : "-";
+      if (isWorking) {
+        shifts = [{ shiftType, shiftHours, room, nurse }];
+      }
     }
 
     // Logic xác định trạng thái ca trực dựa trên thời gian thực tế
@@ -192,6 +240,8 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
       displayDate: `${dayDate.getDate()}/${dayDate.getMonth() + 1}`,
       shiftType,
       shiftHours,
+      shifts,
+      hasMultipleShifts: shifts.length > 1,
       isWorking,
       isPassed,
       isToday,

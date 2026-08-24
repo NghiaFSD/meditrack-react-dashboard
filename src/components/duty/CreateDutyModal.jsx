@@ -175,19 +175,19 @@ function CreateDutyModal({
         for (const otherDoc of otherDoctors) {
           const otherSchedule = getDoctorWeeklySchedule(otherDoc);
           const daySchedule = otherSchedule.find((s) => s.date === form.date);
-          if (
-            daySchedule &&
-            daySchedule.isWorking &&
-            daySchedule.shiftType === form.shiftType &&
-            daySchedule.room === form.room
-          ) {
-            roomConflict = {
-              doctor: otherDoc,
-              room: daySchedule.room,
-              shiftType: daySchedule.shiftType,
-              date: form.date,
-            };
-            break;
+          if (daySchedule && daySchedule.isWorking) {
+            const conflictShift = (daySchedule.shifts || []).find(
+              (s) => s.shiftType === form.shiftType && s.room === form.room
+            );
+            if (conflictShift) {
+              roomConflict = {
+                doctor: otherDoc,
+                room: conflictShift.room,
+                shiftType: conflictShift.shiftType,
+                date: form.date,
+              };
+              break;
+            }
           }
         }
 

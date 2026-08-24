@@ -185,9 +185,9 @@ function DoctorDashboard({
                       <i className="bi bi-door-open me-1"></i>
                       Phòng khám: {doctor?.room || "A-201"}
                     </Badge>
-                    <Badge bg="warning" text="dark" className="fw-bold">
+                    <Badge bg={todayScheduleItem?.hasMultipleShifts ? "success" : "warning"} text={todayScheduleItem?.hasMultipleShifts ? "white" : "dark"} className="fw-bold">
                       <i className="bi bi-clock-history me-1"></i>
-                      Hôm nay: {todayScheduleItem?.shiftType} ({todayScheduleItem?.shiftHours})
+                      Hôm nay: {todayScheduleItem?.isWorking ? `${todayScheduleItem.shiftType} (${todayScheduleItem.shiftHours})` : "Nghỉ trực"}
                     </Badge>
                   </div>
                 </div>
