@@ -228,7 +228,7 @@ function PatientDetail() {
       {/* Biểu đồ xu hướng và Lịch hẹn */}
       <Row className="g-4 mb-4">
         <Col xs={12} lg={6}>
-          <HealthChart data={records} />
+          <HealthChart data={records} patientName={patient?.fullName} />
         </Col>
         <Col xs={12} lg={6}>
           <Card className="border-0 shadow-sm rounded-3 h-100">

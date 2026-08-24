@@ -343,7 +343,7 @@ function PatientDashboard({
       </Row>
 
       {/* Biểu đồ theo dõi tiến triển điều trị đường huyết qua các tháng */}
-      <HealthChart data={myRecords} />
+      <HealthChart data={myRecords} patientName={patient?.fullName} />
 
       {/* Quick View Modal */}
       <QuickViewModal
