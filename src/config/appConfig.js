@@ -5,7 +5,7 @@ export const APP_CONFIG = {
   appName: "MediTrack",
   appSubtitleVi: "Hệ thống Y tế",
   appSubtitleEn: "Medical Management System",
-  apiBaseUrl: "http://localhost:9999",
+  apiBaseUrl: "http://localhost:9000",
   defaultLanguage: "vi",
 };
 
