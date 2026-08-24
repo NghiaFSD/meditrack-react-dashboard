@@ -1,35 +1,10 @@
 import React, { useState } from "react";
-import { Navbar, Container, Nav, Badge, Dropdown, Modal, Button, Table, Card, Row, Col } from "react-bootstrap";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { Navbar, Container, Nav, Badge } from "react-bootstrap";
+import { useLocation, Link } from "react-router-dom";
 import { getRoleLabel } from "../../utils/auth";
 import { useAuth } from "../../context/AuthContext";
 import { ROLES } from "../../utils/auth";
 import ProfileModal from "./ProfileModal";
-
-// Dữ liệu 3 tài khoản chính để Switch nhanh khi demo
-const DEMO_ACCOUNTS = {
-  ADMIN: {
-    id: "1",
-    fullName: "Admin User",
-    email: "admin@gmail.com",
-    role: "ADMIN",
-    avatar: "AU",
-  },
-  DOCTOR: {
-    id: "2",
-    fullName: "Dr. Nguyen Minh",
-    email: "doctor@gmail.com",
-    role: "DOCTOR",
-    avatar: "NM",
-  },
-  PATIENT: {
-    id: "3",
-    fullName: "Le Trong Nghia",
-    email: "patient@gmail.com",
-    role: "PATIENT",
-    avatar: "LH",
-  },
-};
 
 /**
  * Map đường dẫn → tên trang hiển thị + icon
@@ -95,19 +70,14 @@ function getBreadcrumbs(pathname) {
 }
 
 /**
- * Header tối ưu cho Demo môn FER202:
- * - Chuyển đổi nhanh 3 Role (Admin / Bác sĩ / Bệnh nhân) chỉ 1-click
- * - Modal FER202 Checklist tóm tắt toàn bộ tính năng kỹ thuật đã hiện thực
- * - Breadcrumb URL động & URL badge
+ * Header hiển thị tiêu đề trang theo URL hiện tại + thông tin người dùng
  */
 function Header() {
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const currentUser = user || {};
   const roleLabel = getRoleLabel(currentUser.role);
   const [showProfile, setShowProfile] = useState(false);
-  const [showDemoGuide, setShowDemoGuide] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
   const { label: pageLabel, icon: pageIcon } = getPageInfo(location.pathname);
 
@@ -120,14 +90,6 @@ function Header() {
       case "DOCTOR":  return "primary";
       case "PATIENT": return "success";
       default:        return "secondary";
-    }
-  };
-
-  const handleQuickSwitch = (roleKey) => {
-    const targetUser = DEMO_ACCOUNTS[roleKey];
-    if (targetUser) {
-      login(targetUser);
-      navigate("/dashboard");
     }
   };
 
@@ -166,54 +128,12 @@ function Header() {
           </div>
 
           <Nav className="d-flex flex-row align-items-center gap-2">
-            {/* Nút Checklist FER202 */}
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              className="d-none d-md-flex align-items-center gap-1 rounded-pill px-3 py-1"
-              style={{ fontSize: "0.75rem" }}
-              onClick={() => setShowDemoGuide(true)}
-              title="Xem danh sách tính năng chấm điểm môn FER202"
-            >
-              <i className="bi bi-mortarboard-fill text-warning"></i>
-              <span className="fw-semibold">FER202 Checklist</span>
-            </Button>
-
-            {/* Bộ chuyển đổi nhanh Role (1-Click Switch dành cho Demo) */}
-            <div className="d-flex align-items-center gap-1 bg-light p-1 rounded-pill border">
-              <button
-                type="button"
-                className={`btn btn-sm rounded-pill px-2 py-0 fw-semibold ${
-                  currentUser.role === ROLES.ADMIN ? "btn-danger shadow-sm text-white" : "btn-light text-muted"
-                }`}
-                style={{ fontSize: "0.72rem" }}
-                onClick={() => handleQuickSwitch("ADMIN")}
-                title="Chuyển sang quyền Admin"
-              >
-                🛡️ Admin
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm rounded-pill px-2 py-0 fw-semibold ${
-                  currentUser.role === ROLES.DOCTOR ? "btn-primary shadow-sm text-white" : "btn-light text-muted"
-                }`}
-                style={{ fontSize: "0.72rem" }}
-                onClick={() => handleQuickSwitch("DOCTOR")}
-                title="Chuyển sang quyền Bác sĩ"
-              >
-                👨‍⚕️ Bác sĩ
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm rounded-pill px-2 py-0 fw-semibold ${
-                  currentUser.role === ROLES.PATIENT ? "btn-success shadow-sm text-white" : "btn-light text-muted"
-                }`}
-                style={{ fontSize: "0.72rem" }}
-                onClick={() => handleQuickSwitch("PATIENT")}
-                title="Chuyển sang quyền Bệnh nhân"
-              >
-                🧑‍🦽 Bệnh nhân
-              </button>
+            {/* Hiển thị URL đang truy cập (nhỏ gọn) */}
+            <div className="d-none d-lg-flex align-items-center gap-1 px-2 py-1 rounded-2 bg-light border me-2">
+              <i className="bi bi-link-45deg text-muted" style={{ fontSize: "0.8rem" }}></i>
+              <code className="text-muted" style={{ fontSize: "0.75rem" }}>
+                {location.pathname}
+              </code>
             </div>
 
             {/* Thông tin User */}
@@ -225,13 +145,23 @@ function Header() {
             >
               <div
                 className={`bg-${badgeVariant} text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm position-relative`}
-                style={{ width: "36px", height: "36px", fontSize: "0.85rem" }}
+                style={{ width: "38px", height: "38px", fontSize: "0.9rem", transition: "opacity 0.2s" }}
+                onMouseEnter={(e) => { if (canEditProfile) e.currentTarget.style.opacity = "0.8"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
               >
                 {currentUser.avatar || currentUser.fullName?.charAt(0) || "U"}
+                {canEditProfile && (
+                  <span
+                    className="position-absolute bottom-0 end-0 bg-white rounded-circle d-flex align-items-center justify-content-center"
+                    style={{ width: "14px", height: "14px", fontSize: "0.55rem", border: "1.5px solid #dee2e6" }}
+                  >
+                    <i className="bi bi-pencil-fill text-secondary"></i>
+                  </span>
+                )}
               </div>
-              <div className="d-none d-lg-block text-start">
+              <div className="d-none d-md-block text-start">
                 <div className="fw-bold small text-dark lh-sm">{currentUser.fullName || "Người dùng"}</div>
-                <Badge bg={badgeVariant} style={{ fontSize: "0.62rem" }}>
+                <Badge bg={badgeVariant} className="mt-1" style={{ fontSize: "0.65rem" }}>
                   {roleLabel}
                 </Badge>
               </div>
@@ -244,92 +174,6 @@ function Header() {
       {canEditProfile && (
         <ProfileModal show={showProfile} onHide={() => setShowProfile(false)} />
       )}
-
-      {/* Modal Hướng dẫn Demo môn FER202 */}
-      <Modal show={showDemoGuide} onHide={() => setShowDemoGuide(false)} size="lg" centered>
-        <Modal.Header closeButton className="bg-primary text-white">
-          <Modal.Title className="h5 fw-bold d-flex align-items-center gap-2">
-            <i className="bi bi-mortarboard-fill text-warning"></i>
-            Bảng Tính Năng Demo Đồ Án Môn FER202
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="p-4">
-          <p className="text-muted small mb-3">
-            Hệ thống <strong>MediTrack</strong> được xây dựng hoàn chỉnh theo chuẩn kiến trúc React.js đáp ứng toàn diện các tiêu chí đánh giá môn FER202:
-          </p>
-
-          <Row className="g-3">
-            <Col xs={12} md={6}>
-              <Card className="border shadow-none h-100">
-                <Card.Body className="p-3">
-                  <h6 className="fw-bold text-primary mb-2">
-                    <i className="bi bi-diagram-3-fill me-1"></i> 1. React Router DOM (v6)
-                  </h6>
-                  <ul className="small text-muted mb-0 ps-3">
-                    <li><strong>Protected Routes:</strong> Phân quyền 3 vai trò (Admin, Doctor, Patient).</li>
-                    <li><strong>Nested Routes:</strong> <code>/patients/:id/records</code>, <code>/patients/:id/appointments</code>.</li>
-                    <li><strong>URL Query Params:</strong> <code>useSearchParams</code> đồng bộ bộ lọc trực tiếp lên thanh URL (VD: <code>?status=Pending&doctorId=2</code>).</li>
-                  </ul>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            <Col xs={12} md={6}>
-              <Card className="border shadow-none h-100">
-                <Card.Body className="p-3">
-                  <h6 className="fw-bold text-success mb-2">
-                    <i className="bi bi-server me-1"></i> 2. RESTful API & JSON-Server
-                  </h6>
-                  <ul className="small text-muted mb-0 ps-3">
-                    <li><strong>JSON Server:</strong> Chạy cổng <code>9000</code> với file <code>database.json</code>.</li>
-                    <li><strong>Axios Client:</strong> Đầy đủ CRUD (GET, POST, PUT, DELETE, PATCH).</li>
-                    <li><strong>Data Persistence:</strong> Dữ liệu thêm/sửa/xóa lưu vĩnh viễn vào file JSON.</li>
-                  </ul>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            <Col xs={12} md={6}>
-              <Card className="border shadow-none h-100">
-                <Card.Body className="p-3">
-                  <h6 className="fw-bold text-warning mb-2">
-                    <i className="bi bi-cpu-fill me-1"></i> 3. React Core & Hooks
-                  </h6>
-                  <ul className="small text-muted mb-0 ps-3">
-                    <li><code>useState</code>, <code>useEffect</code> nạp dữ liệu async.</li>
-                    <li><code>useMemo</code> tính toán KPI, cảnh báo glucose và lọc thông minh.</li>
-                    <li><code>useContext</code> (AuthContext) quản lý trạng thái đăng nhập toàn cục.</li>
-                  </ul>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            <Col xs={12} md={6}>
-              <Card className="border shadow-none h-100">
-                <Card.Body className="p-3">
-                  <h6 className="fw-bold text-danger mb-2">
-                    <i className="bi bi-shield-check me-1"></i> 4. Nghiệp vụ Y tế 3 Role (RBAC)
-                  </h6>
-                  <ul className="small text-muted mb-0 ps-3">
-                    <li><strong>Admin:</strong> Quản lý Bác sĩ, Lịch trực, Bệnh nhân toàn viện.</li>
-                    <li><strong>Bác sĩ:</strong> Duyệt lịch hẹn ca trực, theo dõi hồ sơ điều trị.</li>
-                    <li><strong>Bệnh nhân:</strong> Đặt lịch khám, theo dõi chỉ số đường huyết cá nhân.</li>
-                  </ul>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-
-          <div className="mt-3 p-3 bg-light rounded-3 border small">
-            <strong>💡 Mẹo trình bày:</strong> Sử dụng thanh chuyển đổi <code>[🛡️ Admin] [👨‍⚕️ Bác sĩ] [🧑‍🦽 Bệnh nhân]</code> ngay trên Header để chuyển vai trò tức thì khi giáo viên yêu cầu kiểm tra phân quyền.
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={() => setShowDemoGuide(false)} className="rounded-pill px-4">
-            Đã hiểu
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </>
   );
 }

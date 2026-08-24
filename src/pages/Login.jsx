@@ -8,7 +8,7 @@ import { ROUTES } from "../config/routes";
 import { APP_CONFIG } from "../config/appConfig";
 
 /**
- * Trang đăng nhập hệ thống MediTrack (Tối ưu cho Demo FER202)
+ * Trang đăng nhập hệ thống MediTrack (Thuần Tiếng Việt)
  */
 function Login() {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ function Login() {
   };
 
   const handleLogin = async (event) => {
-    if (event) event.preventDefault();
+    event.preventDefault();
 
     try {
       setLoading(true);
@@ -50,7 +50,7 @@ function Login() {
 
       Swal.fire({
         title: "Đăng nhập thành công",
-        text: `Xin chào ${matchedUser.fullName} (${matchedUser.role})!`,
+        text: `Xin chào ${matchedUser.fullName}!`,
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
@@ -67,29 +67,9 @@ function Login() {
     }
   };
 
-  // Đăng nhập 1-Click tức thì phục vụ demo nhanh
-  const handleInstantLogin = async (email) => {
-    try {
-      setLoading(true);
-      const users = await authApi.login(email);
-      const matchedUser = users[0];
-
-      if (matchedUser) {
-        login(matchedUser);
-        Swal.fire({
-          title: "Đăng nhập nhanh thành công",
-          text: `Đã vào tài khoản: ${matchedUser.fullName} [${matchedUser.role}]`,
-          icon: "success",
-          timer: 1200,
-          showConfirmButton: false,
-        });
-        navigate(ROUTES.DASHBOARD);
-      }
-    } catch (err) {
-      Swal.fire("Lỗi kết nối", "Vui lòng chạy npm start trước.", "error");
-    } finally {
-      setLoading(false);
-    }
+  // Gán nhanh thông tin tài khoản mẫu vào form
+  const useDemoAccount = (email) => {
+    setForm({ email, password: "MediTrack#2026!" });
   };
 
   return (
@@ -106,57 +86,10 @@ function Login() {
                   <i className="bi bi-heart-pulse-fill"></i>
                 </div>
                 <h3 className="fw-bold mb-1">{APP_CONFIG.appName}</h3>
-                <p className="mb-0 text-white-50 small">Hệ thống quản lý Y tế & Bệnh án thông minh</p>
-                <div className="badge bg-white text-primary mt-2 fw-semibold px-3 py-1">
-                  Đồ án Demo môn FER202
-                </div>
+                <p className="mb-0 text-white-50 small">Hệ thống quản lý hồ sơ bệnh án và lịch khám bệnh</p>
               </Card.Header>
 
               <Card.Body className="p-4 p-md-5">
-                {/* Hộp chọn nhanh 1-Click Login */}
-                <div className="mb-4 p-3 bg-light rounded-3 border text-center">
-                  <p className="text-muted small fw-bold mb-2">⚡ 1-Click Đăng nhập nhanh:</p>
-                  <div className="d-flex flex-wrap gap-2 justify-content-center">
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      className="rounded-pill px-3 fw-semibold shadow-sm"
-                      onClick={() => handleInstantLogin("admin@gmail.com")}
-                      disabled={loading}
-                    >
-                      <i className="bi bi-shield-lock me-1"></i>
-                      Admin
-                    </Button>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="rounded-pill px-3 fw-semibold shadow-sm"
-                      onClick={() => handleInstantLogin("doctor@gmail.com")}
-                      disabled={loading}
-                    >
-                      <i className="bi bi-person-badge me-1"></i>
-                      Bác sĩ
-                    </Button>
-                    <Button
-                      variant="outline-success"
-                      size="sm"
-                      className="rounded-pill px-3 fw-semibold shadow-sm"
-                      onClick={() => handleInstantLogin("patient@gmail.com")}
-                      disabled={loading}
-                    >
-                      <i className="bi bi-person me-1"></i>
-                      Bệnh nhân
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="position-relative text-center mb-4">
-                  <hr className="text-muted" />
-                  <span className="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small">
-                    hoặc nhập thông tin
-                  </span>
-                </div>
-
                 <Form onSubmit={handleLogin}>
                   <Form.Group className="mb-3" controlId="loginEmail">
                     <Form.Label className="fw-semibold small">Email</Form.Label>
@@ -193,13 +126,47 @@ function Login() {
                     {loading ? (
                       <span className="d-flex align-items-center justify-content-center gap-2">
                         <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        <span>Đang xử lý...</span>
+                        <span>Đang đăng nhập...</span>
                       </span>
                     ) : (
                       "Đăng nhập"
                     )}
                   </Button>
                 </Form>
+
+                {/* Hộp chọn nhanh tài khoản mẫu */}
+                <div className="mt-4 pt-3 border-top text-center">
+                  <p className="text-muted small fw-medium mb-2">Tài khoản dùng thử:</p>
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      className="rounded-pill px-3"
+                      onClick={() => useDemoAccount("admin@gmail.com")}
+                    >
+                      <i className="bi bi-shield-lock me-1"></i>
+                      Admin
+                    </Button>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      className="rounded-pill px-3"
+                      onClick={() => useDemoAccount("doctor@gmail.com")}
+                    >
+                      <i className="bi bi-person-badge me-1"></i>
+                      Bác sĩ
+                    </Button>
+                    <Button
+                      variant="outline-success"
+                      size="sm"
+                      className="rounded-pill px-3"
+                      onClick={() => useDemoAccount("patient@gmail.com")}
+                    >
+                      <i className="bi bi-person me-1"></i>
+                      Bệnh nhân
+                    </Button>
+                  </div>
+                </div>
               </Card.Body>
             </Card>
           </Col>
