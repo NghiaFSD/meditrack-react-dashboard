@@ -11,6 +11,7 @@ import Modal from "../components/common/Modal";
 import Input from "../components/common/Input";
 import ActionMenu from "../components/common/ActionMenu";
 import EmptyState from "../components/common/EmptyState";
+import StatCard from "../components/dashboard/StatCard";
 import { ROLES, findLinkedDoctor, findLinkedPatient } from "../utils/auth";
 import { useAuth } from "../context/AuthContext";
 import { translateReason, translateSpecialty } from "../utils/translations";
@@ -94,20 +95,54 @@ function Appointments() {
   const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
   const getDoctorName = (id) => doctors.find((d) => Number(d.id) === Number(id))?.fullName || "Chưa xác định";
 
-  // Lọc theo tìm kiếm và trạng thái
+  const todayStr = getLocalDateStr();
+
+  // Thống kê số lượng theo từng nhóm
+  const stats = useMemo(() => {
+    const todayCount = roleFilteredAppointments.filter((a) => a.date === todayStr && a.status !== "Cancelled").length;
+    const pendingCount = roleFilteredAppointments.filter((a) => a.status === "Pending").length;
+    const approvedCount = roleFilteredAppointments.filter((a) => a.status === "Approved").length;
+    const completedCount = roleFilteredAppointments.filter((a) => a.status === "Completed").length;
+    const totalCount = roleFilteredAppointments.length;
+    return { todayCount, pendingCount, approvedCount, completedCount, totalCount };
+  }, [roleFilteredAppointments, todayStr]);
+
+  // Lọc và sắp xếp thông minh
   const filteredAppointments = useMemo(() => {
-    return roleFilteredAppointments.filter((item) => {
+    let list = roleFilteredAppointments.filter((item) => {
       const pName = getPatientName(item.patientId).toLowerCase();
       const dName = getDoctorName(item.doctorId).toLowerCase();
       const reason = (item.reason || "").toLowerCase();
       const query = search.toLowerCase();
 
       const matchesSearch = pName.includes(query) || dName.includes(query) || reason.includes(query);
-      const matchesStatus = statusFilter === "All" || item.status === statusFilter;
+
+      let matchesStatus = true;
+      if (statusFilter === "Today") {
+        matchesStatus = item.date === todayStr && item.status !== "Cancelled";
+      } else if (statusFilter !== "All") {
+        matchesStatus = item.status === statusFilter;
+      }
 
       return matchesSearch && matchesStatus;
     });
-  }, [roleFilteredAppointments, search, statusFilter, patients, doctors]);
+
+    // Sắp xếp: Ưu tiên Pending lên đầu -> Hôm nay/Tương lai -> Cuối cùng là Completed/Cancelled
+    return list.sort((a, b) => {
+      // 1. Pending luôn ưu tiên cao nhất
+      if (a.status === "Pending" && b.status !== "Pending") return -1;
+      if (b.status === "Pending" && a.status !== "Pending") return 1;
+
+      // 2. Nếu là hôm nay
+      const aIsToday = a.date === todayStr;
+      const bIsToday = b.date === todayStr;
+      if (aIsToday && !bIsToday) return -1;
+      if (bIsToday && !aIsToday) return 1;
+
+      // 3. Sắp xếp theo ngày giảm dần (mới nhất lên trên)
+      return b.date.localeCompare(a.date) || a.time.localeCompare(b.time);
+    });
+  }, [roleFilteredAppointments, search, statusFilter, todayStr, patients, doctors]);
 
   const selectedDoctorObj = useMemo(() => {
     return doctors.find((d) => String(d.id) === String(form.doctorId)) || doctors[0] || null;
@@ -351,60 +386,178 @@ function Appointments() {
 
   if (loading) return <Loading text="Đang tải dữ liệu..." />;
 
+  const canCreateAppointment = currentRole === ROLES.PATIENT || currentRole === ROLES.ADMIN;
+  const isDoctorRole = currentRole === ROLES.DOCTOR;
+
   return (
     <Container fluid className="px-0">
       {/* Tiêu đề trang & Nút đặt lịch */}
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
-          <h2 className="fw-bold text-dark mb-1">Lịch hẹn khám</h2>
+          <h2 className="fw-bold text-dark mb-1">
+            {isDoctorRole ? "Quản lý Lịch hẹn Khám bệnh" : "Lịch hẹn khám của tôi"}
+          </h2>
           <p className="text-muted mb-0">
-            Quản lý lịch hẹn khám và theo dõi trạng thái tiếp nhận.
+            {isDoctorRole
+              ? `Bác sĩ ${linkedDoctor?.fullName || "phụ trách"} quản lý hàng đợi, phê duyệt lịch và tiếp nhận bệnh nhân.`
+              : "Theo dõi lịch hẹn khám bệnh, thời gian và trạng thái tiếp nhận của bác sĩ."}
           </p>
         </div>
-        {canCreate && (
-          <Button variant="primary" onClick={handleOpenAdd} className="d-flex align-items-center gap-2 shadow-sm">
+        {canCreateAppointment && (
+          <Button variant="primary" onClick={handleOpenAdd} className="d-flex align-items-center gap-2 shadow-sm rounded-pill px-3 py-2 fw-semibold">
             <i className="bi bi-calendar-plus-fill"></i>
-            <span>Đặt lịch hẹn</span>
+            <span>+ Đặt lịch hẹn mới</span>
           </Button>
         )}
       </div>
 
-      {/* Thanh công cụ: Tìm kiếm + Lọc trạng thái */}
-      <Card className="border-0 shadow-sm rounded-3 mb-4">
+      {/* 4 Thẻ KPI Thống kê Lịch hẹn */}
+      <Row className="g-3 mb-4">
+        <Col xs={12} sm={6} lg={3}>
+          <StatCard
+            title="Lịch khám Hôm nay"
+            value={stats.todayCount}
+            icon={<i className="bi bi-calendar-check-fill text-info"></i>}
+            note={`Ngày ${todayStr}`}
+            onClick={() => setStatusFilter("Today")}
+          />
+        </Col>
+        <Col xs={12} sm={6} lg={3}>
+          <StatCard
+            title="Yêu cầu Chờ duyệt"
+            value={stats.pendingCount}
+            icon={<i className="bi bi-clock-history text-danger"></i>}
+            note="Cần bác sĩ duyệt gấp"
+            onClick={() => setStatusFilter("Pending")}
+          />
+        </Col>
+        <Col xs={12} sm={6} lg={3}>
+          <StatCard
+            title="Lịch Đã xác nhận"
+            value={stats.approvedCount}
+            icon={<i className="bi bi-calendar-check text-success"></i>}
+            note="Sắp tới"
+            onClick={() => setStatusFilter("Approved")}
+          />
+        </Col>
+        <Col xs={12} sm={6} lg={3}>
+          <StatCard
+            title="Đã hoàn thành"
+            value={stats.completedCount}
+            icon={<i className="bi bi-check2-all text-primary"></i>}
+            note="Lịch sử khám xong"
+            onClick={() => setStatusFilter("Completed")}
+          />
+        </Col>
+      </Row>
+
+      {/* Thanh công cụ: Tìm kiếm + Tabs Lọc trạng thái */}
+      <Card className="border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
         <Card.Body className="p-3">
-          <Row className="g-3">
-            <Col xs={12} md={8}>
+          <Row className="g-3 align-items-center">
+            <Col xs={12} lg={4}>
               <SearchBox
                 value={search}
                 onChange={setSearch}
-                placeholder="Tìm theo bệnh nhân, bác sĩ, lý do..."
+                placeholder="Tìm theo tên bệnh nhân, bác sĩ, lý do khám..."
               />
             </Col>
-            <Col xs={12} md={4}>
-              <Form.Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-light"
-              >
-                <option value="All">Tất cả trạng thái</option>
-                <option value="Pending">Chờ duyệt (Pending)</option>
-                <option value="Approved">Đã duyệt (Approved)</option>
-                <option value="Completed">Hoàn thành (Completed)</option>
-                <option value="Cancelled">Đã hủy (Cancelled)</option>
-              </Form.Select>
+            <Col xs={12} lg={8}>
+              {/* Tabs chuyển trạng thái trực quan */}
+              <div className="d-flex flex-wrap gap-2 justify-content-lg-end">
+                <Button
+                  size="sm"
+                  variant={statusFilter === "All" ? "primary" : "light"}
+                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
+                  onClick={() => setStatusFilter("All")}
+                >
+                  <span>Tất cả</span>
+                  <Badge bg={statusFilter === "All" ? "light" : "secondary"} text={statusFilter === "All" ? "primary" : "white"} pill>
+                    {stats.totalCount}
+                  </Badge>
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant={statusFilter === "Pending" ? "danger" : "light"}
+                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
+                  onClick={() => setStatusFilter("Pending")}
+                >
+                  <i className="bi bi-clock-history"></i>
+                  <span>Chờ duyệt</span>
+                  {stats.pendingCount > 0 && (
+                    <Badge bg={statusFilter === "Pending" ? "light" : "danger"} text={statusFilter === "Pending" ? "danger" : "white"} pill>
+                      {stats.pendingCount}
+                    </Badge>
+                  )}
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant={statusFilter === "Today" ? "info" : "light"}
+                  className={`rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border ${statusFilter === "Today" ? "text-white" : ""}`}
+                  onClick={() => setStatusFilter("Today")}
+                >
+                  <i className="bi bi-calendar-event"></i>
+                  <span>Hôm nay</span>
+                  {stats.todayCount > 0 && (
+                    <Badge bg={statusFilter === "Today" ? "light" : "info"} text={statusFilter === "Today" ? "dark" : "white"} pill>
+                      {stats.todayCount}
+                    </Badge>
+                  )}
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant={statusFilter === "Approved" ? "success" : "light"}
+                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
+                  onClick={() => setStatusFilter("Approved")}
+                >
+                  <i className="bi bi-check-circle"></i>
+                  <span>Đã duyệt</span>
+                  <Badge bg={statusFilter === "Approved" ? "light" : "success"} text={statusFilter === "Approved" ? "success" : "white"} pill>
+                    {stats.approvedCount}
+                  </Badge>
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant={statusFilter === "Completed" ? "secondary" : "light"}
+                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
+                  onClick={() => setStatusFilter("Completed")}
+                >
+                  <i className="bi bi-check2-all"></i>
+                  <span>Hoàn thành</span>
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant={statusFilter === "Cancelled" ? "dark" : "light"}
+                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
+                  onClick={() => setStatusFilter("Cancelled")}
+                >
+                  <span>Đã hủy</span>
+                </Button>
+              </div>
             </Col>
           </Row>
         </Card.Body>
       </Card>
 
       {/* Bảng danh sách Lịch hẹn */}
-      <Card className="border-0 shadow-sm rounded-3">
+      <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
         <Card.Body className="p-0">
           {filteredAppointments.length === 0 ? (
-            <div className="p-4">
+            <div className="p-5 text-center">
               <EmptyState
                 title="Không có lịch hẹn"
-                message="Không tìm thấy lịch hẹn nào phù hợp."
+                message={
+                  statusFilter === "Pending"
+                    ? "Hiện không có lịch hẹn nào đang chờ duyệt."
+                    : statusFilter === "Today"
+                    ? "Hôm nay không có ca khám nào được xếp lịch."
+                    : "Không tìm thấy lịch hẹn nào phù hợp với bộ lọc."
+                }
                 icon="bi-calendar-x"
               />
             </div>
@@ -412,33 +565,107 @@ function Appointments() {
             <Table responsive hover className="align-middle mb-0">
               <thead className="table-light">
                 <tr>
-                  <th className="ps-3">ID</th>
-                  <th>Ngày khám</th>
-                  <th>Giờ</th>
-                  <th>Bệnh nhân</th>
-                  <th>Bác sĩ</th>
-                  <th>Lý do khám</th>
-                  <th>Trạng thái</th>
-                  <th className="text-center pe-3">Thao tác</th>
+                  <th className="ps-3" style={{ width: "60px" }}>ID</th>
+                  <th style={{ minWidth: "150px" }}>Thời gian khám</th>
+                  <th style={{ minWidth: "180px" }}>Bệnh nhân</th>
+                  {!isDoctorRole && <th style={{ minWidth: "160px" }}>Bác sĩ</th>}
+                  <th style={{ minWidth: "200px" }}>Lý do khám</th>
+                  <th style={{ minWidth: "120px" }}>Trạng thái</th>
+                  <th className="text-center pe-3" style={{ minWidth: "130px" }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredAppointments.map((item) => (
-                  <tr key={item.id}>
-                    <td className="ps-3 text-muted">#{item.id}</td>
-                    <td className="fw-medium">{item.date}</td>
-                    <td>{item.time}</td>
-                    <td className="fw-semibold text-primary">{getPatientName(item.patientId)}</td>
-                    <td>{getDoctorName(item.doctorId)}</td>
-                    <td>{translateReason(item.reason)}</td>
-                    <td>
-                      <StatusBadge status={item.status} />
-                    </td>
-                    <td className="text-center pe-3">
-                      <ActionMenu items={getAppointmentActions(item)} />
-                    </td>
-                  </tr>
-                ))}
+                {filteredAppointments.map((item) => {
+                  const isToday = item.date === todayStr;
+                  const patientObj = patients.find((p) => Number(p.id) === Number(item.patientId));
+                  return (
+                    <tr
+                      key={item.id}
+                      className={
+                        item.status === "Pending"
+                          ? "table-warning bg-opacity-25"
+                          : isToday
+                          ? "table-primary bg-opacity-10"
+                          : ""
+                      }
+                    >
+                      <td className="ps-3 text-muted fw-semibold">#{item.id}</td>
+                      <td>
+                        <div className="d-flex flex-column">
+                          <div className="fw-bold text-dark d-flex align-items-center gap-1">
+                            <i className="bi bi-clock text-primary"></i>
+                            <span>{item.time}</span>
+                            {isToday && (
+                              <Badge bg="danger" className="ms-1 rounded-pill" style={{ fontSize: "0.65rem" }}>
+                                Hôm nay
+                              </Badge>
+                            )}
+                          </div>
+                          <small className="text-muted">{item.date}</small>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="d-flex align-items-center gap-2">
+                          <div
+                            className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold small shadow-sm flex-shrink-0"
+                            style={{ width: "32px", height: "32px", fontSize: "0.8rem" }}
+                          >
+                            {getPatientName(item.patientId).charAt(0) || "P"}
+                          </div>
+                          <div>
+                            <div className="fw-semibold text-primary">{getPatientName(item.patientId)}</div>
+                            <small className="text-muted d-block" style={{ fontSize: "0.75rem" }}>
+                              {patientObj?.patientCode || `PT-${String(item.patientId).padStart(3, "0")}`}
+                              {patientObj?.phone ? ` • ${patientObj.phone}` : ""}
+                            </small>
+                          </div>
+                        </div>
+                      </td>
+                      {!isDoctorRole && (
+                        <td>
+                          <div className="fw-semibold text-dark">{getDoctorName(item.doctorId)}</div>
+                        </td>
+                      )}
+                      <td>
+                        <span className="text-dark fw-medium">{translateReason(item.reason)}</span>
+                      </td>
+                      <td>
+                        <StatusBadge status={item.status} />
+                      </td>
+                      <td className="text-center pe-3">
+                        <div className="d-flex align-items-center justify-content-center gap-1">
+                          {canManage && item.status === "Pending" && (
+                            <Button
+                              size="sm"
+                              variant="success"
+                              className="py-1 px-2 rounded-pill fw-semibold d-inline-flex align-items-center gap-1 shadow-sm"
+                              style={{ fontSize: "0.75rem" }}
+                              onClick={() => handleUpdateStatus(item, "Approved")}
+                              title="Duyệt lịch hẹn"
+                            >
+                              <i className="bi bi-check-lg"></i>
+                              <span>Duyệt</span>
+                            </Button>
+                          )}
+                          {canManage && item.status === "Approved" && (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="py-1 px-2 rounded-pill fw-semibold d-inline-flex align-items-center gap-1 shadow-sm"
+                              style={{ fontSize: "0.75rem" }}
+                              onClick={() => handleUpdateStatus(item, "Completed")}
+                              title="Đánh dấu đã hoàn thành khám"
+                            >
+                              <i className="bi bi-check2-all"></i>
+                              <span>Khám xong</span>
+                            </Button>
+                          )}
+                          <ActionMenu items={getAppointmentActions(item)} />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </Table>
           )}
