@@ -294,6 +294,8 @@ function QuickViewModal({
                               ? "bg-warning bg-opacity-25 text-dark border border-warning"
                               : item.shiftType === "Ca chiều"
                               ? "bg-info bg-opacity-25 text-dark border border-info"
+                              : item.shiftType === "Ca tối"
+                              ? "bg-primary bg-opacity-25 text-primary border border-primary"
                               : "bg-secondary bg-opacity-25 text-secondary"
                           } px-2 py-1 fw-semibold`}
                         >
@@ -301,6 +303,8 @@ function QuickViewModal({
                             ? "☀️ Ca sáng"
                             : item.shiftType === "Ca chiều"
                             ? "🌙 Ca chiều"
+                            : item.shiftType === "Ca tối"
+                            ? "⭐ Ca tối"
                             : "🏖️ Nghỉ trực"}
                         </span>
                       </td>
