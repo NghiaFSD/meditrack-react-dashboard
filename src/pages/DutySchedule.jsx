@@ -5,6 +5,7 @@ import { appointmentApi } from "../api/appointmentApi";
 import Loading from "../components/common/Loading";
 import SearchBox from "../components/common/SearchBox";
 import { getDoctorWeeklySchedule, getRealtimeShiftStatus, getLocalDateStr } from "../utils/dutySchedule";
+import { translateSpecialty } from "../utils/translations";
 import CreateDutyModal from "../components/duty/CreateDutyModal";
 
 /**
@@ -49,17 +50,45 @@ function DutySchedule() {
     fetchData();
   }, []);
 
-  // Tạo danh sách lịch trực đã flatten: mỗi bác sĩ × mỗi ngày trong tuần
+  // Tạo danh sách lịch trực đã flatten: mỗi bác sĩ × mỗi ca trực trong tuần
   const allScheduleRows = useMemo(() => {
     return doctors.flatMap((doc) => {
       const schedule = getDoctorWeeklySchedule(doc, appointments);
-      return schedule.map((s) => ({
-        ...s,
-        doctorId: doc.id,
-        doctorName: doc.fullName,
-        specialization: doc.specialization || doc.specialty || "Nội tổng quát",
-        shift: doc.shift,
-      }));
+      return schedule.flatMap((s) => {
+        // Nếu ngày này bác sĩ có mảng ca trực (shifts)
+        if (s.shifts && s.shifts.length > 0) {
+          return s.shifts.map((shiftItem, sIdx) => {
+            const shiftAppts = (s.appointments || []).filter((a) => {
+              const isMorningAppt = a.time < "12:30";
+              const isMorningShift = shiftItem.shiftType === "Ca sáng";
+              return isMorningAppt === isMorningShift;
+            });
+
+            return {
+              ...s,
+              shiftType: shiftItem.shiftType,
+              shiftHours: shiftItem.shiftHours,
+              room: shiftItem.room,
+              nurse: shiftItem.nurse,
+              appointmentsCount: shiftAppts.length,
+              appointments: shiftAppts,
+              doctorId: doc.id,
+              doctorName: doc.fullName,
+              specialization: doc.specialization || doc.specialty || "Nội tổng quát",
+              shiftIndex: sIdx,
+            };
+          });
+        }
+
+        return [
+          {
+            ...s,
+            doctorId: doc.id,
+            doctorName: doc.fullName,
+            specialization: doc.specialization || doc.specialty || "Nội tổng quát",
+          },
+        ];
+      });
     });
   }, [doctors, appointments, scheduleVersion]);
 
@@ -224,7 +253,7 @@ function DutySchedule() {
                   {dayLabel} — {date}
                 </span>
                 {isToday && <Badge bg="primary" className="rounded-pill ms-1">Hôm nay</Badge>}
-                <Badge bg="light" text="dark" className="border ms-auto">{rows.length} bác sĩ</Badge>
+                <Badge bg="light" text="dark" className="border ms-auto">{rows.length} ca trực</Badge>
               </Card.Header>
               <Card.Body className="p-0">
                 <Table responsive hover className="align-middle mb-0">
@@ -255,7 +284,7 @@ function DutySchedule() {
                           </div>
                         </td>
                         <td>
-                          <Badge bg="light" text="dark" className="border">{r.specialization}</Badge>
+                          <Badge bg="light" text="dark" className="border">{translateSpecialty(r.specialization)}</Badge>
                         </td>
                         <td>
                           <span
@@ -264,10 +293,18 @@ function DutySchedule() {
                                 ? "bg-warning bg-opacity-25 text-dark border border-warning"
                                 : r.shiftType === "Ca chiều"
                                 ? "bg-info bg-opacity-25 text-dark border border-info"
+                                : r.shiftType === "Ca tối"
+                                ? "bg-primary bg-opacity-25 text-primary border border-primary"
                                 : "bg-secondary bg-opacity-25 text-secondary"
                             } px-2 py-1 fw-semibold`}
                           >
-                            {r.shiftType === "Ca sáng" ? "☀️ Ca sáng" : r.shiftType === "Ca chiều" ? "🌙 Ca chiều" : "🏖️ Nghỉ trực"}
+                            {r.shiftType === "Ca sáng"
+                              ? "☀️ Ca sáng"
+                              : r.shiftType === "Ca chiều"
+                              ? "🌙 Ca chiều"
+                              : r.shiftType === "Ca tối"
+                              ? "⭐ Ca tối"
+                              : "🏖️ Nghỉ trực"}
                           </span>
                         </td>
                         <td className="small fw-medium">{r.shiftHours}</td>
