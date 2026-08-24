@@ -110,46 +110,32 @@ function AdminDashboard({
           <p className="text-muted mb-0">Giám sát nguồn lực, bác sĩ, tiếp nhận bệnh nhân toàn viện</p>
         </div>
 
-        {/* Thanh tác vụ nhanh của Admin — mở pop-up xem nhanh */}
+        {/* Thanh tác vụ nhanh của Admin */}
         <div className="d-flex flex-wrap gap-2">
           <Button
-            variant="danger"
-            className="d-flex align-items-center gap-2 shadow-sm"
-            onClick={() =>
-              openQuickView(
-                "doctors",
-                "Danh sách Bác sĩ Phòng khám",
-                "Quản lý thông tin chuyên khoa, phòng khám và ca trực của bác sĩ",
-                doctors
-              )
-            }
+            variant="outline-primary"
+            className="d-flex align-items-center gap-2 bg-white shadow-sm"
+            onClick={() => navigate(ROUTES.DOCTORS)}
           >
-            <i className="bi bi-person-badge-fill"></i>
+            <i className="bi bi-person-badge-fill text-primary"></i>
             <span>Quản lý Bác sĩ</span>
-          </Button>
-          <Button
-            variant="primary"
-            className="d-flex align-items-center gap-2 shadow-sm"
-            onClick={() =>
-              openQuickView(
-                "patients",
-                "Danh sách Bệnh nhân Toàn hệ thống",
-                "Xem nhanh và tiếp nhận hồ sơ bệnh nhân trong phòng khám",
-                patients
-              )
-            }
-          >
-            <i className="bi bi-person-plus-fill"></i>
-            <span>Thêm Bệnh nhân</span>
           </Button>
           <Button
             variant="outline-primary"
             className="d-flex align-items-center gap-2 bg-white shadow-sm"
+            onClick={() => navigate(ROUTES.PATIENTS)}
+          >
+            <i className="bi bi-people-fill text-primary"></i>
+            <span>Quản lý Bệnh nhân</span>
+          </Button>
+          <Button
+            variant="primary"
+            className="d-flex align-items-center gap-2 shadow-sm"
             title="Tạo và phân ca trực cho đội ngũ Bác sĩ"
             onClick={() => setShowDutyModal(true)}
           >
-            <i className="bi bi-calendar2-week-fill text-primary"></i>
-            <span>Tạo Lịch trực</span>
+            <i className="bi bi-calendar2-week-fill"></i>
+            <span>+ Tạo Lịch trực</span>
           </Button>
         </div>
       </div>
