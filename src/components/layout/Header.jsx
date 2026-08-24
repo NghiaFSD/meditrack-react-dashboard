@@ -8,30 +8,75 @@ import ProfileModal from "./ProfileModal";
 
 /**
  * Map đường dẫn → tên trang hiển thị + icon
+ * Thứ tự quan trọng: path cụ thể hơn phải đứng trước
  */
 const PAGE_MAP = {
   "/dashboard":    { label: "Bảng điều khiển",   icon: "bi-speedometer2" },
   "/doctors":      { label: "Quản lý Bác sĩ",     icon: "bi-person-badge-fill" },
-  "/duty-schedule":{ label: "Lịch trực",           icon: "bi-calendar-week-fill" },
+  "/duty-schedule":{ label: "Lịch trực Bác sĩ",   icon: "bi-calendar-week-fill" },
   "/patients":     { label: "Bệnh nhân",           icon: "bi-people-fill" },
   "/appointments": { label: "Lịch hẹn khám",       icon: "bi-calendar-check-fill" },
   "/records":      { label: "Hồ sơ bệnh án",       icon: "bi-file-earmark-medical-fill" },
 };
 
 function getPageInfo(pathname) {
-  // Khớp chính xác trước
+  // Khớp chính xác
   if (PAGE_MAP[pathname]) return PAGE_MAP[pathname];
 
-  // Khớp prefix — ví dụ /patients/3/edit, /patients/3
-  for (const [path, info] of Object.entries(PAGE_MAP)) {
-    if (pathname.startsWith(path + "/")) {
-      const sub = pathname.replace(path, "");
-      if (sub.includes("/edit")) return { label: `${info.label} — Chỉnh sửa`, icon: "bi-pencil-square" };
-      return { label: `${info.label} — Chi tiết`, icon: "bi-eye-fill" };
-    }
+  // Nested: /patients/:id/appointments
+  if (/^\/patients\/\d+\/appointments/.test(pathname)) {
+    return { label: "Lịch hẹn của Bệnh nhân", icon: "bi-calendar-check-fill" };
+  }
+
+  // Nested: /patients/:id/records
+  if (/^\/patients\/\d+\/records/.test(pathname)) {
+    return { label: "Hồ sơ bệnh án của Bệnh nhân", icon: "bi-file-earmark-medical-fill" };
+  }
+
+  // /patients/:id/edit
+  if (/^\/patients\/\d+\/edit/.test(pathname)) {
+    return { label: "Chỉnh sửa Bệnh nhân", icon: "bi-pencil-square" };
+  }
+
+  // /patients/:id
+  if (/^\/patients\/\d+/.test(pathname)) {
+    return { label: "Chi tiết Bệnh nhân", icon: "bi-person-lines-fill" };
   }
 
   return { label: "MediTrack", icon: "bi-house-fill" };
+}
+
+/**
+ * Tạo breadcrumb segments từ pathname
+ * /patients/3/appointments → [Trang chủ, Bệnh nhân, Chi tiết, Lịch hẹn]
+ */
+function getBreadcrumbs(pathname) {
+  const crumbs = [{ label: "Trang chủ", href: "/dashboard" }];
+
+  if (pathname === "/dashboard") return crumbs;
+
+  if (pathname.startsWith("/patients")) {
+    crumbs.push({ label: "Bệnh nhân", href: "/patients" });
+
+    const m = pathname.match(/^\/patients\/(\d+)/);
+    if (m) {
+      crumbs.push({ label: `#${m[1]}`, href: `/patients/${m[1]}` });
+
+      if (pathname.includes("/edit")) {
+        crumbs.push({ label: "Chỉnh sửa", href: null });
+      } else if (pathname.includes("/appointments")) {
+        crumbs.push({ label: "Lịch hẹn", href: null });
+      } else if (pathname.includes("/records")) {
+        crumbs.push({ label: "Hồ sơ bệnh án", href: null });
+      }
+    }
+    return crumbs;
+  }
+
+  const page = PAGE_MAP[pathname];
+  if (page) crumbs.push({ label: page.label, href: null });
+
+  return crumbs;
 }
 
 /**
@@ -70,19 +115,25 @@ function Header() {
               <i className={`bi ${pageIcon} text-primary`} style={{ fontSize: "1.1rem" }}></i>
               {pageLabel}
             </h4>
-            {/* Breadcrumb URL */}
+            {/* Breadcrumb động theo URL */}
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0" style={{ fontSize: "0.78rem" }}>
-                <li className="breadcrumb-item">
-                  <Link to="/dashboard" className="text-decoration-none text-muted">
-                    <i className="bi bi-house me-1"></i>Trang chủ
-                  </Link>
-                </li>
-                {location.pathname !== "/dashboard" && (
-                  <li className="breadcrumb-item active text-primary fw-semibold" aria-current="page">
-                    {pageLabel}
+                {getBreadcrumbs(location.pathname).map((crumb, idx, arr) => (
+                  <li
+                    key={idx}
+                    className={`breadcrumb-item ${idx === arr.length - 1 ? "active text-primary fw-semibold" : ""}`}
+                    aria-current={idx === arr.length - 1 ? "page" : undefined}
+                  >
+                    {crumb.href ? (
+                      <Link to={crumb.href} className="text-decoration-none text-muted">
+                        {idx === 0 && <i className="bi bi-house me-1"></i>}
+                        {crumb.label}
+                      </Link>
+                    ) : (
+                      crumb.label
+                    )}
                   </li>
-                )}
+                ))}
               </ol>
             </nav>
           </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Container, Row, Col, Card, Table, Form, Button, Badge } from "react-bootstrap";
+import { useSearchParams, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { appointmentApi } from "../api/appointmentApi";
 import { patientApi } from "../api/patientApi";
@@ -41,15 +42,36 @@ function Appointments() {
   const { user } = useAuth();
   const currentRole = user?.role;
 
+  // Đọc patientId từ nested route /patients/:id/appointments
+  const { id: routePatientId } = useParams();
+
+  // Đồng bộ bộ lọc với URL query params
+  // Ví dụ: /appointments?status=Pending&doctorId=2&patientId=3
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const search        = searchParams.get("q")         || "";
+  const statusFilter  = searchParams.get("status")    || "All";
+  const doctorFilter  = searchParams.get("doctorId")  || "All";
+  // Nếu đang ở route nested /patients/:id/appointments thì ưu tiên patientId từ route
+  const patientFilter = routePatientId || searchParams.get("patientId") || "All";
+
+  // Helper: cập nhật 1 param trong URL mà không xóa các param khác
+  const setFilter = (key, value) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (!value || value === "All" || value === "") {
+        next.delete(key);
+      } else {
+        next.set(key, value);
+      }
+      return next;
+    });
+  };
+
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [doctorFilter, setDoctorFilter] = useState("All");
-  const [patientFilter, setPatientFilter] = useState("All");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
@@ -490,7 +512,7 @@ function Appointments() {
             value={stats.todayCount}
             icon={<i className="bi bi-calendar-check-fill text-info"></i>}
             note={`Ngày ${todayStr}`}
-            onClick={() => setStatusFilter("Today")}
+            onClick={() => setFilter("status", "Today")}
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -499,7 +521,7 @@ function Appointments() {
             value={stats.pendingCount}
             icon={<i className="bi bi-clock-history text-danger"></i>}
             note="Cần bác sĩ duyệt gấp"
-            onClick={() => setStatusFilter("Pending")}
+            onClick={() => setFilter("status", "Pending")}
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -508,7 +530,7 @@ function Appointments() {
             value={stats.approvedCount}
             icon={<i className="bi bi-calendar-check text-success"></i>}
             note="Sắp tới"
-            onClick={() => setStatusFilter("Approved")}
+            onClick={() => setFilter("status", "Approved")}
           />
         </Col>
         <Col xs={12} sm={6} lg={3}>
@@ -517,7 +539,7 @@ function Appointments() {
             value={stats.completedCount}
             icon={<i className="bi bi-check2-all text-primary"></i>}
             note="Lịch sử khám xong"
-            onClick={() => setStatusFilter("Completed")}
+            onClick={() => setFilter("status", "Completed")}
           />
         </Col>
       </Row>
@@ -529,14 +551,14 @@ function Appointments() {
             <Col xs={12} md={currentRole === ROLES.ADMIN ? 5 : 6}>
               <SearchBox
                 value={search}
-                onChange={setSearch}
+                onChange={(v) => setFilter("q", v)}
                 placeholder="Tìm theo tên bệnh nhân, bác sĩ, lý do khám..."
               />
             </Col>
             <Col xs={6} md={3}>
               <Form.Select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => setFilter("status", e.target.value)}
                 className="rounded-3"
               >
                 <option value="All">Tất cả trạng thái ({stats.totalCount})</option>
@@ -551,7 +573,7 @@ function Appointments() {
               <Col xs={6} md={currentRole === ROLES.ADMIN ? 2 : 3}>
                 <Form.Select
                   value={doctorFilter}
-                  onChange={(e) => setDoctorFilter(e.target.value)}
+                  onChange={(e) => setFilter("doctorId", e.target.value)}
                   className="rounded-3"
                 >
                   <option value="All">Tất cả Bác sĩ</option>
@@ -567,8 +589,9 @@ function Appointments() {
               <Col xs={6} md={2}>
                 <Form.Select
                   value={patientFilter}
-                  onChange={(e) => setPatientFilter(e.target.value)}
+                  onChange={(e) => setFilter("patientId", e.target.value)}
                   className="rounded-3"
+                  disabled={!!routePatientId}
                 >
                   <option value="All">Tất cả Bệnh nhân</option>
                   {patients.map((p) => (

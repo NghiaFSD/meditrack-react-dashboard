@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Container, Row, Col, Card, Table, Form, Button, Badge } from "react-bootstrap";
+import { useSearchParams, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { recordApi } from "../api/recordApi";
 import { patientApi } from "../api/patientApi";
@@ -32,16 +33,34 @@ function MedicalRecords() {
   const { user } = useAuth();
   const currentRole = user?.role;
 
+  // Đọc patientId từ nested route /patients/:id/records
+  const { id: routePatientId } = useParams();
+
+  // Đồng bộ bộ lọc với URL query params
+  // Ví dụ: /records?patientId=3&doctorId=2&sortBy=date-desc
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const search        = searchParams.get("q")          || "";
+  const patientFilter = routePatientId || searchParams.get("patientId") || "all";
+  const doctorFilter  = searchParams.get("doctorId")   || "all";
+  const sortBy        = searchParams.get("sortBy")     || "date-desc";
+
+  const setFilter = (key, value) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (!value || value === "all" || value === "") {
+        next.delete(key);
+      } else {
+        next.set(key, value);
+      }
+      return next;
+    });
+  };
+
   const [records, setRecords] = useState([]);
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Bộ lọc & Tìm kiếm tinh gọn
-  const [search, setSearch] = useState("");
-  const [patientFilter, setPatientFilter] = useState("all");
-  const [doctorFilter, setDoctorFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("date-desc");
 
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -238,7 +257,7 @@ function MedicalRecords() {
             <Col xs={12} md={4}>
               <SearchBox
                 value={search}
-                onChange={setSearch}
+                onChange={(v) => setFilter("q", v)}
                 placeholder="Tìm theo từ khóa, chẩn đoán, mã hồ sơ..."
               />
             </Col>
@@ -248,7 +267,8 @@ function MedicalRecords() {
               <Col xs={6} md={3}>
                 <Form.Select
                   value={patientFilter}
-                  onChange={(e) => setPatientFilter(e.target.value)}
+                  onChange={(e) => setFilter("patientId", e.target.value)}
+                  disabled={!!routePatientId}
                   className="rounded-3"
                 >
                   <option value="all">Tất cả bệnh nhân ({patients.length})</option>
@@ -266,7 +286,7 @@ function MedicalRecords() {
               <Col xs={6} md={3}>
                 <Form.Select
                   value={doctorFilter}
-                  onChange={(e) => setDoctorFilter(e.target.value)}
+                  onChange={(e) => setFilter("doctorId", e.target.value)}
                   className="rounded-3"
                 >
                   <option value="all">Tất cả bác sĩ đảm nhiệm ({doctors.length})</option>
@@ -283,7 +303,7 @@ function MedicalRecords() {
             <Col xs={12} md={currentRole === ROLES.ADMIN ? 2 : currentRole === ROLES.DOCTOR ? 5 : 8}>
               <Form.Select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => setFilter("sortBy", e.target.value)}
                 className="rounded-3"
               >
                 <option value="date-desc">Ngày khám mới nhất</option>
@@ -316,11 +336,7 @@ function MedicalRecords() {
                   variant="outline-primary"
                   size="sm"
                   className="mt-3 rounded-pill px-3"
-                  onClick={() => {
-                    setSearch("");
-                    setPatientFilter("all");
-                    setDoctorFilter("all");
-                  }}
+                  onClick={() => setSearchParams({})}
                 >
                   <i className="bi bi-arrow-counterclockwise me-1"></i>
                   Đặt lại bộ lọc

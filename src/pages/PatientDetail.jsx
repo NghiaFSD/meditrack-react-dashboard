@@ -77,7 +77,7 @@ function PatientDetail() {
   return (
     <Container fluid className="px-0">
       {/* Tiêu đề trang & Hành động */}
-      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
           <h2 className="fw-bold text-dark mb-1">{patient.fullName}</h2>
           <p className="text-muted mb-0">Thông tin chi tiết hồ sơ bệnh án và lịch sử khám bệnh.</p>
@@ -98,6 +98,33 @@ function PatientDetail() {
             </Button>
           </Link>
         </div>
+      </div>
+
+      {/* Thanh điều hướng nhanh — Nested Routes RESTful */}
+      <div className="d-flex flex-wrap gap-2 mb-4 pb-2 border-bottom">
+        <Link
+          to={ROUTES.PATIENT_DETAIL(patient.id)}
+          className="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"
+        >
+          <i className="bi bi-person-lines-fill me-1"></i>
+          Thông tin cơ bản
+        </Link>
+        <Link
+          to={ROUTES.PATIENT_APPOINTMENTS(patient.id)}
+          className="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold"
+        >
+          <i className="bi bi-calendar-check-fill me-1"></i>
+          Lịch hẹn ({appointments.length})
+          <small className="ms-1 text-muted fw-normal">/patients/{patient.id}/appointments</small>
+        </Link>
+        <Link
+          to={ROUTES.PATIENT_RECORDS(patient.id)}
+          className="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"
+        >
+          <i className="bi bi-file-earmark-medical-fill me-1"></i>
+          Hồ sơ bệnh án ({records.length})
+          <small className="ms-1 text-muted fw-normal">/patients/{patient.id}/records</small>
+        </Link>
       </div>
 
       {/* Thông tin hồ sơ & Tóm tắt chỉ số sức khỏe */}
