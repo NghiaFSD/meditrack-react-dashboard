@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Row, Col, Card, Table, Badge, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import StatCard from "./StatCard";
 import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
@@ -9,11 +9,7 @@ import { ROUTES } from "../../config/routes";
 import { getDoctorWeeklySchedule, getLocalDateStr } from "../../utils/dutySchedule";
 import CreateDutyModal from "../duty/CreateDutyModal";
 
-const RISK_COLORS = {
-  High: "#dc3545",
-  Medium: "#ffc107",
-  Low: "#198754",
-};
+
 
 /**
  * Giao diện Dashboard chuyên biệt cho Quản trị viên (Admin Operations Center - Thuần Tiếng Việt)
@@ -81,20 +77,7 @@ function AdminDashboard({
     }));
   }, [appointments]);
 
-  // Thống kê phân loại rủi ro bệnh nhân
-  const riskData = useMemo(() => {
-    const counts = { High: 0, Medium: 0, Low: 0 };
-    patients.forEach((p) => {
-      const r = p.riskLevel || "Low";
-      if (counts[r] !== undefined) counts[r]++;
-      else counts.Low++;
-    });
-    return [
-      { name: "Nguy cơ Cao", value: counts.High, color: RISK_COLORS.High },
-      { name: "Trung bình", value: counts.Medium, color: RISK_COLORS.Medium },
-      { name: "Thấp", value: counts.Low, color: RISK_COLORS.Low },
-    ];
-  }, [patients]);
+
 
   return (
     <div>
@@ -214,74 +197,35 @@ function AdminDashboard({
         </Col>
       </Row>
 
-      {/* Biểu đồ phân bổ Lịch hẹn & Phân loại rủi ro bệnh nhân */}
-      <Row className="g-4 mb-4">
-        <Col xs={12} lg={7}>
-          <Card className="border-0 shadow-sm rounded-3 h-100">
-            <Card.Header className="bg-white border-0 pt-3 pb-0">
-              <Card.Title as="h5" className="fw-bold mb-1">
-                Trạng thái Lịch hẹn
-              </Card.Title>
-              <Card.Subtitle className="text-muted small">
-                Phân bố trạng thái lịch hẹn toàn viện
-              </Card.Subtitle>
-            </Card.Header>
-            <Card.Body>
-              <div style={{ width: "100%", height: "260px" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={appointmentStatusData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="status" stroke="#94a3b8" fontSize={12} />
-                    <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={12} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#ffffff",
-                        borderRadius: "8px",
-                        border: "1px solid #e2e8f0",
-                      }}
-                    />
-                    <Bar dataKey="total" fill="#0d6efd" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col xs={12} lg={5}>
-          <Card className="border-0 shadow-sm rounded-3 h-100">
-            <Card.Header className="bg-white border-0 pt-3 pb-0">
-              <Card.Title as="h5" className="fw-bold mb-1">
-                Phân loại Nguy cơ Bệnh nhân
-              </Card.Title>
-              <Card.Subtitle className="text-muted small">
-                Tỷ lệ mức độ rủi ro tiểu đường toàn viện
-              </Card.Subtitle>
-            </Card.Header>
-            <Card.Body className="d-flex flex-column justify-content-center">
-              <div style={{ width: "100%", height: "180px" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={riskData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
-                      {riskData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="d-flex justify-content-center gap-3 mt-2 small">
-                {riskData.map((item, idx) => (
-                  <div key={idx} className="d-flex align-items-center gap-1">
-                    <span style={{ width: "10px", height: "10px", backgroundColor: item.color, borderRadius: "50%", display: "inline-block" }}></span>
-                    <span className="text-muted">{item.name}: <strong>{item.value}</strong></span>
-                  </div>
-                ))}
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+      {/* Biểu đồ trạng thái Lịch hẹn */}
+      <Card className="border-0 shadow-sm rounded-3 mb-4">
+        <Card.Header className="bg-white border-0 pt-3 pb-0">
+          <Card.Title as="h5" className="fw-bold mb-1">
+            Trạng thái Lịch hẹn
+          </Card.Title>
+          <Card.Subtitle className="text-muted small">
+            Phân bố trạng thái lịch hẹn toàn viện
+          </Card.Subtitle>
+        </Card.Header>
+        <Card.Body>
+          <div style={{ width: "100%", height: "200px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={appointmentStatusData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey="status" stroke="#94a3b8" fontSize={12} />
+                <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={12} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#ffffff",
+                    borderRadius: "8px",
+                    border: "1px solid #e2e8f0",
+                  }}
+                />
+                <Bar dataKey="total" fill="#0d6efd" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card.Body>
+      </Card>
 
       {/* Bệnh nhân mới tiếp nhận — Lịch hẹn do Bác sĩ tự quản lý */}
       <Row className="g-4">

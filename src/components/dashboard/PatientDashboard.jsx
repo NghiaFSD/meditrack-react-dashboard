@@ -71,50 +71,41 @@ function PatientDashboard({
 
   return (
     <div>
-      {/* Banner Hồ sơ Sức khỏe Bệnh nhân */}
-      <Card className="border-0 shadow-sm rounded-4 mb-4 bg-success text-white overflow-hidden">
-        <Card.Body className="p-4 position-relative">
-          <Row className="align-items-center">
-            <Col xs={12} md={8}>
-              <div className="d-flex align-items-center gap-3 mb-2">
-                <div
-                  className="bg-white text-success rounded-circle d-flex align-items-center justify-content-center fw-bold fs-3 shadow"
-                  style={{ width: "60px", height: "60px" }}
-                >
-                  <i className="bi bi-heart-pulse-fill"></i>
-                </div>
-                <div>
-                  <h3 className="fw-bold mb-0 text-white">{patient?.fullName || "Lê Trọng Nghĩa"}</h3>
-                  <div className="d-flex flex-wrap gap-2 mt-1 align-items-center">
-                    <Badge bg="light" text="dark" className="fw-semibold">
-                      <i className="bi bi-card-text me-1"></i>
-                      {patient?.patientCode || `PT-001`}
-                    </Badge>
-                    <Badge bg="light" text="dark" className="fw-semibold">
-                      <i className="bi bi-shield-check me-1"></i>
-                      Thẻ bảo hiểm: {patient?.insuranceType || "Cao cấp"}
-                    </Badge>
-                    <Badge bg="light" text="dark" className="fw-semibold">
-                      <i className="bi bi-activity me-1"></i>
-                      Mức nguy cơ: <StatusBadge status={patient?.riskLevel || "Low"} className="ms-1" />
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </Col>
-            <Col xs={12} md={4} className="text-md-end mt-3 mt-md-0">
-              <Button
-                variant="light"
-                className="text-success fw-bold px-3 py-2 shadow-sm rounded-pill d-inline-flex align-items-center gap-2"
-                onClick={() => navigate(ROUTES.APPOINTMENTS)}
-              >
-                <i className="bi bi-calendar-plus-fill"></i>
-                <span>Đặt lịch khám mới</span>
-              </Button>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+      {/* Greeting row — gọn nhẹ */}
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+        <div>
+          <h4 className="fw-bold text-dark mb-1">
+            Xin chào, {patient?.fullName || "Bệnh nhân"} 👋
+          </h4>
+          <div className="d-flex flex-wrap align-items-center gap-2">
+            <small className="text-muted">
+              <i className="bi bi-card-text me-1"></i>
+              {patient?.patientCode || "PT-001"}
+            </small>
+            <span className="text-muted">·</span>
+            <small className="text-muted">
+              <i className="bi bi-shield-check me-1"></i>
+              Bảo hiểm: {patient?.insuranceType || "Cao cấp"}
+            </small>
+            <span className="text-muted">·</span>
+            <Badge
+              bg={patient?.riskLevel === "High" ? "danger" : patient?.riskLevel === "Medium" ? "warning" : "success"}
+              className="rounded-pill fw-semibold"
+            >
+              Ngưỡng rủi ro: {patient?.riskLevel || "Low"}
+            </Badge>
+          </div>
+        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          className="d-flex align-items-center gap-1 rounded-pill px-3"
+          onClick={() => navigate(ROUTES.APPOINTMENTS)}
+        >
+          <i className="bi bi-calendar-plus-fill"></i>
+          Đặt lịch khám mới
+        </Button>
+      </div>
 
       {/* 4 Thẻ chỉ số đo đạc sinh học mới nhất */}
       <div className="d-flex justify-content-between align-items-center mb-3">
