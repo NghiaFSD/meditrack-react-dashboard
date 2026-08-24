@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Container, Row, Col, Card, Table, Form, Button } from "react-bootstrap";
+import { Container, Row, Col, Card, Table, Form, Button, Badge } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { appointmentApi } from "../api/appointmentApi";
 import { patientApi } from "../api/patientApi";
@@ -13,14 +13,23 @@ import ActionMenu from "../components/common/ActionMenu";
 import EmptyState from "../components/common/EmptyState";
 import { ROLES, findLinkedDoctor, findLinkedPatient } from "../utils/auth";
 import { useAuth } from "../context/AuthContext";
-import { translateReason } from "../utils/translations";
+import { translateReason, translateSpecialty } from "../utils/translations";
+import { getDoctorWeeklySchedule, getLocalDateStr } from "../utils/dutySchedule";
+
+const QUICK_REASONS = [
+  "Tái khám tiểu đường",
+  "Kiểm tra chỉ số đường huyết",
+  "Tư vấn dinh dưỡng",
+  "Khám sức khỏe định kỳ",
+  "Theo dõi huyết áp",
+];
 
 const INITIAL_FORM = {
   patientId: "",
   doctorId: "",
   date: "",
-  time: "",
-  reason: "",
+  time: "08:30",
+  reason: "Tái khám tiểu đường",
   status: "Pending",
 };
 
@@ -100,14 +109,65 @@ function Appointments() {
     });
   }, [roleFilteredAppointments, search, statusFilter, patients, doctors]);
 
+  const selectedDoctorObj = useMemo(() => {
+    return doctors.find((d) => String(d.id) === String(form.doctorId)) || doctors[0] || null;
+  }, [doctors, form.doctorId]);
+
+  const selectedDoctorSchedule = useMemo(() => {
+    if (!selectedDoctorObj) return [];
+    return getDoctorWeeklySchedule(selectedDoctorObj, appointments);
+  }, [selectedDoctorObj, appointments]);
+
+  const shiftOnSelectedDate = useMemo(() => {
+    if (!selectedDoctorSchedule.length || !form.date) return null;
+    return selectedDoctorSchedule.find((s) => s.date === form.date) || null;
+  }, [selectedDoctorSchedule, form.date]);
+
+  const timeSlots = useMemo(() => {
+    if (!shiftOnSelectedDate || !shiftOnSelectedDate.isWorking) return [];
+    if (shiftOnSelectedDate.shiftType === "Ca sáng") {
+      return ["07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00"];
+    }
+    if (shiftOnSelectedDate.shiftType === "Ca chiều") {
+      return ["13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
+    }
+    if (shiftOnSelectedDate.shiftType === "Ca tối") {
+      return ["17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30"];
+    }
+    return ["08:00", "08:30", "09:00", "09:30", "10:00", "14:00", "14:30", "15:00", "15:30", "16:00"];
+  }, [shiftOnSelectedDate]);
+
+  const bookedTimes = useMemo(() => {
+    if (!form.date || !form.doctorId) return new Set();
+    return new Set(
+      appointments
+        .filter(
+          (a) =>
+            a.date === form.date &&
+            String(a.doctorId) === String(form.doctorId) &&
+            a.status !== "Cancelled" &&
+            (!editingAppointment || String(a.id) !== String(editingAppointment.id))
+        )
+        .map((a) => a.time)
+    );
+  }, [appointments, form.date, form.doctorId, editingAppointment]);
+
   const handleOpenAdd = () => {
+    const today = getLocalDateStr();
+    const docId = linkedDoctor ? String(linkedDoctor.id) : doctors[0]?.id ? String(doctors[0].id) : "";
+    const doc = doctors.find((d) => String(d.id) === docId) || doctors[0];
+    const sched = doc ? getDoctorWeeklySchedule(doc, appointments) : [];
+    const firstWorkingDay = sched.find((s) => s.isToday && s.isWorking) || sched.find((s) => s.isWorking) || sched[0];
+    const defaultDate = firstWorkingDay?.date || today;
+    const defaultTime = firstWorkingDay?.shiftType === "Ca chiều" ? "13:30" : "08:30";
+
     setEditingAppointment(null);
     setForm({
       ...INITIAL_FORM,
-      patientId: linkedPatient ? String(linkedPatient.id) : patients[0]?.id || "",
-      doctorId: linkedDoctor ? String(linkedDoctor.id) : doctors[0]?.id || "",
-      date: new Date().toISOString().slice(0, 10),
-      time: "09:00",
+      patientId: linkedPatient ? String(linkedPatient.id) : patients[0]?.id ? String(patients[0].id) : "",
+      doctorId: docId,
+      date: defaultDate,
+      time: defaultTime,
     });
     setIsModalOpen(true);
   };
@@ -127,7 +187,31 @@ function Appointments() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === "doctorId") {
+      // Khi đổi Bác sĩ: tự động tìm ngày trực phù hợp
+      const doc = doctors.find((d) => String(d.id) === String(value));
+      const sched = doc ? getDoctorWeeklySchedule(doc, appointments) : [];
+      const daySchedule = sched.find((s) => s.date === form.date);
+      let nextDate = form.date;
+      let nextTime = form.time;
+
+      if (!daySchedule || !daySchedule.isWorking) {
+        const firstWorking = sched.find((s) => s.isToday && s.isWorking) || sched.find((s) => s.isWorking);
+        if (firstWorking) {
+          nextDate = firstWorking.date;
+          nextTime = firstWorking.shiftType === "Ca chiều" ? "13:30" : "08:30";
+        }
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        doctorId: value,
+        date: nextDate,
+        time: nextTime,
+      }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -138,6 +222,26 @@ function Appointments() {
         "Vui lòng nhập đầy đủ thông tin lịch hẹn.",
         "warning"
       );
+      return;
+    }
+
+    // Kiểm tra ca trực của bác sĩ
+    if (shiftOnSelectedDate && !shiftOnSelectedDate.isWorking) {
+      Swal.fire({
+        title: "Bác sĩ nghỉ trực",
+        text: `Bác sĩ ${selectedDoctorObj?.fullName || "được chọn"} không có ca trực vào ngày ${form.date}. Vui lòng chọn ngày khác trên lịch trực.`,
+        icon: "warning",
+      });
+      return;
+    }
+
+    // Kiểm tra trùng giờ khám
+    if (bookedTimes.has(form.time)) {
+      Swal.fire({
+        title: "Khung giờ đã kín",
+        text: `Khung giờ ${form.time} ngày ${form.date} của bác sĩ đã có bệnh nhân đặt trước. Vui lòng chọn khung giờ khác.`,
+        icon: "warning",
+      });
       return;
     }
 
@@ -371,7 +475,10 @@ function Appointments() {
 
             <Col xs={12} md={6}>
               <Form.Group className="mb-3" controlId="apptDoctor">
-                <Form.Label className="fw-semibold">Bác sĩ</Form.Label>
+                <Form.Label className="fw-semibold">
+                  <i className="bi bi-person-badge-fill text-primary me-1"></i>
+                  Bác sĩ khám
+                </Form.Label>
                 <Form.Select
                   name="doctorId"
                   value={form.doctorId}
@@ -381,13 +488,85 @@ function Appointments() {
                 >
                   {doctors.map((d) => (
                     <option key={d.id} value={d.id}>
-                      {d.fullName} ({d.specialty || "Bác sĩ"})
+                      {d.fullName} — {translateSpecialty(d.specialization || d.specialty)} ({d.room || "Phòng khám"})
                     </option>
                   ))}
                 </Form.Select>
               </Form.Group>
             </Col>
 
+            {/* Bảng Ca trực tuần này của Bác sĩ */}
+            {selectedDoctorObj && (
+              <Col xs={12}>
+                <div className="p-3 bg-light rounded-3 border mb-1">
+                  <div className="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-1">
+                    <span className="fw-bold small text-dark d-flex align-items-center gap-1">
+                      <i className="bi bi-calendar-week-fill text-primary"></i>
+                      Lịch trực tuần này của {selectedDoctorObj.fullName}:
+                    </span>
+                    <small className="text-primary fw-medium">
+                      <i className="bi bi-hand-index-thumb me-1"></i>Nhấn vào ngày để chọn ca
+                    </small>
+                  </div>
+
+                  <div className="d-flex gap-2 overflow-auto pb-1">
+                    {selectedDoctorSchedule.map((day) => {
+                      const isSelected = form.date === day.date;
+                      const isOff = !day.isWorking;
+                      return (
+                        <div
+                          key={day.date}
+                          onClick={() => {
+                            if (!isOff) {
+                              const defaultSlot = day.shiftType === "Ca chiều" ? "13:30" : "08:30";
+                              setForm((prev) => ({
+                                ...prev,
+                                date: day.date,
+                                time: defaultSlot,
+                              }));
+                            }
+                          }}
+                          className={`p-2 rounded-3 text-center transition-all ${
+                            isSelected
+                              ? "border border-2 border-primary bg-primary bg-opacity-10 shadow-sm"
+                              : isOff
+                              ? "bg-white text-muted border border-light opacity-50"
+                              : "bg-white border"
+                          }`}
+                          style={{
+                            minWidth: "96px",
+                            cursor: isOff ? "not-allowed" : "pointer",
+                          }}
+                          title={isOff ? "Bác sĩ nghỉ trực ngày này" : `Nhấn để chọn ${day.dayName}`}
+                        >
+                          <div className="small fw-bold text-dark">{day.dayName}</div>
+                          <div className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>
+                            {day.displayDate}
+                          </div>
+                          <Badge
+                            bg={
+                              day.shiftType === "Ca sáng"
+                                ? "warning"
+                                : day.shiftType === "Ca chiều"
+                                ? "info"
+                                : day.shiftType === "Ca tối"
+                                ? "primary"
+                                : "secondary"
+                            }
+                            text={day.shiftType === "Ca sáng" || day.shiftType === "Ca chiều" ? "dark" : "white"}
+                            style={{ fontSize: "0.65rem" }}
+                          >
+                            {day.shiftType}
+                          </Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Col>
+            )}
+
+            {/* Ngày khám & Chi tiết ca trực */}
             <Col xs={12} md={6}>
               <Input
                 label="Ngày khám"
@@ -400,25 +579,87 @@ function Appointments() {
             </Col>
 
             <Col xs={12} md={6}>
-              <Input
-                label="Giờ khám"
-                name="time"
-                type="time"
-                value={form.time}
-                onChange={handleChange}
-                required
-              />
+              <Form.Label className="fw-semibold">Thông tin ca trực ngày này</Form.Label>
+              {shiftOnSelectedDate?.isWorking ? (
+                <div className="p-2 rounded border bg-success bg-opacity-10 text-success small">
+                  <div className="fw-bold d-flex align-items-center gap-1">
+                    <i className="bi bi-clock-fill"></i>
+                    <span>{shiftOnSelectedDate.shiftType} ({shiftOnSelectedDate.shiftHours})</span>
+                  </div>
+                  <div className="text-dark opacity-75 mt-1" style={{ fontSize: "0.78rem" }}>
+                    Phòng khám: <strong>{shiftOnSelectedDate.room}</strong> • Điều dưỡng: {shiftOnSelectedDate.nurse}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-2 rounded border bg-danger bg-opacity-10 text-danger small">
+                  <i className="bi bi-exclamation-triangle-fill me-1"></i>
+                  <strong>Bác sĩ nghỉ trực ngày này.</strong> Vui lòng chọn ngày khác ở trên.
+                </div>
+              )}
             </Col>
 
+            {/* Khung giờ khám theo ca */}
+            {shiftOnSelectedDate?.isWorking && (
+              <Col xs={12}>
+                <Form.Group className="mb-2">
+                  <Form.Label className="fw-semibold d-flex align-items-center justify-content-between">
+                    <span>
+                      <i className="bi bi-clock text-primary me-1"></i>
+                      Chọn giờ khám trong ca ({shiftOnSelectedDate.shiftType}):
+                    </span>
+                    <small className="text-muted">Giờ đã chọn: <strong className="text-primary">{form.time}</strong></small>
+                  </Form.Label>
+                  <div className="d-flex flex-wrap gap-2">
+                    {timeSlots.map((slot) => {
+                      const isBooked = bookedTimes.has(slot);
+                      const isSelected = form.time === slot;
+                      return (
+                        <Button
+                          key={slot}
+                          type="button"
+                          size="sm"
+                          variant={isSelected ? "primary" : isBooked ? "outline-secondary" : "outline-primary"}
+                          disabled={isBooked}
+                          onClick={() => setForm((prev) => ({ ...prev, time: slot }))}
+                          className="rounded-pill px-3 py-1 fw-medium"
+                          style={{ fontSize: "0.82rem" }}
+                        >
+                          {slot} {isBooked && <span style={{ fontSize: "0.65rem" }}>(Đã đặt)</span>}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </Form.Group>
+              </Col>
+            )}
+
+            {/* Lý do khám */}
             <Col xs={12}>
-              <Input
-                label="Lý do khám"
-                name="reason"
-                value={form.reason}
-                onChange={handleChange}
-                placeholder="Lý do khám bệnh..."
-                required
-              />
+              <Form.Group>
+                <Form.Label className="fw-semibold">Lý do khám bệnh</Form.Label>
+                <div className="d-flex flex-wrap gap-1 mb-2">
+                  {QUICK_REASONS.map((r) => (
+                    <Button
+                      key={r}
+                      type="button"
+                      size="sm"
+                      variant={form.reason === r ? "primary" : "outline-secondary"}
+                      onClick={() => setForm((prev) => ({ ...prev, reason: r }))}
+                      className="rounded-pill px-2 py-0"
+                      style={{ fontSize: "0.75rem" }}
+                    >
+                      {r}
+                    </Button>
+                  ))}
+                </div>
+                <Input
+                  name="reason"
+                  value={form.reason}
+                  onChange={handleChange}
+                  placeholder="Nhập lý do hoặc triệu chứng khám bệnh..."
+                  required
+                />
+              </Form.Group>
             </Col>
           </Row>
 
@@ -426,8 +667,9 @@ function Appointments() {
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
               Hủy
             </Button>
-            <Button variant="primary" type="submit">
-              Lưu lịch hẹn
+            <Button variant="primary" type="submit" disabled={!shiftOnSelectedDate?.isWorking}>
+              <i className="bi bi-calendar-check me-1"></i>
+              Xác nhận Đặt lịch
             </Button>
           </div>
         </Form>
