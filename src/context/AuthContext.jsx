@@ -20,6 +20,13 @@ export function AuthProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
   };
 
+  // Hàm cập nhật thông tin cá nhân: merge vào user hiện tại và lưu localStorage
+  const updateUser = (partialData) => {
+    const updated = { ...(user || {}), ...partialData };
+    setUser(updated);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  };
+
   // Hàm đăng xuất: Xóa state và xóa khỏi localStorage
   const logout = () => {
     setUser(null);
@@ -44,6 +51,7 @@ export function AuthProvider({ children }) {
         isPatient: user?.role === ROLES.PATIENT,
         login,
         logout,
+        updateUser,
         hasRole: checkRole,
       }}
     >
