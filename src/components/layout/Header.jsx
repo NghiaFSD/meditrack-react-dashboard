@@ -1,5 +1,5 @@
 import React from "react";
-import { Navbar, Container, Nav, Badge, Button } from "react-bootstrap";
+import { Navbar, Container, Nav, Badge } from "react-bootstrap";
 import { getRoleLabel } from "../../utils/auth";
 import { useAuth } from "../../context/AuthContext";
 
@@ -43,14 +43,6 @@ function Header() {
         </div>
 
         <Nav className="d-flex flex-row align-items-center gap-2">
-          {/* Thông báo */}
-          <Button variant="light" size="sm" className="rounded-circle p-2 text-muted border-0 position-relative">
-            <i className="bi bi-bell fs-5"></i>
-            <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-              <span className="visually-hidden">Thông báo mới</span>
-            </span>
-          </Button>
-
           {/* Thông tin User */}
           <div className="d-flex align-items-center gap-2 ps-2 border-start">
             <div
