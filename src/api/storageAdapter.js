@@ -1,6 +1,6 @@
 import { initialData } from "../data/initialData";
 
-const STORAGE_PREFIX = "meditrack_db_v5_";
+const STORAGE_PREFIX = "meditrack_db_v7_";
 
 /**
  * Khởi tạo dữ liệu vào localStorage nếu chưa có

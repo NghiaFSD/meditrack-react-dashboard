@@ -636,18 +636,32 @@
       "id": "7",
       "patientId": 2,
       "doctorId": 2,
+      "date": "2026-01-20",
+      "glucose": 128,
+      "hba1c": 6.4,
+      "bmi": 24.8,
+      "bloodPressure": "125/82",
+      "riskLevel": "Medium",
+      "followUpDate": "2026-02-10",
+      "diagnosis": "Prediabetes watch",
+      "note": "Mild elevation in fasting glucose. Recommended lifestyle modifications."
+    },
+    {
+      "id": "8",
+      "patientId": 2,
+      "doctorId": 2,
       "date": "2026-02-10",
       "glucose": 118,
-      "hba1c": 6,
+      "hba1c": 6.0,
       "bmi": 24.5,
       "bloodPressure": "120/78",
       "riskLevel": "Medium",
       "followUpDate": "2026-05-12",
       "diagnosis": "Prediabetes watch",
-      "note": "Mild elevation in fasting glucose."
+      "note": "Glucose decreased after initial dietary adjustments."
     },
     {
-      "id": "8",
+      "id": "9",
       "patientId": 2,
       "doctorId": 2,
       "date": "2026-05-12",
@@ -658,12 +672,12 @@
       "riskLevel": "Medium",
       "followUpDate": "2026-07-02",
       "diagnosis": "Prediabetes watch",
-      "note": "Stable condition with low sodium diet."
+      "note": "Stable condition with low sodium diet and daily walking."
     },
     {
-      "id": "9",
+      "id": "10",
       "patientId": 2,
-      "doctorId": 2,
+      "doctorId": 1,
       "date": "2026-07-02",
       "glucose": 110,
       "hba1c": 5.8,
@@ -672,12 +686,12 @@
       "riskLevel": "Medium",
       "followUpDate": "2026-08-05",
       "diagnosis": "Prediabetes watch",
-      "note": "Maintain healthy diet and regular exercise."
+      "note": "Maintain healthy diet and regular glucose tracking."
     },
     {
-      "id": "10",
+      "id": "11",
       "patientId": 2,
-      "doctorId": 2,
+      "doctorId": 1,
       "date": "2026-08-05",
       "glucose": 105,
       "hba1c": 5.6,
@@ -686,10 +700,24 @@
       "riskLevel": "Low",
       "followUpDate": "2026-11-05",
       "diagnosis": "Normal",
-      "note": "Fasting glucose near optimal target."
+      "note": "Fasting glucose near optimal target. Patient adherent to regimen."
     },
     {
-      "id": "11",
+      "id": "12",
+      "patientId": 3,
+      "doctorId": 1,
+      "date": "2026-02-14",
+      "glucose": 145,
+      "hba1c": 7.0,
+      "bmi": 26.8,
+      "bloodPressure": "135/88",
+      "riskLevel": "Medium",
+      "followUpDate": "2026-03-01",
+      "diagnosis": "Diabetes risk",
+      "note": "Initial screening showed elevated fasting blood sugar."
+    },
+    {
+      "id": "13",
       "patientId": 3,
       "doctorId": 1,
       "date": "2026-03-01",
@@ -700,10 +728,10 @@
       "riskLevel": "Medium",
       "followUpDate": "2026-05-18",
       "diagnosis": "Diabetes risk",
-      "note": "Weight management advised alongside medication."
+      "note": "Weight management advised alongside low GI diet."
     },
     {
-      "id": "12",
+      "id": "14",
       "patientId": 3,
       "doctorId": 1,
       "date": "2026-05-18",
@@ -717,7 +745,7 @@
       "note": "Slight improvement in blood pressure and weight."
     },
     {
-      "id": "13",
+      "id": "15",
       "patientId": 3,
       "doctorId": 1,
       "date": "2026-07-03",
@@ -728,10 +756,10 @@
       "riskLevel": "Medium",
       "followUpDate": "2026-08-08",
       "diagnosis": "Diabetes risk",
-      "note": "Need follow-up after 1 month."
+      "note": "Need follow-up after 1 month for continuous monitoring."
     },
     {
-      "id": "14",
+      "id": "16",
       "patientId": 3,
       "doctorId": 1,
       "date": "2026-08-08",
@@ -745,7 +773,21 @@
       "note": "HbA1c decreasing toward prediabetes upper threshold."
     },
     {
-      "id": "15",
+      "id": "17",
+      "patientId": 4,
+      "doctorId": 1,
+      "date": "2026-02-20",
+      "glucose": 168,
+      "hba1c": 8.0,
+      "bmi": 24.2,
+      "bloodPressure": "152/96",
+      "riskLevel": "High",
+      "followUpDate": "2026-04-12",
+      "diagnosis": "High blood pressure",
+      "note": "Elevated systolic BP and fasting blood sugar."
+    },
+    {
+      "id": "18",
       "patientId": 4,
       "doctorId": 3,
       "date": "2026-04-12",
@@ -754,12 +796,26 @@
       "bmi": 23.8,
       "bloodPressure": "148/95",
       "riskLevel": "High",
-      "followUpDate": "2026-07-04",
+      "followUpDate": "2026-06-05",
       "diagnosis": "High blood pressure",
-      "note": "High blood pressure and elevated fasting glucose."
+      "note": "Hypertension therapy started with dietary restrictions."
     },
     {
-      "id": "16",
+      "id": "19",
+      "patientId": 4,
+      "doctorId": 1,
+      "date": "2026-06-05",
+      "glucose": 150,
+      "hba1c": 7.3,
+      "bmi": 23.6,
+      "bloodPressure": "146/94",
+      "riskLevel": "High",
+      "followUpDate": "2026-07-04",
+      "diagnosis": "High blood pressure",
+      "note": "Blood glucose stabilizing gradually. Continue low sodium diet."
+    },
+    {
+      "id": "20",
       "patientId": 4,
       "doctorId": 3,
       "date": "2026-07-04",
@@ -773,9 +829,9 @@
       "note": "Reduce sodium intake and monitor blood pressure daily."
     },
     {
-      "id": "17",
+      "id": "21",
       "patientId": 4,
-      "doctorId": 3,
+      "doctorId": 1,
       "date": "2026-08-01",
       "glucose": 140,
       "hba1c": 6.9,
@@ -784,10 +840,38 @@
       "riskLevel": "High",
       "followUpDate": "2026-09-01",
       "diagnosis": "High blood pressure",
-      "note": "Blood pressure response improves under antihypertensive therapy."
+      "note": "Blood pressure and glucose response improves steadily."
     },
     {
-      "id": "18",
+      "id": "22",
+      "patientId": 5,
+      "doctorId": 1,
+      "date": "2026-03-10",
+      "glucose": 210,
+      "hba1c": 9.5,
+      "bmi": 28.2,
+      "bloodPressure": "160/100",
+      "riskLevel": "High",
+      "followUpDate": "2026-04-20",
+      "diagnosis": "High blood sugar, diabetes follow-up required",
+      "note": "Severe hyperglycemia. Prescribed intensive medication management."
+    },
+    {
+      "id": "23",
+      "patientId": 5,
+      "doctorId": 1,
+      "date": "2026-04-20",
+      "glucose": 198,
+      "hba1c": 9.3,
+      "bmi": 28.0,
+      "bloodPressure": "158/98",
+      "riskLevel": "High",
+      "followUpDate": "2026-06-01",
+      "diagnosis": "High blood sugar, diabetes follow-up required",
+      "note": "Dosage adjusted. Regular daily blood sugar checks advised."
+    },
+    {
+      "id": "24",
       "patientId": 5,
       "doctorId": 1,
       "date": "2026-06-01",
@@ -798,10 +882,10 @@
       "riskLevel": "High",
       "followUpDate": "2026-07-25",
       "diagnosis": "High blood sugar, diabetes follow-up required",
-      "note": "Severe hyperglycemia requiring intensive insulin management."
+      "note": "Gradual reduction in HbA1c. Continue strict diet plan."
     },
     {
-      "id": "19",
+      "id": "25",
       "patientId": 5,
       "doctorId": 1,
       "date": "2026-07-25",
@@ -810,18 +894,74 @@
       "bmi": 27.2,
       "bloodPressure": "148/92",
       "riskLevel": "High",
-      "followUpDate": "2026-08-25",
+      "followUpDate": "2026-08-15",
       "diagnosis": "High blood sugar, diabetes follow-up required",
-      "note": "Glucose reduction noted. Continue insulin dosage adjustment."
+      "note": "Glucose reduction noted. Patient active and walking daily."
     },
     {
-      "id": "20",
+      "id": "26",
+      "patientId": 5,
+      "doctorId": 1,
+      "date": "2026-08-15",
+      "glucose": 165,
+      "hba1c": 7.8,
+      "bmi": 26.8,
+      "bloodPressure": "142/88",
+      "riskLevel": "High",
+      "followUpDate": "2026-09-15",
+      "diagnosis": "High blood sugar, diabetes follow-up required",
+      "note": "Significant therapeutic improvement. Continue maintenance dose."
+    },
+    {
+      "id": "27",
       "patientId": 6,
       "doctorId": 2,
+      "date": "2026-02-10",
+      "glucose": 102,
+      "hba1c": 5.6,
+      "bmi": 21.5,
+      "bloodPressure": "120/75",
+      "riskLevel": "Low",
+      "followUpDate": "2026-04-15",
+      "diagnosis": "Normal",
+      "note": "Baseline metabolic check. All vital signs normal."
+    },
+    {
+      "id": "28",
+      "patientId": 6,
+      "doctorId": 2,
+      "date": "2026-04-15",
+      "glucose": 98,
+      "hba1c": 5.4,
+      "bmi": 21.3,
+      "bloodPressure": "118/74",
+      "riskLevel": "Low",
+      "followUpDate": "2026-06-20",
+      "diagnosis": "Normal",
+      "note": "Optimal fasting glucose and lipid profile."
+    },
+    {
+      "id": "29",
+      "patientId": 6,
+      "doctorId": 1,
+      "date": "2026-06-20",
+      "glucose": 95,
+      "hba1c": 5.3,
+      "bmi": 21.1,
+      "bloodPressure": "116/72",
+      "riskLevel": "Low",
+      "followUpDate": "2026-07-15",
+      "diagnosis": "Normal",
+      "note": "Stable healthy metabolism. Maintain active lifestyle."
+    },
+    {
+      "id": "30",
+      "patientId": 6,
+      "doctorId": 1,
       "date": "2026-07-15",
       "glucose": 92,
       "hba1c": 5.2,
-      "bmi": 21,
+      "bmi": 21.0,
       "bloodPressure": "115/72",
       "riskLevel": "Low",
       "followUpDate": "2027-01-15",

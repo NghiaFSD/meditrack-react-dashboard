@@ -14,12 +14,21 @@ import { getDoctorWeeklySchedule, getLocalDateStr } from "../../utils/dutySchedu
  * Sub-component: Chọn bệnh nhân để xem biểu đồ đường huyết
  * Dùng trong DoctorDashboard — cho phép bác sĩ lọc glucose chart theo từng bệnh nhân
  */
-function SelectedPatientGlucoseChart({ myPatients, myRecords, defaultPatientId }) {
-  const [selectedId, setSelectedId] = React.useState(String(defaultPatientId || ""));
+function SelectedPatientGlucoseChart({ myPatients, records, defaultPatientId }) {
+  const [selectedId, setSelectedId] = React.useState(String(defaultPatientId || myPatients[0]?.id || ""));
 
-  const selectedPatient = myPatients.find((p) => String(p.id) === selectedId);
-  const filteredRecords = myRecords
-    .filter((r) => String(r.patientId) === selectedId)
+  React.useEffect(() => {
+    if (defaultPatientId) {
+      setSelectedId(String(defaultPatientId));
+    } else if (myPatients.length > 0 && !selectedId) {
+      setSelectedId(String(myPatients[0].id));
+    }
+  }, [defaultPatientId, myPatients]);
+
+  const selectedPatient = myPatients.find((p) => String(p.id) === String(selectedId)) || myPatients[0];
+  const activeId = selectedPatient ? String(selectedPatient.id) : String(selectedId);
+  const filteredRecords = (records || [])
+    .filter((r) => String(r.patientId) === activeId)
     .sort((a, b) => (a.date > b.date ? 1 : -1));
 
   return (
@@ -31,7 +40,7 @@ function SelectedPatientGlucoseChart({ myPatients, myRecords, defaultPatientId }
         </h6>
         <select
           className="form-select form-select-sm w-auto"
-          value={selectedId}
+          value={activeId}
           onChange={(e) => setSelectedId(e.target.value)}
         >
           {myPatients.map((p) => (
@@ -140,13 +149,10 @@ function DoctorDashboard({
   // Danh sách bệnh nhân có rủi ro cao (Glucose > 140 mg/dL hoặc Risk High)
   const highRiskPatients = useMemo(() => {
     return myPatients
-      .filter((p) => {
-        const pRecords = myRecords.filter((r) => Number(r.patientId) === Number(p.id));
-        const latestRec = pRecords[pRecords.length - 1];
-        return p.riskLevel === "High" || (latestRec && Number(latestRec.glucose) >= 140);
-      })
       .map((p) => {
-        const pRecords = myRecords.filter((r) => Number(r.patientId) === Number(p.id));
+        const pRecords = (records || [])
+          .filter((r) => Number(r.patientId) === Number(p.id))
+          .sort((a, b) => a.date.localeCompare(b.date));
         const latestRec = pRecords[pRecords.length - 1];
         return {
           ...p,
@@ -154,9 +160,11 @@ function DoctorDashboard({
           latestHbA1c: latestRec?.hba1c || "-",
           latestBP: latestRec?.bloodPressure || "-",
           latestDiagnosis: latestRec?.diagnosis || "-",
+          latestRec,
         };
-      });
-  }, [myPatients, myRecords]);
+      })
+      .filter((p) => p.riskLevel === "High" || (p.latestRec && Number(p.latestRec.glucose) >= 140));
+  }, [myPatients, records]);
 
   const getPatientName = (id) => patients.find((p) => Number(p.id) === Number(id))?.fullName || "Chưa xác định";
 
@@ -568,7 +576,7 @@ function DoctorDashboard({
         return (
           <SelectedPatientGlucoseChart
             myPatients={myPatients}
-            myRecords={myRecords}
+            records={records}
             defaultPatientId={defaultPatient?.id}
           />
         );
