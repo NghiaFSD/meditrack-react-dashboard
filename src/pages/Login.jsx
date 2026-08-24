@@ -68,7 +68,7 @@ function Login() {
   };
 
   // Gán nhanh thông tin tài khoản mẫu vào form
-  const useDemoAccount = (email) => {
+  const handleFillDemoAccount = (email) => {
     setForm({ email, password: "MediTrack#2026!" });
   };
 
@@ -142,7 +142,7 @@ function Login() {
                       variant="outline-danger"
                       size="sm"
                       className="rounded-pill px-3"
-                      onClick={() => useDemoAccount("admin@gmail.com")}
+                      onClick={() => handleFillDemoAccount("admin@gmail.com")}
                     >
                       <i className="bi bi-shield-lock me-1"></i>
                       Admin
@@ -151,7 +151,7 @@ function Login() {
                       variant="outline-primary"
                       size="sm"
                       className="rounded-pill px-3"
-                      onClick={() => useDemoAccount("doctor@gmail.com")}
+                      onClick={() => handleFillDemoAccount("doctor@gmail.com")}
                     >
                       <i className="bi bi-person-badge me-1"></i>
                       Bác sĩ
@@ -160,7 +160,7 @@ function Login() {
                       variant="outline-success"
                       size="sm"
                       className="rounded-pill px-3"
-                      onClick={() => useDemoAccount("patient@gmail.com")}
+                      onClick={() => handleFillDemoAccount("patient@gmail.com")}
                     >
                       <i className="bi bi-person me-1"></i>
                       Bệnh nhân

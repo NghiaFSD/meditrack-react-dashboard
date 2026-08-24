@@ -3,13 +3,13 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import App from "./App.jsx";
-import { AuthProvider } from "./context/AuthContext.jsx";
+import App from "./App";
+import { AuthProvider } from "./context/AuthContext";
 import "./index.css";
 
-// Entry point của React app.
-// Bọc BrowserRouter và AuthProvider để toàn bộ ứng dụng sử dụng Routing & Xác thực.
-ReactDOM.createRoot(document.getElementById("root")).render(
+// Entry point chính của ứng dụng React (Chuẩn Create React App)
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
