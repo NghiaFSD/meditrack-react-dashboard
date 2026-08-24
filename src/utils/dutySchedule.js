@@ -13,6 +13,57 @@ export function getLocalDateStr(date = new Date()) {
   return `${y}-${m}-${d}`;
 }
 
+export const CUSTOM_DUTY_STORAGE_KEY = "meditrack_custom_duty_schedules";
+
+/**
+ * Lấy danh sách phân ca trực theo ngày tùy chỉnh đã lưu trong localStorage
+ */
+export function getCustomDutySchedules() {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_DUTY_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Lưu hoặc cập nhật phân ca trực cho một bác sĩ vào một ngày cụ thể
+ */
+export function saveCustomDutySchedule({ date, doctorId, shiftType, shiftHours, room, nurse }) {
+  if (typeof window === "undefined") return;
+  try {
+    const list = getCustomDutySchedules();
+    const docIdStr = String(doctorId);
+    const existingIndex = list.findIndex(
+      (item) => item.date === date && String(item.doctorId) === docIdStr
+    );
+
+    const record = {
+      date,
+      doctorId: docIdStr,
+      shiftType,
+      shiftHours,
+      room,
+      nurse,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (existingIndex >= 0) {
+      list[existingIndex] = record;
+    } else {
+      list.push(record);
+    }
+
+    localStorage.setItem(CUSTOM_DUTY_STORAGE_KEY, JSON.stringify(list));
+    return record;
+  } catch (err) {
+    console.error("Lỗi khi lưu lịch trực tùy chỉnh:", err);
+    throw err;
+  }
+}
+
 // Danh sách các thứ trong tuần
 const DAY_NAMES = [
   "Chủ Nhật",
@@ -26,7 +77,7 @@ const DAY_NAMES = [
 
 /**
  * Tạo danh sách lịch trực 7 ngày trong tuần hiện tại cho bác sĩ
- * Tự động tính toán trạng thái: "Đã qua", "Đang trực" (Hôm nay), "Sắp tới", "Nghỉ ca"
+ * Ưu tiên các ca phân bổ tùy chỉnh theo ngày (custom), nếu không có thì dùng ca mặc định
  */
 export function getDoctorWeeklySchedule(doctor, appointments = []) {
   const curr = new Date();
@@ -41,7 +92,12 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
   const docShift = doctor?.shift || "Morning";
   const docRoom = doctor?.room || "A-201";
 
+  // Lấy các ca tùy chỉnh đã lưu cho bác sĩ này
+  const customList = getCustomDutySchedules();
+  const docIdStr = String(doctor?.id);
+
   const schedule = [];
+
 
   for (let i = 0; i < 7; i++) {
     const dayDate = new Date(monday);
@@ -53,35 +109,52 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
     const isPassed = dateStr < todayStr;
     const isFuture = dateStr > todayStr;
 
-    // Xếp ca trực mẫu thực tế:
-    // Thứ 2, 4, 6: Theo ca chính của Bác sĩ (Ca sáng / Ca chiều)
-    // Thứ 3, 5: Ca ngược lại hoặc Khám chuyên sâu
-    // Thứ 7: Ca sáng
-    // Chủ Nhật: Nghỉ trực (hoặc Trực cấp cứu)
+    // 1. Kiểm tra nếu có ca phân bổ tùy chỉnh riêng cho ngày này
+    const custom = customList.find(
+      (c) => c.date === dateStr && String(c.doctorId) === docIdStr
+    );
+
     let shiftType = "Off";
     let shiftHours = "Nghỉ trực";
     let isWorking = false;
+    let room = "-";
+    let nurse = "-";
 
-    if (i === 0 || i === 2 || i === 4) {
-      // Thứ 2, Thứ 4, Thứ 6
-      shiftType = docShift === "Morning" ? "Ca sáng" : "Ca chiều";
-      shiftHours = docShift === "Morning" ? "07:30 - 11:30" : "13:30 - 17:30";
-      isWorking = true;
-    } else if (i === 1 || i === 3) {
-      // Thứ 3, Thứ 5
-      shiftType = docShift === "Morning" ? "Ca chiều" : "Ca sáng";
-      shiftHours = docShift === "Morning" ? "13:30 - 17:30" : "07:30 - 11:30";
-      isWorking = true;
-    } else if (i === 5) {
-      // Thứ 7
-      shiftType = "Ca sáng";
-      shiftHours = "08:00 - 12:00";
-      isWorking = true;
+    if (custom) {
+      shiftType = custom.shiftType;
+      shiftHours = custom.shiftHours;
+      isWorking = custom.shiftType !== "Nghỉ trực" && custom.shiftType !== "Off";
+      room = isWorking ? (custom.room || docRoom) : "-";
+      nurse = isWorking ? (custom.nurse || "ĐD. Nguyễn Thị Hoa") : "-";
     } else {
-      // Chủ Nhật
-      shiftType = "Nghỉ trực";
-      shiftHours = "Nghỉ cuối tuần";
-      isWorking = false;
+      // Xếp ca trực mẫu thực tế:
+      // Thứ 2, 4, 6: Theo ca chính của Bác sĩ (Ca sáng / Ca chiều)
+      // Thứ 3, 5: Ca ngược lại hoặc Khám chuyên sâu
+      // Thứ 7: Ca sáng
+      // Chủ Nhật: Nghỉ trực (hoặc Trực cấp cứu)
+      if (i === 0 || i === 2 || i === 4) {
+        // Thứ 2, Thứ 4, Thứ 6
+        shiftType = docShift === "Morning" ? "Ca sáng" : "Ca chiều";
+        shiftHours = docShift === "Morning" ? "07:30 - 11:30" : "13:30 - 17:30";
+        isWorking = true;
+      } else if (i === 1 || i === 3) {
+        // Thứ 3, Thứ 5
+        shiftType = docShift === "Morning" ? "Ca chiều" : "Ca sáng";
+        shiftHours = docShift === "Morning" ? "13:30 - 17:30" : "07:30 - 11:30";
+        isWorking = true;
+      } else if (i === 5) {
+        // Thứ 7
+        shiftType = "Ca sáng";
+        shiftHours = "08:00 - 12:00";
+        isWorking = true;
+      } else {
+        // Chủ Nhật
+        shiftType = "Nghỉ trực";
+        shiftHours = "Nghỉ cuối tuần";
+        isWorking = false;
+      }
+      room = isWorking ? docRoom : "-";
+      nurse = isWorking ? (i % 2 === 0 ? "ĐD. Nguyễn Thị Hoa" : "ĐD. Trần Thu Trang") : "-";
     }
 
     // Logic xác định trạng thái ca trực dựa trên thời gian thực tế
@@ -127,8 +200,8 @@ export function getDoctorWeeklySchedule(doctor, appointments = []) {
       statusKey,
       statusText,
       statusVariant,
-      room: isWorking ? docRoom : "-",
-      nurse: isWorking ? (i % 2 === 0 ? "ĐD. Nguyễn Thị Hoa" : "ĐD. Trần Thu Trang") : "-",
+      room,
+      nurse,
       appointmentsCount: dayAppts.length,
       appointments: dayAppts,
     });

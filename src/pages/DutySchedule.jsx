@@ -20,6 +20,7 @@ function DutySchedule() {
   const [shiftFilter, setShiftFilter] = useState("All");
   const [dayFilter, setDayFilter] = useState("All");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [scheduleVersion, setScheduleVersion] = useState(0);
 
   // Timer cập nhật mỗi phút — để trạng thái tự chuyển theo giờ thực
   const [currentTime, setCurrentTime] = useState(() => new Date());
@@ -60,7 +61,7 @@ function DutySchedule() {
         shift: doc.shift,
       }));
     });
-  }, [doctors, appointments]);
+  }, [doctors, appointments, scheduleVersion]);
 
   // Thống kê tổng quan hôm nay — tính theo giờ thực
   const todayStats = useMemo(() => {
@@ -312,6 +313,7 @@ function DutySchedule() {
       onHide={() => setShowCreateModal(false)}
       onSaved={() => {
         setShowCreateModal(false);
+        setScheduleVersion((v) => v + 1);
         doctorApi.getAll().then((docs) => setDoctors(docs || []));
       }}
     />
