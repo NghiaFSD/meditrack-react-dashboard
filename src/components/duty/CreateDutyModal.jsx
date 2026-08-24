@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Form, Row, Col, Button, Badge } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { doctorApi } from "../../api/doctorApi";
+import { translateSpecialty } from "../../utils/translations";
 
 const SHIFT_OPTIONS = [
   { value: "Morning",   label: "☀️ Ca sáng",  hours: "07:30 – 11:30" },
@@ -15,7 +16,7 @@ const NURSE_OPTIONS = [
   "ĐD. Phạm Thị Lan",
 ];
 
-const ROOM_SUGGESTIONS = [
+const ROOM_OPTIONS = [
   "A-101","A-201","A-301",
   "B-103","B-202","B-305",
   "C-104","C-205","C-305",
@@ -25,7 +26,7 @@ const ROOM_SUGGESTIONS = [
 const INITIAL_FORM = {
   doctorId: "",
   shift: "Morning",
-  room: "",
+  room: "A-201",
   nurse: NURSE_OPTIONS[0],
 };
 
@@ -144,7 +145,7 @@ function CreateDutyModal({ show, onHide, onSaved, preselectedDoctorId = null }) 
             <div className="flex-grow-1">
               <div className="fw-bold text-dark">{selectedDoctor.fullName}</div>
               <div className="text-muted small">
-                {selectedDoctor.specialization || selectedDoctor.specialty || "Bác sĩ"}
+                {translateSpecialty(selectedDoctor.specialization || selectedDoctor.specialty)}
               </div>
             </div>
             {selectedShift && (
@@ -179,8 +180,7 @@ function CreateDutyModal({ show, onHide, onSaved, preselectedDoctorId = null }) 
                 >
                   {doctors.map((d) => (
                     <option key={d.id} value={d.id}>
-                      {d.fullName} —{" "}
-                      {d.specialization || d.specialty || "Bác sĩ"}
+                      {d.fullName} — {translateSpecialty(d.specialization || d.specialty)}
                     </option>
                   ))}
                 </Form.Select>
@@ -218,21 +218,19 @@ function CreateDutyModal({ show, onHide, onSaved, preselectedDoctorId = null }) 
                 <Form.Label className="fw-semibold small">
                   Phòng khám <span className="text-danger">*</span>
                 </Form.Label>
-                <Form.Control
-                  type="text"
+                <Form.Select
                   name="room"
-                  list="room-suggestions"
                   value={form.room}
                   onChange={handleChange}
-                  placeholder="VD: A-201"
                   className="rounded-3"
                   required
-                />
-                <datalist id="room-suggestions">
-                  {ROOM_SUGGESTIONS.map((r) => (
-                    <option key={r} value={r} />
+                >
+                  {ROOM_OPTIONS.map((r) => (
+                    <option key={r} value={r}>
+                      Phòng {r}
+                    </option>
                   ))}
-                </datalist>
+                </Form.Select>
               </Form.Group>
             </Col>
 

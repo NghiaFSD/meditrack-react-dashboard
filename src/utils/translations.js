@@ -23,7 +23,32 @@ const DIAGNOSIS_MAP = {
   Normal: "Bình thường",
 };
 
+// Map chuyên khoa y tế sang Tiếng Việt
+const SPECIALTY_MAP = {
+  "Endocrinology": "Nội tiết",
+  "General Medicine": "Nội tổng quát",
+  "Cardiology": "Tim mạch",
+  "Nutrition & Metabolism": "Dinh dưỡng",
+  "Nutrition": "Dinh dưỡng",
+  "Neurology": "Thần kinh",
+  "Orthopedics": "Cơ xương khớp",
+  "Ophthalmology": "Nhãn khoa",
+  "Dermatology": "Da liễu",
+  "Pediatrics": "Nhi khoa",
+  "Nội tiết": "Nội tiết",
+  "Nội tổng quát": "Nội tổng quát",
+  "Tim mạch": "Tim mạch",
+  "Dinh dưỡng": "Dinh dưỡng",
+  "Thần kinh": "Thần kinh",
+  "Cơ xương khớp": "Cơ xương khớp",
+  "Nhãn khoa": "Nhãn khoa",
+  "Da liễu": "Da liễu",
+  "Nhi khoa": "Nhi khoa",
+};
+
+export const translateSpecialty = (spec) => SPECIALTY_MAP[spec] || spec || "Nội tổng quát";
 export const translateReason = (reason) => REASON_MAP[reason] || reason || "-";
 export const translateDiagnosis = (diagnosis) => DIAGNOSIS_MAP[diagnosis] || diagnosis || "-";
 export const translateInsurance = (ins) => (ins === "Basic" ? "Cơ bản" : ins === "Premium" ? "Cao cấp" : "Tiêu chuẩn");
 export const translateRiskLevel = (risk) => (risk === "High" ? "Cao" : risk === "Medium" ? "Trung bình" : "Thấp");
+

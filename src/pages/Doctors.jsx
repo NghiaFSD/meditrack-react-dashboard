@@ -15,6 +15,22 @@ import { appointmentApi } from "../api/appointmentApi";
 import { recordApi } from "../api/recordApi";
 import { isValidEmail, isValidPhone } from "../utils/validation";
 import { getDoctorWeeklySchedule } from "../utils/dutySchedule";
+import { translateSpecialty } from "../utils/translations";
+
+const ROOM_OPTIONS = [
+  "A-101",
+  "A-201",
+  "A-301",
+  "B-103",
+  "B-202",
+  "B-305",
+  "C-104",
+  "C-205",
+  "C-305",
+  "D-102",
+  "D-204",
+  "D-306",
+];
 
 const INITIAL_DOCTOR = {
   fullName: "",
@@ -97,17 +113,18 @@ function Doctors() {
   const filteredDoctors = useMemo(() => {
     return doctors.filter((doc) => {
       const q = search.toLowerCase();
+      const specTranslated = translateSpecialty(doc.specialization || doc.specialty || "");
       const matchSearch =
         (doc.fullName || "").toLowerCase().includes(q) ||
         (doc.email || "").toLowerCase().includes(q) ||
         (doc.phone || "").includes(q) ||
         (doc.specialization || doc.specialty || "").toLowerCase().includes(q) ||
+        specTranslated.toLowerCase().includes(q) ||
         (doc.room || "").toLowerCase().includes(q);
 
       const matchShift = shiftFilter === "All" || doc.shift === shiftFilter;
       const matchSpecialty =
-        specialtyFilter === "All" ||
-        (doc.specialization || doc.specialty) === specialtyFilter;
+        specialtyFilter === "All" || specTranslated === specialtyFilter;
 
       return matchSearch && matchShift && matchSpecialty;
     });
@@ -117,7 +134,7 @@ function Doctors() {
   const morningShifts = doctors.filter((d) => d.shift === "Morning").length;
   const afternoonShifts = doctors.filter((d) => d.shift === "Afternoon").length;
   const uniqueSpecialties = new Set(
-    doctors.map((d) => d.specialization || d.specialty).filter(Boolean)
+    doctors.map((d) => translateSpecialty(d.specialization || d.specialty)).filter(Boolean)
   ).size;
 
   const handleOpenAdd = () => {
@@ -130,7 +147,7 @@ function Doctors() {
     setEditingDoctor(doc);
     setForm({
       fullName: doc.fullName || "",
-      specialization: doc.specialization || doc.specialty || "Nội tiết",
+      specialization: translateSpecialty(doc.specialization || doc.specialty),
       room: doc.room || "A-201",
       shift: doc.shift || "Morning",
       phone: doc.phone || "",
@@ -140,11 +157,11 @@ function Doctors() {
   };
 
   const handleViewSchedule = (doc) => {
-    const weeklyData = getDoctorWeeklySchedule(doc, appointments);
+    const schedule = getDoctorWeeklySchedule(doc, appointments);
     setScheduleModal({
       isOpen: true,
       doctor: doc,
-      data: weeklyData,
+      data: schedule,
     });
   };
 
@@ -153,49 +170,31 @@ function Doctors() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const validateForm = () => {
-    if (!form.fullName.trim()) return "Họ và tên bác sĩ không được để trống.";
-    if (!isValidEmail(form.email)) return "Email không đúng định dạng.";
-    if (!isValidPhone(form.phone)) return "Số điện thoại phải từ 9 - 11 chữ số.";
-    if (!form.room.trim()) return "Vui lòng nhập phòng khám làm việc.";
-
-    const normEmail = form.email.trim().toLowerCase();
-    const normPhone = form.phone.trim();
-    const duplicate = doctors.find((d) => {
-      const sameEmail = (d.email || "").trim().toLowerCase() === normEmail;
-      const samePhone = (d.phone || "").trim() === normPhone;
-      const sameId = editingDoctor && Number(d.id) === Number(editingDoctor.id);
-      return !sameId && (sameEmail || samePhone);
-    });
-
-    if (duplicate) {
-      return "Email hoặc Số điện thoại đã được sử dụng bởi bác sĩ khác.";
-    }
-
-    return "";
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const valMsg = validateForm();
-    if (valMsg) {
-      Swal.fire("Dữ liệu không hợp lệ", valMsg, "warning");
+    if (!form.fullName.trim()) {
+      Swal.fire("Lỗi", "Vui lòng nhập họ và tên bác sĩ.", "warning");
       return;
     }
 
-    const payload = {
-      ...form,
-      specialty: form.specialization, // hỗ trợ cả 2 tên field
-    };
+    if (!isValidPhone(form.phone)) {
+      Swal.fire("Lỗi", "Số điện thoại không hợp lệ (cần 10 số).", "warning");
+      return;
+    }
+
+    if (!isValidEmail(form.email)) {
+      Swal.fire("Lỗi", "Email không đúng định dạng.", "warning");
+      return;
+    }
 
     try {
       if (editingDoctor) {
-        await doctorApi.update(editingDoctor.id, payload);
-        Swal.fire("Thành công", "Cập nhật thông tin bác sĩ thành công!", "success");
+        await doctorApi.update(editingDoctor.id, form);
+        Swal.fire("Thành công", "Cập nhật thông tin bác sĩ thành công.", "success");
       } else {
-        await doctorApi.create(payload);
-        Swal.fire("Thành công", "Thêm bác sĩ mới vào hệ thống thành công!", "success");
+        await doctorApi.create(form);
+        Swal.fire("Thành công", "Thêm mới bác sĩ thành công.", "success");
       }
       setIsModalOpen(false);
       fetchDoctors();
@@ -375,7 +374,7 @@ function Doctors() {
                     </td>
                     <td>
                       <span className="badge bg-light text-dark border fw-medium px-2 py-1">
-                        {doc.specialization || doc.specialty || "Nội tổng quát"}
+                        {translateSpecialty(doc.specialization || doc.specialty)}
                       </span>
                     </td>
                     <td className="fw-medium text-primary">{doc.room || "A-201"}</td>
@@ -467,14 +466,20 @@ function Doctors() {
             </Col>
 
             <Col xs={12} md={6}>
-              <Input
-                label="Phòng khám"
-                name="room"
-                value={form.room}
-                onChange={handleChange}
-                placeholder="Ví dụ: A-201, B-102..."
-                required
-              />
+              <Form.Group className="mb-3" controlId="docRoom">
+                <Form.Label className="fw-semibold">Phòng khám</Form.Label>
+                <Form.Select
+                  name="room"
+                  value={form.room}
+                  onChange={handleChange}
+                >
+                  {ROOM_OPTIONS.map((room) => (
+                    <option key={room} value={room}>
+                      Phòng {room}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
             </Col>
 
             <Col xs={12} md={6}>
@@ -527,9 +532,10 @@ function Doctors() {
         isOpen={scheduleModal.isOpen}
         onClose={() => setScheduleModal({ isOpen: false, doctor: null, data: [] })}
         title={`Lịch Trực Tuần - ${scheduleModal.doctor?.fullName || "Bác sĩ"}`}
-        subtitle={`Khoa: ${scheduleModal.doctor?.specialization || scheduleModal.doctor?.specialty || "Nội tổng quát"} | Phòng: ${scheduleModal.doctor?.room || "A-201"}`}
+        subtitle={`Khoa: ${translateSpecialty(scheduleModal.doctor?.specialization || scheduleModal.doctor?.specialty)} | Phòng: ${scheduleModal.doctor?.room || "A-201"}`}
         type="schedule"
         data={scheduleModal.data}
+        patients={records.map((r) => ({ id: r.patientId, fullName: r.patientName }))}
       />
     </Container>
   );
