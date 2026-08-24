@@ -16,7 +16,7 @@ function Header() {
   const [showProfile, setShowProfile] = useState(false);
 
   const canEditProfile =
-    currentUser.role === ROLES.ADMIN || currentUser.role === ROLES.DOCTOR;
+    currentUser.role === ROLES.DOCTOR || currentUser.role === ROLES.PATIENT;
 
   const getRoleBadgeVariant = (role) => {
     switch (role) {

@@ -3,25 +3,29 @@ import { Modal, Form, Row, Col, Button, Badge } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
 import { doctorApi } from "../../api/doctorApi";
+import { patientApi } from "../../api/patientApi";
 import { storageAdapter } from "../../api/storageAdapter";
 import { ROLES } from "../../utils/auth";
 
 /**
- * Modal chỉnh sửa thông tin cá nhân — Admin & Doctor
+ * Modal chỉnh sửa thông tin cá nhân — Doctor & Patient
  * Doctor: fullName, email, phone, password có thể sửa
  *          chuyên khoa, phòng khám, ca trực → CỐ ĐỊNH (chỉ Admin mới đổi được)
- * Admin:  fullName, email, password có thể sửa
+ * Patient: fullName, email, phone, address, password có thể sửa
  */
 function ProfileModal({ show, onHide }) {
   const { user, updateUser } = useAuth();
   const isDoctor = user?.role === ROLES.DOCTOR;
-  const isAdmin = user?.role === ROLES.ADMIN;
+  const isPatient = user?.role === ROLES.PATIENT;
+
 
   const [linkedDoctor, setLinkedDoctor] = useState(null);
+  const [linkedPatient, setLinkedPatient] = useState(null);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
     phone: "",
+    address: "",
     password: "",
     confirmPassword: "",
   });
@@ -34,6 +38,7 @@ function ProfileModal({ show, onHide }) {
       fullName: user.fullName || "",
       email: user.email || "",
       phone: user.phone || "",
+      address: user.address || "",
       password: "",
       confirmPassword: "",
     });
@@ -50,7 +55,20 @@ function ProfileModal({ show, onHide }) {
         setLinkedDoctor(found || null);
       });
     }
-  }, [show, user, isDoctor]);
+
+    // Nếu là Patient: tìm bản ghi Patient liên kết
+    if (isPatient) {
+      patientApi.getAll().then((pts) => {
+        const found = pts.find(
+          (p) =>
+            p.email === user.email ||
+            p.userId === user.id ||
+            String(p.id) === String(user.patientId)
+        );
+        setLinkedPatient(found || null);
+      });
+    }
+  }, [show, user, isDoctor, isPatient]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -77,7 +95,8 @@ function ProfileModal({ show, onHide }) {
       const updatedFields = {
         fullName: form.fullName.trim(),
         email: form.email.trim(),
-        ...(isDoctor && { phone: form.phone.trim() }),
+        phone: form.phone.trim(),
+        ...(isPatient && { address: form.address.trim() }),
         ...(form.password && { password: form.password }),
       };
 
@@ -102,6 +121,17 @@ function ProfileModal({ show, onHide }) {
         });
       }
 
+      // Nếu là Patient: cập nhật thông tin vào bảng patients
+      if (isPatient && linkedPatient?.id) {
+        await patientApi.update(linkedPatient.id, {
+          ...linkedPatient,
+          fullName: form.fullName.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          address: form.address.trim(),
+        });
+      }
+
       Swal.fire({
         title: "Đã lưu!",
         text: "Thông tin cá nhân đã được cập nhật thành công.",
@@ -117,8 +147,8 @@ function ProfileModal({ show, onHide }) {
     }
   };
 
-  const badgeVariant = isAdmin ? "danger" : "primary";
-  const roleLabel = isAdmin ? "Quản trị viên" : "Bác sĩ";
+  const badgeVariant = isDoctor ? "primary" : isPatient ? "success" : "secondary";
+  const roleLabel = isDoctor ? "Bác sĩ" : isPatient ? "Bệnh nhân" : "Người dùng";
   const avatarLetter = user?.fullName?.charAt(0) || "U";
 
   return (
@@ -179,8 +209,8 @@ function ProfileModal({ show, onHide }) {
               </Form.Group>
             </Col>
 
-            {/* Số điện thoại — chỉ Doctor */}
-            {isDoctor && (
+            {/* Số điện thoại — Doctor và Patient */}
+            {(isDoctor || isPatient) && (
               <Col xs={12}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">Số điện thoại</Form.Label>
@@ -190,6 +220,23 @@ function ProfileModal({ show, onHide }) {
                     value={form.phone}
                     onChange={handleChange}
                     placeholder="0901 234 567"
+                    className="rounded-3"
+                  />
+                </Form.Group>
+              </Col>
+            )}
+
+            {/* Địa chỉ — chỉ Patient */}
+            {isPatient && (
+              <Col xs={12}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold small">Địa chỉ</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    placeholder="Số nhà, đường, quận, thành phố"
                     className="rounded-3"
                   />
                 </Form.Group>
