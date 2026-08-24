@@ -339,55 +339,75 @@ function QuickViewModal({
               <>
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-3">Thứ</th>
-                    <th>Ngày</th>
-                    <th>Ca trực</th>
-                    <th>Khung giờ làm việc</th>
-                    <th>Phòng khám</th>
-                    <th>Điều dưỡng hỗ trợ</th>
-                    <th>Lịch hẹn đã đặt</th>
-                    <th className="pe-3">Trạng thái</th>
+                    <th className="ps-3" style={{ minWidth: "120px" }}>Thứ / Ngày</th>
+                    <th style={{ minWidth: "130px" }}>Ca trực</th>
+                    <th style={{ minWidth: "100px" }}>Phòng khám</th>
+                    <th style={{ minWidth: "130px" }}>Điều dưỡng</th>
+                    <th style={{ minWidth: "280px" }}>Danh sách bệnh nhân trong ca</th>
+                    <th className="pe-3" style={{ minWidth: "110px" }}>Trạng thái ca</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.map((item, idx) => (
-                    <tr key={idx} className={item.isToday ? "table-primary bg-opacity-25" : ""}>
-                      <td className="ps-3 fw-bold text-dark">
-                        {item.dayName}{" "}
-                        {item.isToday && (
-                          <Badge bg="danger" className="ms-1 rounded-pill">
-                            Hôm nay
-                          </Badge>
-                        )}
+                    <tr key={idx} className={item.isToday ? "table-primary bg-opacity-25 align-top" : "align-top"}>
+                      <td className="ps-3">
+                        <div className="fw-bold text-dark">
+                          {item.dayName}
+                          {item.isToday && (
+                            <Badge bg="danger" className="ms-1 rounded-pill" style={{ fontSize: "0.65rem" }}>
+                              Hôm nay
+                            </Badge>
+                          )}
+                        </div>
+                        <small className="text-muted">{item.date}</small>
                       </td>
-                      <td className="fw-medium">{item.date}</td>
                       <td>
-                        <span
-                          className={`badge ${
-                            item.shiftType === "Ca sáng"
-                              ? "bg-warning bg-opacity-25 text-dark border border-warning"
+                        <div>
+                          <span
+                            className={`badge ${
+                              item.shiftType === "Ca sáng"
+                                ? "bg-warning bg-opacity-25 text-dark border border-warning"
+                                : item.shiftType === "Ca chiều"
+                                ? "bg-info bg-opacity-25 text-dark border border-info"
+                                : "bg-secondary bg-opacity-25 text-secondary"
+                            } px-2 py-1 fw-semibold`}
+                          >
+                            {item.shiftType === "Ca sáng"
+                              ? "☀️ Ca sáng"
                               : item.shiftType === "Ca chiều"
-                              ? "bg-info bg-opacity-25 text-dark border border-info"
-                              : "bg-secondary bg-opacity-25 text-secondary"
-                          } px-2 py-1 fw-semibold`}
-                        >
-                          {item.shiftType === "Ca sáng"
-                            ? "☀️ Ca sáng"
-                            : item.shiftType === "Ca chiều"
-                            ? "🌙 Ca chiều"
-                            : "🏖️ Nghỉ trực"}
-                        </span>
+                              ? "🌙 Ca chiều"
+                              : "🏖️ Nghỉ trực"}
+                          </span>
+                          <div className="small fw-medium text-muted mt-1">{item.shiftHours}</div>
+                        </div>
                       </td>
-                      <td className="small fw-medium text-dark">{item.shiftHours}</td>
                       <td className="fw-semibold text-primary">{item.room}</td>
                       <td className="small text-muted">{item.nurse}</td>
                       <td>
-                        {item.appointmentsCount > 0 ? (
-                          <Badge bg="primary" className="rounded-pill px-2 py-1">
-                            {item.appointmentsCount} bệnh nhân
-                          </Badge>
+                        {item.appointments && item.appointments.length > 0 ? (
+                          <div className="d-flex flex-column gap-2 py-1">
+                            {item.appointments.map((appt) => (
+                              <div
+                                key={appt.id}
+                                className="d-flex align-items-center justify-content-between p-2 rounded border bg-light bg-opacity-75"
+                                style={{ fontSize: "0.82rem" }}
+                              >
+                                <div>
+                                  <div className="fw-semibold text-primary d-flex align-items-center gap-1">
+                                    <i className="bi bi-clock text-secondary"></i>
+                                    <span>{appt.time}</span>
+                                    <span className="text-dark ms-1">• {getPatientName(appt.patientId)}</span>
+                                  </div>
+                                  <small className="text-muted d-block">{translateReason(appt.reason)}</small>
+                                </div>
+                                <StatusBadge status={appt.status} />
+                              </div>
+                            ))}
+                          </div>
                         ) : (
-                          <span className="text-muted small">0 ca hẹn</span>
+                          <span className="text-muted small">
+                            {item.isWorking ? "Chưa có bệnh nhân đặt lịch" : "Nghỉ ca khám"}
+                          </span>
                         )}
                       </td>
                       <td className="pe-3">
