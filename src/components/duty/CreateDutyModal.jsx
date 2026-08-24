@@ -8,6 +8,7 @@ import { saveCustomDutySchedule, getLocalDateStr, getCustomDutySchedules, getDoc
 const SHIFT_OPTIONS = [
   { value: "Ca sáng", label: "☀️ Ca sáng", hours: "07:30 - 11:30", variant: "warning" },
   { value: "Ca chiều", label: "🌙 Ca chiều", hours: "13:30 - 17:30", variant: "info" },
+  { value: "Cả ngày", label: "☀️🌙 Cả ngày (2 ca: Sáng & Chiều)", hours: "07:30 - 11:30 & 13:30 - 17:30", variant: "success" },
   { value: "Ca tối", label: "⭐ Ca tối (Ngoài giờ)", hours: "17:30 - 21:00", variant: "primary" },
   { value: "Nghỉ trực", label: "🏖️ Nghỉ trực", hours: "Nghỉ ca", variant: "secondary" },
 ];
