@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Container, Row, Col, Card, Table, Badge, Form, Button } from "react-bootstrap";
 import { doctorApi } from "../api/doctorApi";
 import { appointmentApi } from "../api/appointmentApi";
+import { patientApi } from "../api/patientApi";
 import Loading from "../components/common/Loading";
 import SearchBox from "../components/common/SearchBox";
 import { getDoctorWeeklySchedule, getRealtimeShiftStatus, getLocalDateStr } from "../utils/dutySchedule";
@@ -17,6 +18,7 @@ import { ROUTES } from "../config/routes";
 function DutySchedule() {
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
@@ -64,12 +66,14 @@ function DutySchedule() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [docs, appts] = await Promise.all([
+        const [docs, appts, pts] = await Promise.all([
           doctorApi.getAll(),
           appointmentApi.getAll(),
+          patientApi.getAll(),
         ]);
         setDoctors(docs || []);
         setAppointments(appts || []);
+        setPatients(pts || []);
       } finally {
         setLoading(false);
       }
@@ -424,7 +428,24 @@ function DutySchedule() {
                         <td className="small text-muted">{r.nurse}</td>
                         <td>
                           {r.appointmentsCount > 0 ? (
-                            <Badge bg="primary" className="rounded-pill px-2">{r.appointmentsCount} ca hẹn</Badge>
+                            <Badge
+                              bg="primary"
+                              className="rounded-pill px-2 py-1 shadow-sm cursor-pointer hover-shadow"
+                              style={{ cursor: "pointer" }}
+                              onClick={() =>
+                                openQuickView(
+                                  "appointments",
+                                  `Lịch Hẹn Khám — ${r.doctorName} (${r.shiftType})`,
+                                  `Danh sách ${r.appointmentsCount} bệnh nhân đặt lịch ngày ${r.date} (${r.shiftHours}) • Phòng: ${r.room}`,
+                                  r.appointments || [],
+                                  ROUTES.APPOINTMENTS
+                                )
+                              }
+                              title="Nhấn để xem chi tiết danh sách bệnh nhân đã đặt lịch trong ca trực này"
+                            >
+                              <i className="bi bi-calendar-check me-1"></i>
+                              {r.appointmentsCount} ca hẹn
+                            </Badge>
                           ) : (
                             <span className="text-muted small">Chưa có</span>
                           )}
@@ -475,6 +496,8 @@ function DutySchedule() {
       title={quickViewModal.title}
       subtitle={quickViewModal.subtitle}
       data={quickViewModal.data}
+      patients={patients}
+      doctors={doctors}
       targetPage={quickViewModal.targetPage}
     />
   </>
