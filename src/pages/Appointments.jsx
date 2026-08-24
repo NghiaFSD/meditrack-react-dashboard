@@ -48,6 +48,8 @@ function Appointments() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [doctorFilter, setDoctorFilter] = useState("All");
+  const [patientFilter, setPatientFilter] = useState("All");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
@@ -124,7 +126,10 @@ function Appointments() {
         matchesStatus = item.status === statusFilter;
       }
 
-      return matchesSearch && matchesStatus;
+      const matchesDoctor = doctorFilter === "All" || String(item.doctorId) === String(doctorFilter);
+      const matchesPatient = patientFilter === "All" || String(item.patientId) === String(patientFilter);
+
+      return matchesSearch && matchesStatus && matchesDoctor && matchesPatient;
     });
 
     // Sắp xếp: Ưu tiên Pending lên đầu -> Hôm nay/Tương lai -> Cuối cùng là Completed/Cancelled
@@ -142,7 +147,7 @@ function Appointments() {
       // 3. Sắp xếp theo ngày giảm dần (mới nhất lên trên)
       return b.date.localeCompare(a.date) || a.time.localeCompare(b.time);
     });
-  }, [roleFilteredAppointments, search, statusFilter, todayStr, patients, doctors]);
+  }, [roleFilteredAppointments, search, statusFilter, doctorFilter, patientFilter, todayStr, patients, doctors]);
 
   const [selectedSubShift, setSelectedSubShift] = useState("morning");
 
@@ -451,16 +456,26 @@ function Appointments() {
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <div>
           <h2 className="fw-bold text-dark mb-1">
-            {isDoctorRole ? "Quản lý Lịch hẹn Khám bệnh" : "Lịch hẹn khám của tôi"}
+            {currentRole === ROLES.ADMIN
+              ? "Quản lý Lịch hẹn khám"
+              : currentRole === ROLES.DOCTOR
+              ? "Lịch hẹn của tôi"
+              : "Lịch hẹn khám của tôi"}
           </h2>
           <p className="text-muted mb-0">
-            {isDoctorRole
-              ? `Bác sĩ ${linkedDoctor?.fullName || "phụ trách"} quản lý hàng đợi, phê duyệt lịch và tiếp nhận bệnh nhân.`
+            {currentRole === ROLES.ADMIN
+              ? "Theo dõi, quản lý và phân bổ lịch hẹn khám bệnh toàn phòng khám."
+              : currentRole === ROLES.DOCTOR
+              ? `Bác sĩ ${linkedDoctor?.fullName || "phụ trách"} quản lý hàng đợi và tiếp nhận bệnh nhân.`
               : "Theo dõi lịch hẹn khám bệnh, thời gian và trạng thái tiếp nhận của bác sĩ."}
           </p>
         </div>
         {canCreateAppointment && (
-          <Button variant="primary" onClick={handleOpenAdd} className="d-flex align-items-center gap-2 shadow-sm rounded-pill px-3 py-2 fw-semibold">
+          <Button
+            variant="primary"
+            onClick={handleOpenAdd}
+            className="d-flex align-items-center gap-2 shadow-sm rounded-pill px-3 py-2 fw-semibold"
+          >
             <i className="bi bi-calendar-plus-fill"></i>
             <span>+ Đặt lịch hẹn mới</span>
           </Button>
@@ -507,101 +522,69 @@ function Appointments() {
         </Col>
       </Row>
 
-      {/* Thanh công cụ: Tìm kiếm + Tabs Lọc trạng thái */}
-      <Card className="border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
-        <Card.Body className="p-3">
-          <Row className="g-3 align-items-center">
-            <Col xs={12} lg={4}>
+      {/* Thanh công cụ: Tìm kiếm + Dropdown Lọc tinh gọn trên 1 hàng ngang */}
+      <Card className="border-0 shadow-sm rounded-3 mb-4">
+        <Card.Body className="py-3 px-3">
+          <Row className="g-2 align-items-center">
+            <Col xs={12} md={currentRole === ROLES.ADMIN ? 5 : 6}>
               <SearchBox
                 value={search}
                 onChange={setSearch}
                 placeholder="Tìm theo tên bệnh nhân, bác sĩ, lý do khám..."
               />
             </Col>
-            <Col xs={12} lg={8}>
-              {/* Tabs chuyển trạng thái trực quan */}
-              <div className="d-flex flex-wrap gap-2 justify-content-lg-end">
-                <Button
-                  size="sm"
-                  variant={statusFilter === "All" ? "primary" : "light"}
-                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
-                  onClick={() => setStatusFilter("All")}
-                >
-                  <span>Tất cả</span>
-                  <Badge bg={statusFilter === "All" ? "light" : "secondary"} text={statusFilter === "All" ? "primary" : "white"} pill>
-                    {stats.totalCount}
-                  </Badge>
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant={statusFilter === "Pending" ? "danger" : "light"}
-                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
-                  onClick={() => setStatusFilter("Pending")}
-                >
-                  <i className="bi bi-clock-history"></i>
-                  <span>Chờ duyệt</span>
-                  {stats.pendingCount > 0 && (
-                    <Badge bg={statusFilter === "Pending" ? "light" : "danger"} text={statusFilter === "Pending" ? "danger" : "white"} pill>
-                      {stats.pendingCount}
-                    </Badge>
-                  )}
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant={statusFilter === "Today" ? "info" : "light"}
-                  className={`rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border ${statusFilter === "Today" ? "text-white" : ""}`}
-                  onClick={() => setStatusFilter("Today")}
-                >
-                  <i className="bi bi-calendar-event"></i>
-                  <span>Hôm nay</span>
-                  {stats.todayCount > 0 && (
-                    <Badge bg={statusFilter === "Today" ? "light" : "info"} text={statusFilter === "Today" ? "dark" : "white"} pill>
-                      {stats.todayCount}
-                    </Badge>
-                  )}
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant={statusFilter === "Approved" ? "success" : "light"}
-                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
-                  onClick={() => setStatusFilter("Approved")}
-                >
-                  <i className="bi bi-check-circle"></i>
-                  <span>Đã duyệt</span>
-                  <Badge bg={statusFilter === "Approved" ? "light" : "success"} text={statusFilter === "Approved" ? "success" : "white"} pill>
-                    {stats.approvedCount}
-                  </Badge>
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant={statusFilter === "Completed" ? "secondary" : "light"}
-                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
-                  onClick={() => setStatusFilter("Completed")}
-                >
-                  <i className="bi bi-check2-all"></i>
-                  <span>Hoàn thành</span>
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant={statusFilter === "Cancelled" ? "dark" : "light"}
-                  className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border"
-                  onClick={() => setStatusFilter("Cancelled")}
-                >
-                  <span>Đã hủy</span>
-                </Button>
-              </div>
+            <Col xs={6} md={3}>
+              <Form.Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-3"
+              >
+                <option value="All">Tất cả trạng thái ({stats.totalCount})</option>
+                <option value="Pending">⏳ Chờ duyệt ({stats.pendingCount})</option>
+                <option value="Today">📅 Hôm nay ({stats.todayCount})</option>
+                <option value="Approved">✓ Đã duyệt ({stats.approvedCount})</option>
+                <option value="Completed">✓ Hoàn thành ({stats.completedCount})</option>
+                <option value="Cancelled">✕ Đã hủy</option>
+              </Form.Select>
             </Col>
+            {currentRole !== ROLES.DOCTOR && (
+              <Col xs={6} md={currentRole === ROLES.ADMIN ? 2 : 3}>
+                <Form.Select
+                  value={doctorFilter}
+                  onChange={(e) => setDoctorFilter(e.target.value)}
+                  className="rounded-3"
+                >
+                  <option value="All">Tất cả Bác sĩ</option>
+                  {doctors.map((d) => (
+                    <option key={d.id} value={String(d.id)}>
+                      {d.fullName}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Col>
+            )}
+            {currentRole === ROLES.ADMIN && (
+              <Col xs={6} md={2}>
+                <Form.Select
+                  value={patientFilter}
+                  onChange={(e) => setPatientFilter(e.target.value)}
+                  className="rounded-3"
+                >
+                  <option value="All">Tất cả Bệnh nhân</option>
+                  {patients.map((p) => (
+                    <option key={p.id} value={String(p.id)}>
+                      {p.fullName}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Col>
+            )}
           </Row>
         </Card.Body>
       </Card>
 
-      {/* Bảng danh sách Lịch hẹn */}
-      <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
+      {/* Bảng danh sách Lịch hẹn — Nền trắng tinh tế, không chói mắt */}
+      <Card className="border-0 shadow-sm rounded-3 overflow-hidden">
         <Card.Body className="p-0">
           {filteredAppointments.length === 0 ? (
             <div className="p-5 text-center">
@@ -622,12 +605,12 @@ function Appointments() {
               <thead className="table-light">
                 <tr>
                   <th className="ps-3" style={{ width: "60px" }}>ID</th>
-                  <th style={{ minWidth: "150px" }}>Thời gian khám</th>
+                  <th style={{ minWidth: "140px" }}>Thời gian khám</th>
                   <th style={{ minWidth: "180px" }}>Bệnh nhân</th>
-                  {!isDoctorRole && <th style={{ minWidth: "160px" }}>Bác sĩ</th>}
-                  <th style={{ minWidth: "200px" }}>Lý do khám</th>
+                  {!isDoctorRole && <th style={{ minWidth: "150px" }}>Bác sĩ</th>}
+                  <th style={{ minWidth: "180px" }}>Lý do khám</th>
                   <th style={{ minWidth: "120px" }}>Trạng thái</th>
-                  <th className="text-center pe-3" style={{ minWidth: "130px" }}>Thao tác</th>
+                  <th className="text-center pe-3" style={{ minWidth: "120px" }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -635,21 +618,12 @@ function Appointments() {
                   const isToday = item.date === todayStr;
                   const patientObj = patients.find((p) => Number(p.id) === Number(item.patientId));
                   return (
-                    <tr
-                      key={item.id}
-                      className={
-                        item.status === "Pending"
-                          ? "table-warning bg-opacity-25"
-                          : isToday
-                          ? "table-primary bg-opacity-10"
-                          : ""
-                      }
-                    >
+                    <tr key={item.id}>
                       <td className="ps-3 text-muted fw-semibold">#{item.id}</td>
                       <td>
                         <div className="d-flex flex-column">
                           <div className="fw-bold text-dark d-flex align-items-center gap-1">
-                            <i className="bi bi-clock text-primary"></i>
+                            <i className="bi bi-clock text-primary small"></i>
                             <span>{item.time}</span>
                             {isToday && (
                               <Badge bg="danger" className="ms-1 rounded-pill" style={{ fontSize: "0.65rem" }}>
@@ -683,7 +657,7 @@ function Appointments() {
                         </td>
                       )}
                       <td>
-                        <span className="text-dark fw-medium">{translateReason(item.reason)}</span>
+                        <span className="text-dark">{translateReason(item.reason)}</span>
                       </td>
                       <td>
                         <StatusBadge status={item.status} />
