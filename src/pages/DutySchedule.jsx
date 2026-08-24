@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Container, Row, Col, Card, Table, Badge, Form } from "react-bootstrap";
+import { Container, Row, Col, Card, Table, Badge, Form, Button } from "react-bootstrap";
 import { doctorApi } from "../api/doctorApi";
 import { appointmentApi } from "../api/appointmentApi";
 import Loading from "../components/common/Loading";
 import SearchBox from "../components/common/SearchBox";
 import { getDoctorWeeklySchedule, getRealtimeShiftStatus, getLocalDateStr } from "../utils/dutySchedule";
+import CreateDutyModal from "../components/duty/CreateDutyModal";
 
 /**
  * Trang Quản lý Lịch trực Bác sĩ — Dành riêng cho Admin
@@ -18,6 +19,7 @@ function DutySchedule() {
   const [search, setSearch] = useState("");
   const [shiftFilter, setShiftFilter] = useState("All");
   const [dayFilter, setDayFilter] = useState("All");
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Timer cập nhật mỗi phút — để trạng thái tự chuyển theo giờ thực
   const [currentTime, setCurrentTime] = useState(() => new Date());
@@ -110,16 +112,27 @@ function DutySchedule() {
   if (loading) return <Loading />;
 
   return (
+    <>
     <Container fluid className="py-2">
-      {/* Tiêu đề */}
-      <div className="mb-4">
-        <h3 className="fw-bold text-dark mb-1">
-          <i className="bi bi-calendar-week-fill text-primary me-2"></i>
-          Quản lý Lịch trực Bác sĩ
-        </h3>
-        <p className="text-muted mb-0">
-          Theo dõi và phân bổ ca trực của toàn bộ bác sĩ trong phòng khám theo tuần
-        </p>
+      {/* Tiêu đề + nút tạo */}
+      <div className="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+        <div>
+          <h3 className="fw-bold text-dark mb-1">
+            <i className="bi bi-calendar-week-fill text-primary me-2"></i>
+            Quản lý Lịch trực Bác sĩ
+          </h3>
+          <p className="text-muted mb-0">
+            Theo dõi và phân bổ ca trực của toàn bộ bác sĩ trong phòng khám theo tuần
+          </p>
+        </div>
+        <Button
+          variant="primary"
+          className="d-flex align-items-center gap-2 shadow-sm"
+          onClick={() => setShowCreateModal(true)}
+        >
+          <i className="bi bi-calendar2-plus-fill"></i>
+          Tạo Lịch trực
+        </Button>
       </div>
 
       {/* 4 Thẻ thống kê */}
@@ -292,7 +305,19 @@ function DutySchedule() {
         })
       )}
     </Container>
+
+    {/* Modal Tạo Lịch trực */}
+    <CreateDutyModal
+      show={showCreateModal}
+      onHide={() => setShowCreateModal(false)}
+      onSaved={() => {
+        setShowCreateModal(false);
+        doctorApi.getAll().then((docs) => setDoctors(docs || []));
+      }}
+    />
+  </>
   );
 }
 
 export default DutySchedule;
+

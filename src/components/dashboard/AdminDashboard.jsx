@@ -7,6 +7,7 @@ import QuickViewModal from "./QuickViewModal";
 import StatusBadge from "../common/StatusBadge";
 import { ROUTES } from "../../config/routes";
 import { getDoctorWeeklySchedule, getLocalDateStr } from "../../utils/dutySchedule";
+import CreateDutyModal from "../duty/CreateDutyModal";
 
 const RISK_COLORS = {
   High: "#dc3545",
@@ -26,6 +27,7 @@ function AdminDashboard({
 }) {
   const navigate = useNavigate();
   const today = getLocalDateStr();
+  const [showDutyModal, setShowDutyModal] = useState(false);
 
   // State quản lý QuickViewModal
   const [modalConfig, setModalConfig] = useState({
@@ -143,8 +145,8 @@ function AdminDashboard({
           <Button
             variant="outline-primary"
             className="d-flex align-items-center gap-2 bg-white shadow-sm"
-            title="Quản lý và phân ca trực cho đội ngũ Bác sĩ"
-            onClick={() => navigate(ROUTES.DUTY_SCHEDULE)}
+            title="Tạo và phân ca trực cho đội ngũ Bác sĩ"
+            onClick={() => setShowDutyModal(true)}
           >
             <i className="bi bi-calendar2-week-fill text-primary"></i>
             <span>Tạo Lịch trực</span>
@@ -364,6 +366,13 @@ function AdminDashboard({
         data={modalConfig.data}
         patients={patients}
         doctors={doctors}
+      />
+
+      {/* Modal Tạo Lịch trực */}
+      <CreateDutyModal
+        show={showDutyModal}
+        onHide={() => setShowDutyModal(false)}
+        onSaved={() => window.location.reload()}
       />
     </div>
   );
